@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { color-scheme: dark; }
+html, body { background: #080b16; color: #ffffff; }
+
+@layer base {
+  body { @apply antialiased; font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
+}
+
+/* ── Backgrounds ── */
+.bg-white          { background-color: #1a2340 !important; }
+.bg-gray-50        { background-color: #151c32 !important; }
+.bg-gray-100       { background-color: #1f2b4d !important; }
+.bg-gray-200       { background-color: #243256 !important; }
+.bg-gray-700       { background-color: #0f1628 !important; }
+.bg-gray-800       { background-color: #1a2340 !important; }
+.bg-gray-900       { background-color: #0d1224 !important; }
+.bg-red-50         { background-color: rgba(244, 63, 94, 0.12) !important; }
+.bg-blue-50        { background-color: rgba(14, 165, 233, 0.1) !important; }
+.bg-blue-100       { background-color: rgba(14, 165, 233, 0.15) !important; }
+.bg-blue-900       { background-color: rgba(14, 165, 233, 0.12) !important; }
+.bg-blue-600       { background: linear-gradient(135deg, #0ea5e9, #6366f1) !important; }
+.bg-amber-500      { background: linear-gradient(135deg, #f97316, #ec4899) !important; }
+.bg-black\/40, .bg-black\/50 { background-color: rgba(4, 6, 14, 0.82) !important; }
+.hover\:bg-gray-50:hover   { background-color: #1f2b4d !important; }
+.hover\:bg-gray-100:hover  { background-color: rgba(255,255,255,0.06) !important; }
+.hover\:bg-red-50:hover    { background-color: rgba(244, 63, 94, 0.2) !important; }
+.hover\:bg-blue-700:hover  { background: linear-gradient(135deg, #0284c7, #4f46e5) !important; }
+.hover\:bg-amber-600:hover { background: linear-gradient(135deg, #ea580c, #db2777) !important; }
+.hover\:bg-gray-600:hover  { background-color: #243256 !important; }
+
+/* ── Text ── */
+.text-gray-900     { color: #ffffff !important; }
+.text-gray-800     { color: #f0f4fa !important; }
+.text-gray-700     { color: #7dd3fc !important; }
+.text-gray-600     { color: #b8c5db !important; }
+.text-gray-500     { color: #7dd3fc !important; }
+.text-gray-400     { color: #6b7fa0 !important; }
+.text-gray-300     { color: #b8c5db !important; }
+.text-white        { color: #ffffff !important; }
+.text-red-700      { color: #fb7185 !important; }
+.text-red-600      { color: #f43f5e !important; }
+.text-red-500      { color: #f43f5e !important; }
+.text-blue-700     { color: #38bdf8 !important; }
+.text-blue-600     { color: #38bdf8 !important; }
+.text-blue-300     { color: #7dd3fc !important; }
+
+/* ── Borders ── */
+.border-gray-100   { border-color: rgba(99, 180, 255, 0.1) !important; }
+.border-gray-200   { border-color: rgba(99, 180, 255, 0.18) !important; }
+.border-gray-300   { border-color: rgba(99, 180, 255, 0.22) !important; }
+.border-gray-600   { border-color: rgba(99, 180, 255, 0.22) !important; }
+.border-gray-700   { border-color: rgba(99, 180, 255, 0.18) !important; }
+.border-red-200    { border-color: rgba(244, 63, 94, 0.35) !important; }
+.border-red-300    { border-color: rgba(244, 63, 94, 0.35) !important; }
+.border-blue-600   { border-color: #0ea5e9 !important; }
+
+.focus\:ring-blue-500:focus { --tw-ring-color: rgba(14, 165, 233, 0.4) !important; }
+
+/* ── Input globali ── */
+input, select, textarea { background-color: #0f1628 !important; color: #ffffff !important; border-color: rgba(99, 180, 255, 0.22) !important; }
+input::placeholder, textarea::placeholder { color: #506380 !important; }
+input:focus, select:focus, textarea:focus { border-color: #0ea5e9 !important; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3) !important; }
+input[type="checkbox"] { accent-color: #0ea5e9; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], input[type="password"], textarea, select { color: #ffffff !important; caret-color: #38bdf8; }
+select option { background: #1a2340; color: #ffffff; }
+
+/* ── Shadow ── */
+.shadow-xl { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7) !important; }
+.shadow-lg { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important; }
+
+/* ── Hover testi ── */
+.hover\:text-gray-600:hover { color: #ffffff !important; }
+.hover\:text-gray-700:hover { color: #ffffff !important; }
+.hover\:text-gray-300:hover { color: #ffffff !important; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.4); }
+
+/* ── Contrasto extra ── */
+.font-medium.text-gray-900, td .font-medium { color: #f43f5e !important; }
+label.text-sm.font-medium { color: #7dd3fc !important; }
+.uppercase.tracking-wider, .uppercase.tracking-wide { color: #38bdf8 !important; }
+button.text-blue-600 { color: #38bdf8 !important; }
+button.text-blue-600:hover { color: #7dd3fc !important; }
+button.text-red-500 { color: #f43f5e !important; }
+button.text-red-500:hover { color: #fb7185 !important; }
+
+/* ── Logo preview sfondo chiaro ── */
+img[alt*="logo" i], img[alt*="Logo" i], img[alt*="anteprima" i] { background-color: #f5f0e8 !important; border-radius: 8px; padding: 8px; }
+[style*="dashed"], .border-dashed { background-color: #f0ebe0 !important; border-color: #c8bfa8 !important; }
+div[style*="border-style: dashed"], div[style*="border: 2px dashed"], div[style*="border: 1px dashed"] { background-color: #f0ebe0 !important; border-color: #c8bfa8 !important; border-radius: 10px; }
+
+/* ══════════════════════════════════════════════════════════
+   FIX: Righe con sfondo chiaro (hover / selezione)
+   → testo NERO per leggibilità
+   ══════════════════════════════════════════════════════════ */
+
+/* Slicer Profile Picker + qualsiasi lista con hover chiaro:
+   Il trucco è usare un selettore che cattura lo stile inline di React
+   quando applica un background chiaro al hover */
+
+/* Approccio robusto: qualsiasi div con cursor pointer + sfondo inline,
+   quando in hover → forza tutti i figli a testo scuro */
+div[style*="cursor: pointer"]:hover,
+div[style*="cursor:pointer"]:hover {
+  color: #ffffff !important;
+}
+
+/* Righe con bg esplicitamente chiaro (colori neon/accent) */
+div[style*="background-color: rgb(59, 130, 246)"],
+div[style*="background: rgb(59, 130, 246)"],
+div[style*="background-color: rgb(96, 165, 250)"],
+div[style*="background: rgb(96, 165, 250)"],
+div[style*="background-color: rgb(56, 189, 248)"],
+div[style*="background: rgb(56, 189, 248)"],
+div[style*="background-color: rgb(14, 165, 233)"],
+div[style*="background: rgb(14, 165, 233)"] {
+  color: #000000 !important;
+}
+div[style*="background-color: rgb(59, 130, 246)"] *,
+div[style*="background: rgb(59, 130, 246)"] *,
+div[style*="background-color: rgb(96, 165, 250)"] *,
+div[style*="background: rgb(96, 165, 250)"] *,
+div[style*="background-color: rgb(56, 189, 248)"] *,
+div[style*="background: rgb(56, 189, 248)"] *,
+div[style*="background-color: rgb(14, 165, 233)"] *,
+div[style*="background: rgb(14, 165, 233)"] * {
+  color: #000000 !important;
+}
+
+/* Fix specifico per SlicerProfilePicker: la riga selezionata/hover
+   usa tipicamente un bg inline tipo background: rgba(59,130,246,...) */
+div[style*="background: rgba(59, 130, 246"] *,
+div[style*="background:rgba(59, 130, 246"] *,
+div[style*="background: rgba(59,130,246"] *,
+div[style*="background:rgba(59,130,246"] * {
+  color: #7dd3fc !important;
+}
+
+/* Selezione attiva */
+[aria-selected="true"], [data-selected="true"], .selected { color: #000000 !important; }
+[aria-selected="true"] *, [data-selected="true"] *, .selected * { color: #000000 !important; }

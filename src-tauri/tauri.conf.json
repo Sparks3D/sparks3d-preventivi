@@ -1,0 +1,64 @@
+{
+  "productName": "Sparks3D Preventivi",
+  "version": "1.0.0",
+  "identifier": "com.sparks3d.preventivi",
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Sparks3D Preventivi",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "visible": false
+      },
+      {
+        "label": "splash",
+        "title": "Sparks3D",
+        "url": "splashscreen.html",
+        "width": 580,
+        "height": 380,
+        "resizable": false,
+        "center": true,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "headerImage": "nsis/header.bmp",
+        "sidebarImage": "nsis/sidebar.bmp",
+        "installerIcon": "icons/icon.ico",
+        "displayLanguageSelector": false,
+        "installMode": "both",
+        "languages": ["Italian", "English"],
+        "startMenuFolder": "Sparks3D"
+      }
+    }
+  },
+  "plugins": {}
+}

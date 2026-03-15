@@ -1,0 +1,14 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities for Sparks3D Preventivi",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:default",
+    "shell:allow-open",
+    "dialog:default",
+    "fs:default",
+    "fs:allow-write-file",
+    "fs:write-all"
+  ]
+}
