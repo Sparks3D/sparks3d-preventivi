@@ -1,0 +1,45 @@
+# ── Node / Frontend ──
+node_modules/
+dist/
+.vite/
+*.local
+
+# ── Rust / Tauri ──
+src-tauri/target/
+src-tauri/WixTools/
+src-tauri/gen/
+
+# ── Build artifacts ──
+*.exe
+*.msi
+*.nsis
+*.deb
+*.AppImage
+*.dmg
+
+# ── Database e dati utente (NON committare) ──
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ── Logs ──
+*.log
+npm-debug.log*
+
+# ── OS files ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Environment ──
+.env
+.env.local
+.env.production

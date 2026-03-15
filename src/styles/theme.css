@@ -1,0 +1,279 @@
+/* src/styles/theme.css */
+/* Sparks3D Preventivi — Vibrant Dark Theme (High Contrast) */
+/* ========================================================== */
+
+:root {
+  /* Background layers — scuro ma ben stratificato */
+  --bg-deep: #080b16;
+  --bg-base: #0d1224;
+  --bg-surface: #151c32;
+  --bg-card: #1a2340;
+  --bg-card-hover: #1f2b4d;
+  --bg-elevated: #243256;
+  --bg-input: #0f1628;
+
+  /* Borders — visibili */
+  --border-subtle: rgba(99, 180, 255, 0.12);
+  --border-default: rgba(99, 180, 255, 0.22);
+  --border-active: rgba(56, 189, 248, 0.6);
+  --border-glow: rgba(56, 189, 248, 0.35);
+
+  /* Text — ALTO CONTRASTO */
+  --text-primary: #ffffff;
+  --text-secondary: #b8c5db;
+  --text-muted: #6b7fa0;
+  --text-accent: #38bdf8;
+  --text-label: #7dd3fc;
+
+  /* Accent — cyan vivace */
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+  --accent-glow: rgba(14, 165, 233, 0.3);
+  --accent-soft: rgba(14, 165, 233, 0.1);
+
+  /* Colori vivaci stile neon */
+  --green: #22c55e;
+  --green-soft: rgba(34, 197, 94, 0.15);
+  --red: #f43f5e;
+  --red-soft: rgba(244, 63, 94, 0.15);
+  --orange: #f97316;
+  --orange-soft: rgba(249, 115, 22, 0.15);
+  --purple: #a855f7;
+  --purple-soft: rgba(168, 85, 247, 0.15);
+  --cyan: #22d3ee;
+  --cyan-soft: rgba(34, 211, 238, 0.15);
+  --pink: #ec4899;
+  --pink-soft: rgba(236, 72, 153, 0.15);
+  --magenta: #d946ef;
+  --yellow: #facc15;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.12);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Font sizes (overridable da SettingsContext) */
+  --font-size-base: 14px;
+  --font-size-label: 11px;
+  --font-size-input: 14px;
+}
+
+/* ── Base ── */
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: var(--font-size-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Previeni flash of white durante il caricamento */
+html { background: #080b16; }
+
+/* GPU acceleration per elementi animati */
+.animate-fade-in,
+.animate-slide-in,
+.s3d-btn,
+.s3d-card {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.4); }
+
+/* ── Card ── */
+.s3d-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.s3d-card:hover {
+  border-color: var(--border-default);
+}
+.s3d-card-glow {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Input ── */
+.s3d-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 9px 12px;
+  font-size: var(--font-size-input);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  width: 100%;
+}
+.s3d-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.s3d-input::placeholder { color: var(--text-muted); }
+.s3d-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.s3d-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 9px 12px;
+  font-size: var(--font-size-input);
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+.s3d-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ── Buttons — vivaci con gradiente ── */
+.s3d-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  outline: none;
+}
+
+.s3d-btn-primary {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: white;
+  box-shadow: 0 2px 12px rgba(14, 165, 233, 0.35);
+}
+.s3d-btn-primary:hover {
+  background: linear-gradient(135deg, #0284c7, #4f46e5);
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.5);
+}
+.s3d-btn-primary:active {
+  box-shadow: 0 1px 6px rgba(14, 165, 233, 0.3);
+}
+
+.s3d-btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+.s3d-btn-ghost:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.s3d-btn-danger {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.s3d-btn-danger:hover {
+  background: rgba(244, 63, 94, 0.25);
+}
+
+/* ── Badges ── */
+.s3d-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ── Table ── */
+.s3d-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.s3d-table thead th {
+  background: var(--bg-surface);
+  color: var(--text-label);
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-default);
+  text-align: left;
+}
+.s3d-table tbody tr {
+  transition: background 0.15s;
+}
+.s3d-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+.s3d-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+}
+
+/* ── Section header ── */
+.s3d-section-title {
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-label);
+  margin-bottom: 12px;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-slide-in { animation: slideIn 0.25s ease-out; }
+
+/* ── Selection ── */
+::selection {
+  background: rgba(14, 165, 233, 0.3);
+  color: #fff;
+}
+
+/* ── Focus visible (accessibilità tastiera) ── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Disabilita animazioni se utente preferisce ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,368 @@
+// src/components/ritenuta/RitenutaAccontoPage.tsx
+// Sparks3D Preventivi – Generazione Ritenuta d'Acconto / Ricevuta
+// =================================================================
+
+import { useState, useEffect, useCallback } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { generaRitenutaPdf, esportaRitenutaConNome, DatiRitenuta } from "../../utils/ritenutaPdf";
+
+interface Cliente {
+  id: number; nome: string; cognome: string;
+  denominazione_azienda: string; email: string; telefono: string;
+  indirizzo: string; cap: string; citta: string; provincia: string;
+  partita_iva: string; codice_fiscale: string; note: string;
+}
+
+interface Preventivo {
+  id: number; numero: string; cliente_id: number | null;
+  totale_finale: number; note: string;
+}
+
+const eur = (n: number) =>
+  new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);
+
+export function RitenutaAccontoPage() {
+  const [clienti, setClienti] = useState<Cliente[]>([]);
+  const [preventivi, setPreventivi] = useState<Preventivo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Form
+  const [clienteId, setClienteId] = useState<number | null>(null);
+  const [preventivoId, setPreventivoId] = useState<number | null>(null);
+  const [numero, setNumero] = useState("");
+  const [data, setData] = useState(new Date().toISOString().split("T")[0]);
+  const [descrizione, setDescrizione] = useState("");
+  const [importoLordo, setImportoLordo] = useState(0);
+  const [note, setNote] = useState("");
+
+  const load = useCallback(async () => {
+    try {
+      const [cl, pr] = await Promise.all([
+        invoke<Cliente[]>("get_clienti"),
+        invoke<Preventivo[]>("get_preventivi"),
+      ]);
+      setClienti(cl);
+      setPreventivi(pr);
+
+      // Numero auto: RIC-{anno}-{prossimo}
+      const anno = new Date().getFullYear();
+      setNumero(`RIC-${anno}-${pr.length + 1}`);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  // Cliente selezionato
+  const cliente = clienti.find((c) => c.id === clienteId);
+  const isAzienda = !!cliente?.partita_iva?.trim();
+
+  // Calcoli
+  const RITENUTA_PCT = 20;
+  const ritenuta = isAzienda ? importoLordo * (RITENUTA_PCT / 100) : 0;
+  const netto = importoLordo - ritenuta;
+  const marcaBollo = importoLordo > 77.47 ? 2.0 : 0;
+  const totaleAPagare = netto + marcaBollo;
+
+  // Display nome cliente
+  const displayCliente = (c: Cliente) => {
+    if (c.denominazione_azienda) return c.denominazione_azienda;
+    return [c.nome, c.cognome].filter(Boolean).join(" ") || `Cliente #${c.id}`;
+  };
+
+  // Quando si seleziona un preventivo, pre-compila
+  const onSelectPreventivo = (id: number) => {
+    setPreventivoId(id);
+    const p = preventivi.find((pr) => pr.id === id);
+    if (p) {
+      setImportoLordo(p.totale_finale);
+      setDescrizione(`Servizio di stampa 3D come da preventivo n. ${p.numero}`);
+      if (p.cliente_id) setClienteId(p.cliente_id);
+    }
+  };
+
+  // Genera PDF
+  const handleGenera = async () => {
+    if (!cliente) { setError("Seleziona un cliente"); return; }
+    if (importoLordo <= 0) { setError("L'importo deve essere maggiore di zero"); return; }
+    if (!descrizione.trim()) { setError("Inserisci una descrizione della prestazione"); return; }
+
+    try {
+      setLoading(true); setError(""); setSuccess("");
+      const prev = preventivi.find((p) => p.id === preventivoId);
+
+      const dati: DatiRitenuta = {
+        numero,
+        data,
+        cliente_nome: displayCliente(cliente),
+        cliente_indirizzo: cliente.indirizzo,
+        cliente_cap_citta: [cliente.cap, cliente.citta, cliente.provincia ? `(${cliente.provincia})` : ""].filter(Boolean).join(" "),
+        cliente_cf: cliente.codice_fiscale,
+        cliente_piva: cliente.partita_iva,
+        descrizione,
+        importo_lordo: importoLordo,
+        preventivo_numero: prev?.numero,
+        preventivo_id: prev?.id,
+        cliente_id: cliente.id,
+        note: note || undefined,
+      };
+
+      const risultato = await generaRitenutaPdf(dati);
+
+      const tipoDoc = isAzienda ? "Ritenuta" : "Ricevuta";
+      let msg = `✅ PDF "${tipoDoc}" generato e salvato in Documenti/Sparks3D/Ritenute/`;
+      if (risultato.salvato_in_archivio) {
+        msg += "\n📋 Archiviato nel database.";
+      }
+      setSuccess(msg);
+
+      // Apri il PDF automaticamente
+      try {
+        await invoke("open_pdf_file", { path: risultato.pdf_path });
+      } catch { /* ignore */ }
+    } catch (e: any) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h2 className="text-2xl font-bold text-gray-900">Ritenuta d'acconto / Ricevuta</h2>
+        <p className="text-sm text-gray-600 mt-1">
+          Genera il documento fiscale corretto in base al tipo di cliente
+        </p>
+      </div>
+
+      {/* Messaggi */}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4 flex justify-between items-center">
+          <span>⚠️ {error}</span>
+          <button onClick={() => setError("")} className="text-red-500 text-lg leading-none">✕</button>
+        </div>
+      )}
+      {success && (
+        <div className="p-3 rounded-lg text-sm mb-4" style={{ background: "var(--green-soft, rgba(34,197,94,.12))", color: "var(--green, #22c55e)", border: "1px solid rgba(34,197,94,.25)" }}>
+          ✅ {success}
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="p-6 space-y-5">
+
+          {/* ── Carica da preventivo (opzionale) ── */}
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+              Carica da preventivo (opzionale)
+            </p>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              value={preventivoId ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v) onSelectPreventivo(Number(v));
+                else { setPreventivoId(null); }
+              }}
+            >
+              <option value="">— Seleziona un preventivo (opzionale) —</option>
+              {preventivi.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.numero} — {eur(p.totale_finale)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* ── Numero e Data ── */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Numero ricevuta</label>
+              <input type="text" value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
+              <input type="date" value={data}
+                onChange={(e) => setData(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+          </div>
+
+          {/* ── Cliente ── */}
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+              Committente
+            </p>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              value={clienteId ?? ""}
+              onChange={(e) => setClienteId(e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">— Seleziona cliente —</option>
+              {clienti.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {displayCliente(c)}
+                  {c.partita_iva ? ` (P.IVA: ${c.partita_iva})` : " (Privato)"}
+                </option>
+              ))}
+            </select>
+
+            {/* Badge tipo cliente */}
+            {cliente && (
+              <div className="mt-3 p-3 rounded-lg" style={{
+                background: isAzienda ? "var(--accent-soft, rgba(14,165,233,.08))" : "var(--orange-soft, rgba(249,115,22,.1))",
+                border: `1px solid ${isAzienda ? "rgba(14,165,233,.2)" : "rgba(249,115,22,.2)"}`,
+              }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                    background: isAzienda ? "rgba(14,165,233,.15)" : "rgba(249,115,22,.15)",
+                    color: isAzienda ? "var(--accent, #0ea5e9)" : "var(--orange, #f97316)",
+                  }}>
+                    {isAzienda ? "🏢 AZIENDA / P.IVA" : "👤 PRIVATO"}
+                  </span>
+                </div>
+                <p className="text-xs mt-1" style={{ color: "var(--text-secondary, #b8c5db)" }}>
+                  {isAzienda
+                    ? `Il committente è sostituto d'imposta → si applica la ritenuta d'acconto del 20% (art. 25 DPR 600/73)`
+                    : `Prestazione occasionale tra privati → nessuna ritenuta. L'importo lordo corrisponde al netto.`}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* ── Descrizione ── */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione della prestazione *</label>
+            <textarea value={descrizione}
+              onChange={(e) => setDescrizione(e.target.value)}
+              placeholder="Es: Servizio di stampa 3D e progettazione modelli personalizzati..."
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-y" />
+          </div>
+
+          {/* ── Importo ── */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Compenso lordo (€) *</label>
+            <input type="number" step="0.01" min="0"
+              value={importoLordo}
+              onChange={(e) => setImportoLordo(parseFloat(e.target.value) || 0)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              style={{ fontSize: 18, fontWeight: 700, padding: "12px 16px" }} />
+          </div>
+
+          {/* ── Riepilogo calcolo ── */}
+          {importoLordo > 0 && (
+            <div className="p-4 rounded-lg" style={{
+              background: "var(--bg-surface, #151c32)",
+              border: "1px solid var(--border-default, rgba(99,180,255,.22))",
+            }}>
+              <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-label, #7dd3fc)" }}>
+                Riepilogo calcolo
+              </p>
+              <div className="space-y-2">
+                <Row label="Compenso lordo" value={eur(importoLordo)} />
+                {isAzienda && (
+                  <Row label={`Ritenuta d'acconto (${RITENUTA_PCT}%)`} value={`- ${eur(ritenuta)}`} color="var(--red, #f43f5e)" />
+                )}
+                {!isAzienda && (
+                  <Row label="Ritenuta d'acconto" value="Non applicata (privato)" muted />
+                )}
+                {marcaBollo > 0 && (
+                  <Row label="Marca da bollo" value={`+ ${eur(marcaBollo)}`} />
+                )}
+                <div style={{ borderTop: "1px solid var(--border-default, rgba(99,180,255,.15))", paddingTop: 8, marginTop: 8 }}>
+                  <Row label="NETTO A PAGARE" value={eur(totaleAPagare)} bold color="var(--green, #22c55e)" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Note ── */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Note (opzionale)</label>
+            <textarea value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Note aggiuntive da inserire nel documento..."
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-y" />
+          </div>
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="flex items-center justify-between p-6 border-t border-gray-200">
+          <div className="text-xs" style={{ color: "var(--text-muted, #6b7fa0)" }}>
+            {cliente ? (
+              isAzienda
+                ? "Verrà generata una ricevuta con ritenuta d'acconto al 20%"
+                : "Verrà generata una ricevuta senza ritenuta (tra privati)"
+            ) : "Seleziona un cliente per procedere"}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={async () => {
+                if (!cliente) { setError("Seleziona un cliente"); return; }
+                if (importoLordo <= 0) { setError("L'importo deve essere maggiore di zero"); return; }
+                if (!descrizione.trim()) { setError("Inserisci una descrizione"); return; }
+                const prev = preventivi.find((p) => p.id === preventivoId);
+                const dati: DatiRitenuta = {
+                  numero, data, cliente_nome: displayCliente(cliente),
+                  cliente_indirizzo: cliente.indirizzo,
+                  cliente_cap_citta: [cliente.cap, cliente.citta, cliente.provincia ? `(${cliente.provincia})` : ""].filter(Boolean).join(" "),
+                  cliente_cf: cliente.codice_fiscale, cliente_piva: cliente.partita_iva,
+                  descrizione, importo_lordo: importoLordo,
+                  preventivo_numero: prev?.numero, preventivo_id: prev?.id, cliente_id: cliente.id,
+                  note: note || undefined,
+                };
+                try {
+                  const path = await esportaRitenutaConNome(dati);
+                  if (path) setSuccess(`PDF salvato in: ${path}`);
+                } catch (e: any) { setError(String(e)); }
+              }}
+              disabled={loading || !cliente || importoLordo <= 0 || !descrizione.trim()}
+              className="px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-40"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", cursor: "pointer" }}
+            >
+              💾 Salva con nome...
+            </button>
+            <button
+              onClick={handleGenera}
+              disabled={loading || !cliente || importoLordo <= 0 || !descrizione.trim()}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-40"
+            >
+              {loading ? "⏳ Generazione…" : "📄 Genera PDF"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Riga riepilogo ──
+
+function Row({ label, value, bold, color, muted }: {
+  label: string; value: string; bold?: boolean; color?: string; muted?: boolean;
+}) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span style={{ color: muted ? "var(--text-muted, #6b7fa0)" : "var(--text-secondary, #b8c5db)", fontWeight: bold ? 700 : 400 }}>
+        {label}
+      </span>
+      <span style={{
+        fontWeight: bold ? 700 : 600,
+        color: muted ? "var(--text-muted, #6b7fa0)" : color || "var(--text-primary, #fff)",
+        fontVariantNumeric: "tabular-nums",
+      }}>
+        {value}
+      </span>
+    </div>
+  );
+}

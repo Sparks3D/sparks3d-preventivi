@@ -1,0 +1,180 @@
+// src/App.tsx
+// Sparks3D Preventivi - Main Application
+// ========================================
+
+import { useState, useEffect, useCallback } from "react";
+import "./styles/theme.css";
+import { SettingsProvider } from "./context/SettingsContext";
+import { ToastProvider } from "./components/layout/ToastProvider";
+import { Sidebar } from "./components/layout/Sidebar";
+import { GlobalSearch } from "./components/layout/GlobalSearch";
+import { UpdateBanner } from "./components/layout/UpdateBanner";
+import { Dashboard } from "./components/dashboard/Dashboard";
+import { PreventiviArchivio } from "./components/preventivi/PreventiviArchivio";
+import { NuovoPreventivo } from "./components/preventivi/NuovoPreventivo";
+import { ClientiPage } from "./components/clienti/ClientiPage";
+import { ImpostazioniPage } from "./components/impostazioni/ImpostazioniPage";
+import { RitenutaAccontoPage } from "./components/ritenuta/RitenutaAccontoPage";
+import { RitenuteArchivio } from "./components/ritenuta/RitenuteArchivio";
+import { BackupRestore } from "./components/impostazioni/BackupRestore";
+import { LicenzaPage } from "./components/info/LicenzaPage";
+import { GuidaPage } from "./components/info/GuidaPage";
+import type { PageId } from "./types";
+
+export default function App() {
+  const [currentPage, setCurrentPage] = useState<PageId>("dashboard");
+  const [preventivoAttivoId, setPreventivoAttivoId] = useState<number | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const navigateTo = useCallback((page: PageId, preventivoId?: number) => {
+    setCurrentPage(page);
+    if (preventivoId !== undefined) {
+      setPreventivoAttivoId(preventivoId);
+    }
+  }, []);
+
+  // ── Ctrl+K shortcut ──
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case "dashboard":
+        return <Dashboard />;
+      case "preventivi":
+        return (
+          <PreventiviArchivio
+            onOpenPreventivo={(id) => navigateTo("nuovo-preventivo", id)}
+            onNuovoPreventivo={() => navigateTo("nuovo-preventivo")}
+          />
+        );
+      case "nuovo-preventivo":
+        return (
+          <NuovoPreventivo
+            preventivoId={preventivoAttivoId}
+            onBack={() => navigateTo("preventivi")}
+          />
+        );
+      case "clienti":
+        return <ClientiPage />;
+      case "ritenuta":
+        return <RitenutaAccontoPage />;
+      case "archivio-ritenute":
+        return <RitenuteArchivio />;
+      case "backup":
+        return <BackupRestore />;
+      case "licenza":
+        return <LicenzaPage />;
+      case "guida":
+        return <GuidaPage />;
+      case "impostazioni":
+      case "materiali":
+      case "stampanti":
+      case "profili":
+      case "servizi":
+      case "corrieri":
+      case "pagamenti":
+      case "interfaccia":
+        return <ImpostazioniPage activeTab={currentPage} onChangeTab={setCurrentPage} />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  return (
+    <SettingsProvider>
+    <ToastProvider>
+    <div style={{
+      display: "flex",
+      height: "100vh",
+      background: "#080b16",
+      color: "#ffffff",
+      overflow: "hidden",
+    }}>
+      <Sidebar
+        currentPage={currentPage}
+        onNavigate={navigateTo}
+        preventivoAttivo={preventivoAttivoId}
+      />
+      <main style={{
+        flex: 1,
+        overflow: "auto",
+        background: "linear-gradient(160deg, #0d1224 0%, #0a0f1e 100%)",
+        position: "relative",
+      }}>
+        {/* ── Barra superiore con Ctrl+K ── */}
+        <div style={{
+          position: "sticky", top: 0, zIndex: 100,
+          padding: "12px 28px",
+          display: "flex", justifyContent: "flex-end",
+          background: "linear-gradient(180deg, rgba(13,18,36,0.95) 0%, rgba(13,18,36,0) 100%)",
+          pointerEvents: "none",
+        }}>
+          <button
+            onClick={() => setSearchOpen(true)}
+            style={{
+              pointerEvents: "auto",
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "7px 14px",
+              borderRadius: 10,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.03)",
+              color: "#556a89",
+              fontSize: 13, fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.2s",
+              fontFamily: "inherit",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "rgba(59,130,246,0.3)";
+              e.currentTarget.style.background = "rgba(59,130,246,0.06)";
+              e.currentTarget.style.color = "#8899b4";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+              e.currentTarget.style.color = "#556a89";
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Cerca...
+            <span style={{
+              padding: "1px 6px", borderRadius: 4,
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              fontSize: 10, fontWeight: 600, color: "#475569",
+              marginLeft: 8,
+            }}>
+              Ctrl+K
+            </span>
+          </button>
+        </div>
+
+        <div style={{ padding: "0 28px 28px" }}>
+          <UpdateBanner />
+          {renderPage()}
+        </div>
+      </main>
+
+      {/* ── Modale ricerca globale ── */}
+      <GlobalSearch
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onNavigate={navigateTo}
+      />
+    </div>
+    </ToastProvider>
+    </SettingsProvider>
+  );
+}

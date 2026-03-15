@@ -1,0 +1,192 @@
+// src/components/impostazioni/InterfacciaPage.tsx
+// Sparks3D Preventivi – Impostazioni interfaccia
+// ================================================
+
+import { useSettings } from "../../context/SettingsContext";
+import { useToast } from "../layout/ToastProvider";
+
+const ACCENT_COLORS = [
+  { name: "Cyan",    hex: "#0ea5e9" },
+  { name: "Blue",    hex: "#3b82f6" },
+  { name: "Indigo",  hex: "#6366f1" },
+  { name: "Purple",  hex: "#a855f7" },
+  { name: "Pink",    hex: "#ec4899" },
+  { name: "Rose",    hex: "#f43f5e" },
+  { name: "Orange",  hex: "#f97316" },
+  { name: "Amber",   hex: "#f59e0b" },
+  { name: "Green",   hex: "#22c55e" },
+  { name: "Teal",    hex: "#14b8a6" },
+];
+
+const FONT_SIZES = [
+  { value: "small" as const,  label: "Piccolo (12px)" },
+  { value: "medium" as const, label: "Medio (14px)" },
+  { value: "large" as const,  label: "Grande (16px)" },
+];
+
+export function InterfacciaPage() {
+  const { settings, updateSettings, resetSettings } = useSettings();
+  const toast = useToast();
+
+  return (
+    <div style={{ maxWidth: 700, display: "flex", flexDirection: "column", gap: 24 }}>
+
+      {/* ═══ DIMENSIONE FONT ═══ */}
+      <div style={cardStyle}>
+        <div style={titleStyle}>Dimensione font</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {FONT_SIZES.map((fs) => (
+            <button
+              key={fs.value}
+              onClick={() => updateSettings({ fontSize: fs.value })}
+              style={{
+                flex: 1,
+                padding: "12px 14px",
+                borderRadius: 10,
+                border: `1.5px solid ${settings.fontSize === fs.value ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.08)"}`,
+                background: settings.fontSize === fs.value ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.02)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                textAlign: "center",
+              }}
+            >
+              <div style={{
+                fontSize: fs.value === "small" ? 12 : fs.value === "large" ? 16 : 14,
+                fontWeight: 600,
+                color: settings.fontSize === fs.value ? "#e2e8f0" : "#94a3b8",
+                marginBottom: 4,
+              }}>
+                Aa
+              </div>
+              <div style={{ fontSize: 11, color: "#64748b" }}>
+                {fs.label}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Preview */}
+        <div style={{
+          marginTop: 14, padding: "12px 16px", borderRadius: 10,
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.05)",
+        }}>
+          <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>
+            Anteprima
+          </div>
+          <div style={{
+            fontSize: settings.fontSize === "small" ? 12 : settings.fontSize === "large" ? 16 : 14,
+            color: "#b8c5db", lineHeight: 1.5,
+          }}>
+            Questa è un'anteprima del testo con la dimensione selezionata. I numeri appaiono così: € 1.234,56
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ COLORE ACCENT ═══ */}
+      <div style={cardStyle}>
+        <div style={titleStyle}>Colore accent</div>
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10,
+        }}>
+          {ACCENT_COLORS.map((c) => (
+            <button
+              key={c.hex}
+              onClick={() => updateSettings({ accentColor: c.hex, accentName: c.name })}
+              style={{
+                padding: "10px 8px",
+                borderRadius: 10,
+                border: `2px solid ${settings.accentColor === c.hex ? c.hex : "rgba(255,255,255,0.06)"}`,
+                background: settings.accentColor === c.hex ? `${c.hex}15` : "rgba(255,255,255,0.02)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              }}
+            >
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: c.hex,
+                boxShadow: settings.accentColor === c.hex ? `0 0 12px ${c.hex}60` : "none",
+                transition: "box-shadow 0.2s",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {settings.accentColor === c.hex && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+              <span style={{
+                fontSize: 10, fontWeight: 600,
+                color: settings.accentColor === c.hex ? c.hex : "#64748b",
+              }}>
+                {c.name}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Preview accent */}
+        <div style={{
+          marginTop: 14, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap",
+        }}>
+          <button style={{
+            padding: "8px 18px", borderRadius: 10, border: "none",
+            background: `linear-gradient(135deg, ${settings.accentColor}, ${settings.accentColor}cc)`,
+            color: "white", fontSize: 13, fontWeight: 600, cursor: "pointer",
+            boxShadow: `0 2px 12px ${settings.accentColor}50`,
+          }}>
+            Anteprima Button
+          </button>
+          <div style={{
+            padding: "4px 12px", borderRadius: 100,
+            background: `${settings.accentColor}18`,
+            border: `1px solid ${settings.accentColor}40`,
+            fontSize: 12, fontWeight: 600, color: settings.accentColor,
+          }}>
+            Badge
+          </div>
+          <div style={{
+            width: 120, padding: "6px 10px", borderRadius: 8,
+            border: `1.5px solid ${settings.accentColor}`,
+            background: "rgba(0,0,0,0.2)", fontSize: 13, color: "#e2e8f0",
+            boxShadow: `0 0 0 3px ${settings.accentColor}30`,
+          }}>
+            Input
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ RESET ═══ */}
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button
+          onClick={() => {
+            resetSettings();
+            toast.info("Impostazioni ripristinate");
+          }}
+          style={{
+            padding: "8px 18px", borderRadius: 10,
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#94a3b8", fontSize: 13, fontWeight: 500,
+            cursor: "pointer", transition: "all 0.2s",
+          }}
+        >
+          Ripristina predefiniti
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const cardStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.025)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  borderRadius: 16,
+  padding: 24,
+};
+
+const titleStyle: React.CSSProperties = {
+  fontSize: 15, fontWeight: 700, color: "#e2e8f0", marginBottom: 16,
+  display: "flex", alignItems: "center", gap: 8,
+};

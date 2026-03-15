@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.vite/
+src-tauri/target/
+src-tauri/WixTools/
+src-tauri/gen/
+*.db
+*.db-journal
+*.exe
+*.msi
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.env

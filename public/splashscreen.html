@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sparks3D Preventivi</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #060c18;
+    color: #e8edf5;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* ── Animated background ── */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 20%, transparent 70%);
+  }
+
+  .bg-glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  .bg-glow-2 {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, transparent 60%);
+    pointer-events: none;
+    animation: breathe 4s ease-in-out infinite 2s;
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -55%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -55%) scale(1.08); }
+  }
+
+  /* ── Floating particles ── */
+  .particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #3b82f6;
+    border-radius: 50%;
+    opacity: 0;
+    animation: float-up linear infinite;
+  }
+
+  @keyframes float-up {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    15% { opacity: 0.6; }
+    85% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-300px) scale(0); }
+  }
+
+  /* ── Logo ── */
+  .logo-container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo-box {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 8px 32px rgba(59, 130, 246, 0.3),
+      0 0 0 1px rgba(96, 165, 250, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    animation: logoGlow 3s ease-in-out infinite;
+  }
+
+  .logo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @keyframes logoGlow {
+    0%, 100% { box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(96, 165, 250, 0.15); }
+    50% { box-shadow: 0 8px 48px rgba(59, 130, 246, 0.45), 0 0 0 1px rgba(96, 165, 250, 0.25); }
+  }
+
+  .logo-text {
+    color: white;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .app-name {
+    margin-top: 24px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #e8edf5 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+  }
+
+  .app-subtitle {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #556a89;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: fadeInUp 0.8s ease-out 0.35s both;
+  }
+
+  .version-badge {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeInUp 0.8s ease-out 0.5s both;
+  }
+
+  .version-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #60a5fa;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    padding: 3px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Progress section ── */
+  .progress-section {
+    margin-top: 24px;
+    width: 320px;
+    z-index: 10;
+    animation: fadeInUp 0.8s ease-out 0.7s both;
+  }
+
+  .progress-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #8899b4;
+    transition: color 0.3s;
+  }
+
+  .progress-percent {
+    font-size: 12px;
+    font-weight: 700;
+    color: #60a5fa;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-detail {
+    font-size: 10px;
+    font-weight: 400;
+    color: #556a89;
+    margin-bottom: 8px;
+    height: 14px;
+    transition: opacity 0.3s;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+    border-radius: 100px;
+    transition: width 0.4s ease-out;
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -2px;
+    width: 8px;
+    height: 8px;
+    background: #60a5fa;
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(96, 165, 250, 0.6);
+  }
+
+  .progress-fill.done {
+    background: linear-gradient(90deg, #059669, #34d399, #6ee7b7);
+  }
+
+  .progress-fill.done::after {
+    background: #34d399;
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.6);
+  }
+
+  .progress-track::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(96, 165, 250, 0.08) 50%,
+      transparent 100%
+    );
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+
+  /* ── Features row ── */
+  .features {
+    margin-top: 28px;
+    display: flex;
+    gap: 24px;
+    z-index: 10;
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7fa3;
+  }
+
+  .feature-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+
+  /* ── Corner accents ── */
+  .corner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    z-index: 5;
+    opacity: 0.15;
+  }
+
+  .corner-tl { top: 20px; left: 20px; border-top: 1px solid #3b82f6; border-left: 1px solid #3b82f6; }
+  .corner-tr { top: 20px; right: 20px; border-top: 1px solid #3b82f6; border-right: 1px solid #3b82f6; }
+  .corner-bl { bottom: 20px; left: 20px; border-bottom: 1px solid #3b82f6; border-left: 1px solid #3b82f6; }
+  .corner-br { bottom: 20px; right: 20px; border-bottom: 1px solid #3b82f6; border-right: 1px solid #3b82f6; }
+</style>
+</head>
+<body data-tauri-drag-region>
+  <!-- Background effects -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+
+  <!-- Floating particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Corner accents -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <!-- Logo & branding + progress (tutto centrato) -->
+  <div class="logo-container">
+    <div class="logo-box">
+      <img src="app-icon.png" alt="Sparks3D">
+    </div>
+    <div class="app-name">Sparks3D</div>
+    <div class="app-subtitle">Preventivi</div>
+    <div class="version-badge">
+      <span class="version-tag">v1.0.0 PRO</span>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feature-item">
+        <div class="feature-dot" style="background: #34d399;"></div>
+        Preventivi 3D
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot" style="background: #60a5fa;"></div>
+        Multi-AMS
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot" style="background: #f59e0b;"></div>
+        PackLink
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot" style="background: #a78bfa;"></div>
+        PDF Export
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-section">
+      <div class="progress-info">
+        <span class="progress-label" id="progress-text">Avvio...</span>
+        <span class="progress-percent" id="progress-pct">0%</span>
+      </div>
+      <div class="progress-detail" id="progress-detail">&nbsp;</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Genera particelle flottanti
+    const particlesEl = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.bottom = '-10px';
+      p.style.animationDuration = (3 + Math.random() * 4) + 's';
+      p.style.animationDelay = (Math.random() * 5) + 's';
+      p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+      particlesEl.appendChild(p);
+    }
+
+    const fill = document.getElementById('progress-fill');
+    const text = document.getElementById('progress-text');
+    const pct = document.getElementById('progress-pct');
+    const detail = document.getElementById('progress-detail');
+
+    // Questa funzione viene chiamata direttamente dal backend Rust via eval()
+    function updateProgress(percent, message, det) {
+      fill.style.width = percent + '%';
+      text.textContent = message;
+      pct.textContent = percent + '%';
+      if (det) {
+        detail.textContent = det;
+        detail.style.opacity = '1';
+      } else {
+        detail.style.opacity = '0.5';
+        detail.textContent = '...';
+      }
+      if (percent >= 100) {
+        fill.classList.add('done');
+        text.style.color = '#34d399';
+        pct.style.color = '#34d399';
+      }
+    }
+
+    // Segnala al backend che lo splash è pronto
+    window.splashReady = true;
+  </script>
+</body>
+</html>
