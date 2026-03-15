@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "download_url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/latest",
-  "release_notes": "Release iniziale Sparks3D Preventivi",
+  "release_notes": "Rimossa sezione Preventivo attivo dalla sidebar",
   "release_date": "2026-03-15"
 }

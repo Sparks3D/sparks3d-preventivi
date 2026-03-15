@@ -385,53 +385,6 @@ export function Sidebar({ currentPage, onNavigate, preventivoAttivo }: SidebarPr
         })}
       </nav>
 
-      {/* ── Preventivo attivo ── */}
-      {preventivoAttivo && (
-        <div style={{
-          margin: "0 10px 8px",
-          padding: 14, borderRadius: 12,
-          background: "rgba(59, 130, 246, 0.06)",
-          border: "1px solid rgba(59, 130, 246, 0.15)",
-        }}>
-          <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8, color: "#3d5170", marginBottom: 8 }}>
-            Preventivo attivo
-          </div>
-          <button
-            onClick={() => onNavigate("nuovo-preventivo", preventivoAttivo)}
-            style={{
-              width: "100%", padding: "8px 12px",
-              borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.25)",
-              background: "rgba(59, 130, 246, 0.1)",
-              color: "#60a5fa", fontWeight: 700, fontSize: 13,
-              cursor: "pointer", transition: "all 0.2s",
-              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-              textAlign: "left",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(59, 130, 246, 0.18)";
-              e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)";
-              e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.25)";
-            }}
-          >
-            #{preventivoAttivo}
-          </button>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            marginTop: 8, fontSize: 11, color: "#34d399",
-          }}>
-            <div style={{
-              width: 5, height: 5, borderRadius: "50%",
-              background: "#34d399",
-              boxShadow: "0 0 6px rgba(52, 211, 153, 0.6)",
-            }} />
-            Salvataggio automatico
-          </div>
-        </div>
-      )}
-
       {/* ── Info links (sopra il footer) ── */}
       <div style={{ padding: "4px 10px 0", display: "flex", flexDirection: "column", gap: 2 }}>
         {([

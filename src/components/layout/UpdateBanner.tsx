@@ -18,7 +18,7 @@ interface UpdateInfo {
 export function UpdateBanner() {
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const [, setChecking] = useState(false);
 
   useEffect(() => {
     // Check dopo 5 secondi dall'avvio (non blocca il caricamento)
