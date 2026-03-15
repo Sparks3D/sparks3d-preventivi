@@ -3,8 +3,16 @@
 // ============================================================
 
 import { open } from "@tauri-apps/plugin-shell";
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 export function LicenzaPage() {
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    invoke<string>("get_app_version").then(v => setAppVersion(v)).catch(() => {});
+  }, []);
+
   const openLink = async (url: string) => {
     try { await open(url); } catch { window.open(url, "_blank"); }
   };
@@ -18,7 +26,7 @@ export function LicenzaPage() {
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: "#e8edf5", margin: 0 }}>Sparks3D Preventivi</h1>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-            <span style={{ fontSize: 13, color: "#556a89" }}>v1.0.0</span>
+            <span style={{ fontSize: 13, color: "#556a89" }}>{appVersion ? `v${appVersion}` : ""}</span>
             <span style={{
               fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
               padding: "2px 8px", borderRadius: 4,

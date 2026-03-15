@@ -238,6 +238,12 @@ fn get_slicer_info(is_beta: bool) -> Result<slicer::SlicerInfoResult, String> { 
 #[tauri::command]
 fn scan_slicer_profiles(tipo: String, is_beta: bool, solo_utente: bool) -> Result<Vec<slicer::SlicerProfileEntry>, String> { Ok(slicer::scan_profiles(&tipo, is_beta, solo_utente)) }
 
+// === VERSIONE APP ===
+#[tauri::command]
+fn get_app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
 // === SLICER STATUS (rilevamento installazione) ===
 #[tauri::command]
 fn check_slicer_status() -> Result<SlicerStatus, String> {
@@ -473,6 +479,13 @@ pub fn run() {
                 // Pausa extra per assicurarsi che il DOM sia renderizzato
                 sleep(5000);
 
+                // Invia la versione allo splash
+                if let Some(splash) = handle.get_webview_window("splash") {
+                    let ver = env!("CARGO_PKG_VERSION");
+                    let _ = splash.eval(&format!("if(typeof setVersion==='function')setVersion('{}')", ver));
+                }
+                sleep(300);
+
                 // ══════════════════════════════════════════════════
                 // FASE 3: Mostra avanzamento (solo visual, dati già pronti)
                 // ══════════════════════════════════════════════════
@@ -549,6 +562,7 @@ pub fn run() {
             check_slicer_status,
             open_slicer,
             reset_database,
+            get_app_version,
         ])
         .run(tauri::generate_context!())
         .expect("Errore avvio applicazione");

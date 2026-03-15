@@ -93,7 +93,7 @@ const mainNav: NavItem[] = [
   { id: "impostazioni", label: "Impostazioni",       icon: icons.impostazioni },
 ];
 
-export function Sidebar({ currentPage, onNavigate, preventivoAttivo }: SidebarProps) {
+export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   const [slicerStatus, setSlicerStatus] = useState<SlicerStatus>({
     nome: "Bambu Studio",
     installato: false,
@@ -102,6 +102,7 @@ export function Sidebar({ currentPage, onNavigate, preventivoAttivo }: SidebarPr
     versione: null,
   });
   const [slicerChecking, setSlicerChecking] = useState(true);
+  const [appVersion, setAppVersion] = useState("");
 
   // ── Rileva Bambu Studio al mount ──
   useEffect(() => {
@@ -123,6 +124,10 @@ export function Sidebar({ currentPage, onNavigate, preventivoAttivo }: SidebarPr
     };
     checkSlicer();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    invoke<string>("get_app_version").then(v => setAppVersion(v)).catch(() => {});
   }, []);
 
   const isActive = (id: PageId) => {
@@ -198,7 +203,7 @@ export function Sidebar({ currentPage, onNavigate, preventivoAttivo }: SidebarPr
               Sparks3D
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-              <span style={{ fontSize: 11, color: "#556a89" }}>v1.0.0</span>
+              <span style={{ fontSize: 11, color: "#556a89" }}>{appVersion ? `v${appVersion}` : ""}</span>
               <span style={{
                 fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
                 padding: "1px 7px", borderRadius: 4,

@@ -342,7 +342,7 @@
     <div class="app-name">Sparks3D</div>
     <div class="app-subtitle">Preventivi</div>
     <div class="version-badge">
-      <span class="version-tag">v1.0.0 PRO</span>
+      <span class="version-tag" id="version-tag">PRO</span>
     </div>
 
     <!-- Features -->
@@ -414,6 +414,11 @@
         text.style.color = '#34d399';
         pct.style.color = '#34d399';
       }
+    }
+
+    // Chiamata dal backend Rust per impostare la versione
+    function setVersion(v) {
+      document.getElementById('version-tag').textContent = 'v' + v + ' PRO';
     }
 
     // Segnala al backend che lo splash è pronto
