@@ -162,6 +162,8 @@ fn load_logo_preview(logo_path: String) -> Result<String, String> { use std::pat
 #[tauri::command]
 fn get_clienti(state: State<AppState>) -> Result<Vec<Cliente>, String> { let db = state.db.lock().map_err(|e| e.to_string())?; let mut stmt = db.prepare("SELECT id,nome,cognome,denominazione_azienda,email,telefono,indirizzo,cap,citta,provincia,partita_iva,codice_fiscale,note FROM clienti ORDER BY COALESCE(NULLIF(denominazione_azienda,''), nome, cognome)").map_err(|e| e.to_string())?; let items = stmt.query_map([], |row| Ok(Cliente { id:row.get(0)?,nome:row.get(1)?,cognome:row.get(2)?,denominazione_azienda:row.get(3)?,email:row.get(4)?,telefono:row.get(5)?,indirizzo:row.get(6)?,cap:row.get(7)?,citta:row.get(8)?,provincia:row.get(9)?,partita_iva:row.get(10)?,codice_fiscale:row.get(11)?,note:row.get(12)? })).map_err(|e| e.to_string())?.filter_map(|r| r.ok()).collect(); Ok(items) }
 #[tauri::command]
+fn get_cliente(state: State<AppState>, id: i64) -> Result<Cliente, String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.query_row("SELECT id,nome,cognome,denominazione_azienda,email,telefono,indirizzo,cap,citta,provincia,partita_iva,codice_fiscale,note FROM clienti WHERE id=?1", params![id], |row| Ok(Cliente { id:row.get(0)?,nome:row.get(1)?,cognome:row.get(2)?,denominazione_azienda:row.get(3)?,email:row.get(4)?,telefono:row.get(5)?,indirizzo:row.get(6)?,cap:row.get(7)?,citta:row.get(8)?,provincia:row.get(9)?,partita_iva:row.get(10)?,codice_fiscale:row.get(11)?,note:row.get(12)? })).map_err(|e| e.to_string()) }
+#[tauri::command]
 fn create_cliente(state: State<AppState>, data: Cliente) -> Result<Cliente, String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.execute("INSERT INTO clienti (nome,cognome,denominazione_azienda,email,telefono,indirizzo,cap,citta,provincia,partita_iva,codice_fiscale,note) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)", params![data.nome,data.cognome,data.denominazione_azienda,data.email,data.telefono,data.indirizzo,data.cap,data.citta,data.provincia,data.partita_iva,data.codice_fiscale,data.note]).map_err(|e| e.to_string())?; Ok(Cliente { id: db.last_insert_rowid(), ..data }) }
 #[tauri::command]
 fn update_cliente(state: State<AppState>, id: i64, data: Cliente) -> Result<Cliente, String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.execute("UPDATE clienti SET nome=?1,cognome=?2,denominazione_azienda=?3,email=?4,telefono=?5,indirizzo=?6,cap=?7,citta=?8,provincia=?9,partita_iva=?10,codice_fiscale=?11,note=?12,updated_at=CURRENT_TIMESTAMP WHERE id=?13", params![data.nome,data.cognome,data.denominazione_azienda,data.email,data.telefono,data.indirizzo,data.cap,data.citta,data.provincia,data.partita_iva,data.codice_fiscale,data.note,id]).map_err(|e| e.to_string())?; Ok(Cliente { id, ..data }) }
@@ -531,7 +533,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_azienda, update_azienda, import_logo, load_logo_preview,
-            get_clienti, create_cliente, update_cliente, delete_cliente,
+            get_clienti, get_cliente, create_cliente, update_cliente, delete_cliente,
             get_materiali, create_materiale, update_materiale, delete_materiale,
             get_stampanti, create_stampante, update_stampante, delete_stampante,
             get_profili, create_profilo, update_profilo, delete_profilo,

@@ -28,6 +28,8 @@
   /* Accent — cyan vivace */
   --accent: #0ea5e9;
   --accent-hover: #0284c7;
+  --accent-secondary: #0a6d9a;
+  --accent-secondary-hover: #085580;
   --accent-glow: rgba(14, 165, 233, 0.3);
   --accent-soft: rgba(14, 165, 233, 0.1);
 
@@ -60,9 +62,9 @@
   --radius-xl: 20px;
 
   /* Font sizes (overridable da SettingsContext) */
-  --font-size-base: 14px;
-  --font-size-label: 11px;
-  --font-size-input: 14px;
+  --font-size-base: 16px;
+  --font-size-label: 12px;
+  --font-size-input: 16px;
 }
 
 /* ── Base ── */
@@ -91,8 +93,8 @@ html { background: #080b16; }
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.2); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.4); }
+::-webkit-scrollbar-thumb { background: var(--accent-soft); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-glow); }
 
 /* ── Card ── */
 .s3d-card {
@@ -163,16 +165,16 @@ html { background: #080b16; }
 }
 
 .s3d-btn-primary {
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  background: linear-gradient(135deg, var(--accent), var(--accent-secondary, #6366f1));
   color: white;
-  box-shadow: 0 2px 12px rgba(14, 165, 233, 0.35);
+  box-shadow: 0 2px 12px var(--accent-glow);
 }
 .s3d-btn-primary:hover {
-  background: linear-gradient(135deg, #0284c7, #4f46e5);
-  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.5);
+  background: linear-gradient(135deg, var(--accent-hover), var(--accent-secondary-hover, #4f46e5));
+  box-shadow: 0 4px 20px var(--accent-glow);
 }
 .s3d-btn-primary:active {
-  box-shadow: 0 1px 6px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 1px 6px var(--accent-glow);
 }
 
 .s3d-btn-ghost {
@@ -260,7 +262,7 @@ html { background: #080b16; }
 
 /* ── Selection ── */
 ::selection {
-  background: rgba(14, 165, 233, 0.3);
+  background: var(--accent-glow);
   color: #fff;
 }
 

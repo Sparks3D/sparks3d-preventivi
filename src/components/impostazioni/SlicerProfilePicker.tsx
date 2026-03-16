@@ -52,36 +52,36 @@ export function SlicerProfilePicker({ tipo, onSelect, onClose }: Props) {
   );
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+      <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", width: "100%", maxWidth: 640, margin: "0 16px", maxHeight: "85vh", display: "flex", flexDirection: "column" }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, borderBottom: "1px solid var(--border-subtle)" }}>
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>
               Importa da Bambu Studio
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5">{tipoLabel}</p>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{tipoLabel}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">x</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 24, cursor: "pointer" }}>x</button>
         </div>
 
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3">
+        <div style={{ padding: 16, borderBottom: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12 }}>
           <input
             type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Cerca profilo per nome..."
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="s3d-input"
           />
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={soloUtente} onChange={(e) => setSoloUtente(e.target.checked)} className="w-4 h-4 rounded" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">Solo profili utente (no integrati BBL)</span>
+              <input type="checkbox" checked={soloUtente} onChange={(e) => setSoloUtente(e.target.checked)} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Solo profili utente (no integrati BBL)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={isBeta} onChange={(e) => setIsBeta(e.target.checked)} className="w-4 h-4 rounded" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">Bambu Studio Beta</span>
+              <input type="checkbox" checked={isBeta} onChange={(e) => setIsBeta(e.target.checked)} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Bambu Studio Beta</span>
             </label>
-            <button onClick={loadProfiles} className="text-xs text-blue-600 hover:text-blue-800 ml-auto">
+            <button onClick={loadProfiles} style={{ fontSize: 11, color: "var(--accent)", cursor: "pointer", marginLeft: "auto", background: "none", border: "none", fontWeight: 600 }}>
               Ricarica
             </button>
           </div>
@@ -90,11 +90,11 @@ export function SlicerProfilePicker({ tipo, onSelect, onClose }: Props) {
         {/* Lista profili */}
         <div className="flex-1 overflow-y-auto p-2">
           {loading ? (
-            <div className="p-8 text-center text-gray-400">Scansione profili in corso...</div>
+            <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>Scansione profili in corso...</div>
           ) : error && filtered.length === 0 ? (
             <div className="p-8 text-center">
               <p className="text-amber-600 dark:text-amber-400 text-sm">{error}</p>
-              <p className="text-xs text-gray-400 mt-2">
+              <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>
                 Percorsi cercati: %APPDATA%/BambuStudio/ e %ProgramFiles%/Bambu Studio/
               </p>
             </div>
@@ -104,27 +104,27 @@ export function SlicerProfilePicker({ tipo, onSelect, onClose }: Props) {
                 <button
                   key={idx}
                   onClick={() => onSelect(profile)}
-                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group"
+                  style={{ width: "100%", textAlign: "left", padding: "12px 16px", borderRadius: 10, transition: "background 0.2s", cursor: "pointer", background: "transparent", border: "none" }}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                        profile.is_user
-                          ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-                      }`}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{
+                        fontSize: 10, padding: "2px 6px", borderRadius: 4, fontWeight: 600,
+                        background: profile.is_user ? "var(--green-soft)" : "var(--bg-surface)",
+                        color: profile.is_user ? "var(--green)" : "var(--text-muted)",
+                      }}>
                         {profile.is_user ? "Utente" : "BBL"}
                       </span>
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">
+                      <span style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>
                         {profile.nome}
                       </span>
                     </div>
-                    <span className="text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span style={{ fontSize: 11, color: "var(--accent)" }}>
                       Importa
                     </span>
                   </div>
                   {/* Extra info based on type */}
-                  <div className="flex gap-4 mt-1 text-xs text-gray-400">
+                  <div style={{ display: "flex", gap: 16, marginTop: 4, fontSize: 11, color: "var(--text-muted)" }}>
                     {tipo === "filament" && (
                       <>
                         {profile.params.filament_type && <span>Tipo: {String(profile.params.filament_type)}</span>}
@@ -155,11 +155,11 @@ export function SlicerProfilePicker({ tipo, onSelect, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <span className="text-xs text-gray-400">
+        <div style={{ padding: 16, borderTop: "1px solid var(--border-subtle)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
             {filtered.length} profili trovati
           </span>
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+          <button onClick={onClose} className="s3d-btn s3d-btn-ghost">
             Chiudi
           </button>
         </div>

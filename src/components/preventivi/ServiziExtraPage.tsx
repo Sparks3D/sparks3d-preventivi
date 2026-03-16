@@ -60,15 +60,15 @@ export function ServiziExtraPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">Servizi extra</h3>
-        <button onClick={openNew} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">+ Nuovo servizio</button>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>Servizi extra</h3>
+        <button onClick={openNew} className="s3d-btn s3d-btn-primary">+ Nuovo servizio</button>
       </div>
 
       {/* Predefiniti — SEMPRE VISIBILI (nasconde solo quelli già creati) */}
       {presetsDisponibili.length > 0 && (
         <div className="s3d-card-glow p-5 mb-5">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Servizi comuni per la stampa 3D</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>Servizi comuni per la stampa 3D</p>
           <div className="flex flex-wrap gap-2">
             {presetsDisponibili.map((p) => (
               <button key={p.nome} onClick={() => addPreset(p)} className="s3d-btn s3d-btn-ghost text-xs">+ {p.nome} ({eur(p.importo_predefinito)})</button>
@@ -78,85 +78,85 @@ export function ServiziExtraPage() {
       )}
 
       {/* Ricerca */}
-      <div className="flex items-center gap-3 mb-4">
-        <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleSelectAll} className="w-4 h-4 rounded" />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleSelectAll} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
         {selectedIds.size > 0 && (
-          <button onClick={handleDeleteSelected} className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50">Elimina selezionati ({selectedIds.size})</button>
+          <button onClick={handleDeleteSelected} className="s3d-btn s3d-btn-danger">Elimina selezionati ({selectedIds.size})</button>
         )}
         <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cerca servizio extra"
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+          className="s3d-input" style={{ flex: 1 }} />
       </div>
 
       {/* Tabella */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="s3d-card" style={{ overflow: "hidden" }}>
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">{items.length === 0 ? 'Nessun servizio extra. Clicca "Nuovo servizio" o usa i predefiniti sopra.' : "Nessun risultato."}</div>
+          <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>{items.length === 0 ? 'Nessun servizio extra. Clicca "Nuovo servizio" o usa i predefiniti sopra.' : "Nessun risultato."}</div>
         ) : (
-          <table className="w-full text-sm">
-            <thead><tr className="border-b border-gray-200 bg-gray-50">
-              <th className="w-10 px-4 py-3"></th><th className="text-left px-4 py-3 font-medium text-gray-500">Servizio</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">Costo base</th><th className="text-left px-4 py-3 font-medium text-gray-500">Markup</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500">→ Cliente</th><th className="text-left px-4 py-3 font-medium text-gray-500">Addebito</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-500">Azioni</th>
+          <table className="s3d-table">
+            <thead><tr style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border-default)" }}>
+              <th style={{ width: 40 }}></th><th >Servizio</th>
+              <th >Costo base</th><th >Markup</th>
+              <th >→ Cliente</th><th >Addebito</th>
+              <th style={{ textAlign: "right" }}>Azioni</th>
             </tr></thead>
             <tbody>{filtered.map((s) => {
               const pc = calcPrezzoCliente(s.importo_predefinito, s.markup_percentuale);
               return (
-                <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => openEdit(s)}>
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} className="w-4 h-4 rounded" /></td>
-                  <td className="px-4 py-3"><span className="font-medium text-gray-900">{s.nome}</span></td>
-                  <td className="px-4 py-3" style={{ fontVariantNumeric: "tabular-nums" }}>{eur(s.importo_predefinito)}</td>
-                  <td className="px-4 py-3">{s.markup_percentuale > 0 ? <span style={{ color: "var(--purple, #c084fc)", fontWeight: 600 }}>+{s.markup_percentuale}%</span> : <span className="text-gray-500">—</span>}</td>
-                  <td className="px-4 py-3" style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{s.addebita || s.addebita_senza_costo ? <span style={{ color: "var(--green, #34d399)" }}>{eur(pc)}</span> : <span className="text-gray-500">—</span>}</td>
-                  <td className="px-4 py-3">{s.addebita ? <span className="s3d-badge" style={{ background: "var(--green-soft, rgba(52,211,153,.15))", color: "var(--green, #34d399)" }}>Sì, al cliente</span> : s.addebita_senza_costo ? <span className="s3d-badge" style={{ background: "var(--orange-soft, rgba(251,146,60,.15))", color: "var(--orange, #fb923c)" }}>Visibile, no costo</span> : <span className="text-gray-500 text-xs">Costo interno</span>}</td>
-                  <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => openEdit(s)} className="text-blue-600 text-xs mr-3">Modifica</button>
-                    <button onClick={() => handleDelete(s.id)} className="text-red-500 text-xs">Elimina</button>
+                <tr key={s.id} style={{ cursor: "pointer" }} onClick={() => openEdit(s)}>
+                  <td  onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} /></td>
+                  <td ><span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{s.nome}</span></td>
+                  <td  style={{ fontVariantNumeric: "tabular-nums" }}>{eur(s.importo_predefinito)}</td>
+                  <td >{s.markup_percentuale > 0 ? <span style={{ color: "var(--purple, #c084fc)", fontWeight: 600 }}>+{s.markup_percentuale}%</span> : <span style={{ color: "var(--text-muted)" }}>—</span>}</td>
+                  <td  style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{s.addebita || s.addebita_senza_costo ? <span style={{ color: "var(--green, #34d399)" }}>{eur(pc)}</span> : <span style={{ color: "var(--text-muted)" }}>—</span>}</td>
+                  <td >{s.addebita ? <span className="s3d-badge" style={{ background: "var(--green-soft, rgba(52,211,153,.15))", color: "var(--green, #34d399)" }}>Sì, al cliente</span> : s.addebita_senza_costo ? <span className="s3d-badge" style={{ background: "var(--orange-soft, rgba(251,146,60,.15))", color: "var(--orange, #fb923c)" }}>Visibile, no costo</span> : <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Costo interno</span>}</td>
+                  <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => openEdit(s)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>Modifica</button>
+                    <button onClick={() => handleDelete(s.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Elimina</button>
                   </td>
                 </tr>);
             })}</tbody>
           </table>
         )}
       </div>
-      {items.length > 0 && <div className="mt-3 text-xs text-gray-500">{filtered.length} di {items.length} servizi</div>}
+      {items.length > 0 && <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)" }}>{filtered.length} di {items.length} servizi</div>}
 
       {/* Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-bold">{editingId ? "Modifica servizio" : "Nuovo servizio extra"}</h3>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", width: "100%", maxWidth: 520, margin: "0 16px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{editingId ? "Modifica servizio" : "Nuovo servizio extra"}</h3>
+              <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 18, cursor: "pointer" }}>✕</button>
             </div>
-            <div className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Nome servizio *</label><input type="text" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Es. Levigatura, Verniciatura" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Costo base (€)</label><input type="number" step="0.01" min="0" value={form.importo_predefinito} onChange={(e) => setForm({ ...form, importo_predefinito: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Markup %</label><input type="number" step="0.1" min="0" value={form.markup_percentuale} onChange={(e) => setForm({ ...form, markup_percentuale: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+            <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+              {error && <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)" }}>{error}</div>}
+              <div><label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Nome servizio *</label><input type="text" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Es. Levigatura, Verniciatura" className="s3d-input" /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div><label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Costo base (€)</label><input type="number" step="0.01" min="0" value={form.importo_predefinito} onChange={(e) => setForm({ ...form, importo_predefinito: parseFloat(e.target.value) || 0 })} className="s3d-input" /></div>
+                <div><label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Markup %</label><input type="number" step="0.1" min="0" value={form.markup_percentuale} onChange={(e) => setForm({ ...form, markup_percentuale: parseFloat(e.target.value) || 0 })} className="s3d-input" /></div>
               </div>
               {form.importo_predefinito > 0 && (
                 <div className="p-3 rounded-lg" style={{ background: "var(--accent-soft, rgba(99,102,241,.08))" }}>
-                  <div className="flex justify-between text-sm"><span className="text-gray-600">Costo base</span><span>{eur(form.importo_predefinito)}</span></div>
-                  {form.markup_percentuale > 0 && <div className="flex justify-between text-sm mt-1"><span className="text-gray-600">+ Markup {form.markup_percentuale}%</span><span>{eur(form.importo_predefinito * form.markup_percentuale / 100)}</span></div>}
+                  <div className="flex justify-between text-sm"><span style={{ color: "var(--text-secondary)" }}>Costo base</span><span>{eur(form.importo_predefinito)}</span></div>
+                  {form.markup_percentuale > 0 && <div className="flex justify-between text-sm mt-1"><span style={{ color: "var(--text-secondary)" }}>+ Markup {form.markup_percentuale}%</span><span>{eur(form.importo_predefinito * form.markup_percentuale / 100)}</span></div>}
                   <div className="flex justify-between text-sm mt-1 pt-1 border-t" style={{ borderColor: "var(--border-subtle, rgba(120,100,220,.15))" }}>
-                    <span className="font-medium text-gray-900">Prezzo al cliente</span>
+                    <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>Prezzo al cliente</span>
                     <span className="font-bold" style={{ color: "var(--green, #34d399)" }}>{eur(calcPrezzoCliente(form.importo_predefinito, form.markup_percentuale))}</span>
                   </div>
                 </div>
               )}
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Comportamento nel preventivo</p>
-                <div className="space-y-3">
-                  <label className="flex items-start gap-3 cursor-pointer"><input type="checkbox" checked={form.addebita} onChange={(e) => setForm({ ...form, addebita: e.target.checked, addebita_senza_costo: e.target.checked ? false : form.addebita_senza_costo })} className="w-4 h-4 rounded mt-0.5" /><div><span className="text-sm text-gray-700 font-medium">Addebita al cliente</span><p className="text-xs text-gray-500 mt-0.5">Il costo viene aggiunto al totale del preventivo</p></div></label>
-                  <label className="flex items-start gap-3 cursor-pointer"><input type="checkbox" checked={form.addebita_senza_costo} onChange={(e) => setForm({ ...form, addebita_senza_costo: e.target.checked, addebita: e.target.checked ? false : form.addebita })} className="w-4 h-4 rounded mt-0.5" /><div><span className="text-sm text-gray-700 font-medium">Mostra nel PDF ma non addebitare</span><p className="text-xs text-gray-500 mt-0.5">Appare come incluso</p></div></label>
-                  {!form.addebita && !form.addebita_senza_costo && <p className="text-xs text-gray-500 ml-7">Costo solo interno</p>}
+                <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>Comportamento nel preventivo</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <label className="flex items-start gap-3 cursor-pointer"><input type="checkbox" checked={form.addebita} onChange={(e) => setForm({ ...form, addebita: e.target.checked, addebita_senza_costo: e.target.checked ? false : form.addebita_senza_costo })} style={{ width: 16, height: 16, borderRadius: 4, marginTop: 2, accentColor: "var(--accent)" }} /><div><span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>Addebita al cliente</span><p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Il costo viene aggiunto al totale del preventivo</p></div></label>
+                  <label className="flex items-start gap-3 cursor-pointer"><input type="checkbox" checked={form.addebita_senza_costo} onChange={(e) => setForm({ ...form, addebita_senza_costo: e.target.checked, addebita: e.target.checked ? false : form.addebita })} style={{ width: 16, height: 16, borderRadius: 4, marginTop: 2, accentColor: "var(--accent)" }} /><div><span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>Mostra nel PDF ma non addebitare</span><p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Appare come incluso</p></div></label>
+                  {!form.addebita && !form.addebita_senza_costo && <p style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 28 }}>Costo solo interno</p>}
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-              <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">Annulla</button>
-              <button onClick={handleSave} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50" disabled={!form.nome.trim()}>{editingId ? "Salva modifiche" : "Crea servizio"}</button>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, padding: "16px 24px", borderTop: "1px solid var(--border-subtle)" }}>
+              <button onClick={() => setShowForm(false)} className="s3d-btn s3d-btn-ghost">Annulla</button>
+              <button onClick={handleSave} className="s3d-btn s3d-btn-primary" disabled={!form.nome.trim()}>{editingId ? "Salva modifiche" : "Crea servizio"}</button>
             </div>
           </div>
         </div>

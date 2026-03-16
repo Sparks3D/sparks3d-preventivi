@@ -3772,7 +3772,7 @@ dependencies = [
 
 [[package]]
 name = "sparks3d-preventivi"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "base64 0.22.1",
  "chrono",
