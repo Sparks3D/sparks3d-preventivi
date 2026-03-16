@@ -15,6 +15,7 @@ interface PreventivoListItem {
 interface Props {
   onOpenPreventivo: (id: number) => void;
   onNuovoPreventivo: () => void;
+  initialFiltroStato?: string;
 }
 
 const STATI: Record<string, { label: string; color: string; bg: string }> = {
@@ -44,11 +45,12 @@ function StatoBadge({ stato }: { stato: string }) {
 function formatDate(d: string) { const p = d.split("-"); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d; }
 function formatEuro(v: number) { return "€ " + v.toFixed(2).replace(".", ","); }
 
-export function PreventiviArchivio({ onOpenPreventivo }: Props) {
+export function PreventiviArchivio({ onOpenPreventivo, initialFiltroStato }: Props) {
   const [items, setItems] = useState<PreventivoListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filtroStato, setFiltroStato] = useState("tutti");
+  const [filtroStato, setFiltroStato] = useState(initialFiltroStato || "tutti");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; numero: string } | null>(null);
 
   const load = useCallback(async () => {
     try { setItems(await invoke<PreventivoListItem[]>("get_preventivi_list")); }
@@ -60,9 +62,13 @@ export function PreventiviArchivio({ onOpenPreventivo }: Props) {
     try { const p = await invoke<{ id: number }>("create_preventivo"); onOpenPreventivo(p.id); }
     catch (e) { console.error(e); }
   };
-  const handleDelete = async (id: number, numero: string) => {
-    if (!confirm(`Eliminare ${numero}?`)) return;
-    try { await invoke("delete_preventivo", { id }); load(); } catch (e) { console.error(e); }
+  const handleDelete = (id: number, numero: string) => {
+    setDeleteTarget({ id, numero });
+  };
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try { await invoke("delete_preventivo", { id: deleteTarget.id }); load(); } catch (e) { console.error(e); }
+    setDeleteTarget(null);
   };
   const handleDuplica = async (id: number) => {
     try { onOpenPreventivo(await invoke<number>("duplica_preventivo", { id })); }
@@ -179,6 +185,50 @@ export function PreventiviArchivio({ onOpenPreventivo }: Props) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal conferma eliminazione */}
+      {deleteTarget && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+        }} onClick={() => setDeleteTarget(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#141c2e", border: "1px solid rgba(96,165,250,0.12)",
+            borderRadius: 16, padding: "28px 32px", maxWidth: 380, width: "90%",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10,
+                background: "rgba(248,113,113,0.1)", display: "flex",
+                alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+              </div>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#e8edf5" }}>Elimina preventivo</h3>
+            </div>
+            <p style={{ color: "#8899b4", fontSize: 14, lineHeight: 1.5, margin: "0 0 24px" }}>
+              Sei sicuro di voler eliminare <strong style={{ color: "#e8edf5" }}>{deleteTarget.numero}</strong>?
+              <br />Questa azione non può essere annullata.
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setDeleteTarget(null)} style={{
+                padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: "1px solid rgba(136,153,180,0.2)", background: "transparent",
+                color: "#8899b4", cursor: "pointer",
+              }}>Annulla</button>
+              <button onClick={confirmDelete} style={{
+                padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: "none", background: "#dc2626", color: "#fff", cursor: "pointer",
+              }}>Elimina</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

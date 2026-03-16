@@ -105,6 +105,7 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
   const [rigaEdit, setRigaEdit] = useState<RigaEditState | null>(null);
   const [invioResult, setInvioResult] = useState<{ pdfPath: string; clienteNome: string; clienteEmail: string; numero: string } | null>(null);
   const [showCorrieriModal, setShowCorrieriModal] = useState(false);
+  const [deleteRigaTarget, setDeleteRigaTarget] = useState<number | null>(null);
 
   const loadLookups = useCallback(async () => {
     const [c, m, s, p, se, mp] = await Promise.all([
@@ -230,10 +231,15 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
     } catch (e) { console.error(e); alert(`Errore: ${e}`); } finally { setSaving(false); }
   };
 
-  const deleteRiga = async (rigaId: number) => {
-    if (!prev || !confirm("Eliminare questa riga?")) return;
-    try { await invoke("delete_riga_preventivo", { rigaId }); setPrev(await invoke<PreventivoCompleto>("ricalcola_preventivo", { id: prev.id })); }
+  const deleteRiga = (rigaId: number) => {
+    if (!prev) return;
+    setDeleteRigaTarget(rigaId);
+  };
+  const confirmDeleteRiga = async () => {
+    if (!prev || deleteRigaTarget === null) return;
+    try { await invoke("delete_riga_preventivo", { rigaId: deleteRigaTarget }); setPrev(await invoke<PreventivoCompleto>("ricalcola_preventivo", { id: prev.id })); }
     catch (e) { console.error(e); }
+    setDeleteRigaTarget(null);
   };
 
   // ── Export PDF ──
@@ -648,6 +654,50 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
         capCliente={clienteId ? (clienti.find(c => c.id === clienteId)?.cap ?? "") : ""}
         paeseCliente="IT"
       />
+
+      {/* ═══ MODALE CONFERMA ELIMINA RIGA ═══ */}
+      {deleteRigaTarget !== null && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+        }} onClick={() => setDeleteRigaTarget(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#141c2e", border: "1px solid rgba(96,165,250,0.12)",
+            borderRadius: 16, padding: "28px 32px", maxWidth: 380, width: "90%",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10,
+                background: "rgba(248,113,113,0.1)", display: "flex",
+                alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+              </div>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#e8edf5" }}>Elimina riga</h3>
+            </div>
+            <p style={{ color: "#8899b4", fontSize: 14, lineHeight: 1.5, margin: "0 0 24px" }}>
+              Sei sicuro di voler eliminare questa riga di stampa?
+              <br />Questa azione non può essere annullata.
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setDeleteRigaTarget(null)} style={{
+                padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: "1px solid rgba(136,153,180,0.2)", background: "transparent",
+                color: "#8899b4", cursor: "pointer",
+              }}>Annulla</button>
+              <button onClick={confirmDeleteRiga} style={{
+                padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: "none", background: "#dc2626", color: "#fff", cursor: "pointer",
+              }}>Elimina</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

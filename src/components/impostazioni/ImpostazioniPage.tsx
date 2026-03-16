@@ -40,16 +40,18 @@ export function ImpostazioniPage({ activeTab, onChangeTab }: Props) {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Impostazioni</h2>
-      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6">
+    <div className="animate-fade-in">
+      <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", marginBottom: 24 }}>Impostazioni</h2>
+      <div style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--border-subtle)", marginBottom: 24 }}>
         {tabs.map((t) => (
           <button key={t.id} onClick={() => onChangeTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === t.id
-                ? "border-blue-600 text-blue-700 dark:text-blue-300"
-                : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}>
+            style={{
+              padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              background: "none", border: "none",
+              borderBottom: activeTab === t.id ? "2px solid var(--accent)" : "2px solid transparent",
+              color: activeTab === t.id ? "var(--accent)" : "var(--text-muted)",
+              transition: "all 0.2s",
+            }}>
             {t.label}
           </button>
         ))}
