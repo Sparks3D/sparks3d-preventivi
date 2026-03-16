@@ -1,6 +1,6 @@
 // src/components/info/GuidaPage.tsx
-// Sparks3D Preventivi – Guida utente completa
-// ==============================================
+// Sparks3D Preventivi – Guida utente completa (v1.0.2)
+// =====================================================
 
 import { useState } from "react";
 
@@ -28,11 +28,12 @@ export function GuidaPage() {
             <li>Import profili stampa da Bambu Studio</li>
             <li>Tariffe corrieri live tramite PackLink Pro</li>
             <li>Export PDF professionale con logo e dati azienda</li>
-            <li>Dashboard statistiche con KPI e grafici</li>
+            <li>Dashboard statistiche con KPI, grafici e navigazione interattiva</li>
             <li>Gestione ritenuta d'acconto e ricevute</li>
-            <li>Backup completo e ripristino dati</li>
+            <li>Backup completo e ripristino dati con riavvio guidato</li>
             <li>Esportazione dati in CSV e Excel</li>
             <li>Ricerca globale rapida (Ctrl+K)</li>
+            <li>Tema personalizzabile: dimensione font e colore accent</li>
           </ul>
         </div>
       ),
@@ -45,17 +46,19 @@ export function GuidaPage() {
           <h4 style={h4Style}>KPI visualizzati</h4>
           <ul style={ulStyle}>
             <li><strong>Totale preventivi</strong> — numero totale di preventivi creati</li>
-            <li><strong>Fatturato totale</strong> — somma dei totali di tutti i preventivi</li>
-            <li><strong>Profitto totale</strong> — guadagno netto dopo i costi</li>
+            <li><strong>Fatturato totale</strong> — somma dei totali dei preventivi <strong>completati</strong></li>
+            <li><strong>Profitto totale</strong> — guadagno netto dei preventivi <strong>completati</strong></li>
             <li><strong>Materiale utilizzato</strong> — peso totale in kg di filamento consumato</li>
             <li><strong>Tempo stampa totale</strong> — ore complessive di stampa</li>
-            <li><strong>Tasso di conversione</strong> — percentuale di preventivi confermati</li>
+            <li><strong>Confermati</strong> — preventivi accettati, in produzione o completati</li>
+            <li><strong>Tasso di conversione</strong> — percentuale di preventivi confermati sul totale</li>
           </ul>
-          <h4 style={h4Style}>Sezioni</h4>
+          <h4 style={h4Style}>Sezioni interattive</h4>
           <ul style={ulStyle}>
             <li><strong>Trend mensile</strong> — grafico fatturato e profitto degli ultimi 6 mesi</li>
-            <li><strong>Top clienti</strong> — i 5 clienti con più fatturato</li>
-            <li><strong>Ultimi preventivi</strong> — gli ultimi 10 preventivi creati</li>
+            <li><strong>Stato preventivi</strong> — breakdown per stato con barra progresso. Cliccando su uno stato si naviga alla lista preventivi filtrata</li>
+            <li><strong>Ultimi preventivi</strong> — gli ultimi 10 preventivi creati. Il numero preventivo è cliccabile per aprirlo direttamente, il badge stato è cliccabile per filtrare</li>
+            <li><strong>Top clienti</strong> — i 5 clienti con più fatturato, con nome e totale</li>
             <li><strong>Materiali più usati</strong> — classifica materiali per peso utilizzato</li>
           </ul>
         </div>
@@ -69,6 +72,7 @@ export function GuidaPage() {
           <h4 style={h4Style}>Creare un preventivo</h4>
           <ol style={olStyle}>
             <li>Dalla pagina <strong>Preventivi</strong>, clicca <strong>"Nuovo preventivo"</strong></li>
+            <li>Si apre una pagina dedicata con tutti i campi del preventivo</li>
             <li>Seleziona il cliente dal menu a tendina (opzionale)</li>
             <li>Aggiungi le righe di stampa cliccando <strong>"Aggiungi riga"</strong></li>
             <li>Per ogni riga, specifica materiale, stampante, profilo, tempo e peso</li>
@@ -86,6 +90,8 @@ export function GuidaPage() {
             <li><strong>Accettato</strong> → <strong>In produzione</strong></li>
             <li><strong>In produzione</strong> → <strong>Completato</strong></li>
           </ul>
+          <h4 style={h4Style}>Eliminazione con conferma</h4>
+          <p>L'eliminazione di un preventivo o di una riga di stampa richiede sempre una conferma esplicita tramite un dialogo modale. Premendo "Annulla" il dato viene preservato.</p>
           <h4 style={h4Style}>Export PDF</h4>
           <p>Clicca <strong>"Esporta PDF"</strong> per generare un documento professionale con logo azienda, dati cliente, tabella righe con breakdown costi, totali, IVA, acconto e condizioni.</p>
         </div>
@@ -96,15 +102,25 @@ export function GuidaPage() {
       content: (
         <div style={proseStyle}>
           <p>La sezione Clienti gestisce l'anagrafica completa dei tuoi clienti.</p>
+          <h4 style={h4Style}>Creare un cliente</h4>
+          <ol style={olStyle}>
+            <li>Dalla pagina <strong>Clienti</strong>, clicca <strong>"Nuovo cliente"</strong></li>
+            <li>Si apre una pagina dedicata con sezioni organizzate</li>
+            <li>Compila i dati anagrafici, contatti, indirizzo e dati fiscali</li>
+            <li>Clicca <strong>"Crea cliente"</strong> per salvare</li>
+          </ol>
+          <h4 style={h4Style}>Modificare un cliente</h4>
+          <p>Clicca su una riga della tabella clienti oppure sul pulsante "Modifica" per aprire la pagina di modifica con tutti i campi precompilati.</p>
           <h4 style={h4Style}>Campi disponibili</h4>
           <ul style={ulStyle}>
-            <li>Nome, Cognome, Denominazione azienda</li>
-            <li>Email, Telefono</li>
-            <li>Indirizzo completo (via, CAP, città, provincia)</li>
-            <li>Partita IVA, Codice Fiscale</li>
-            <li>Note libere</li>
+            <li><strong>Dati anagrafici</strong> — Nome, Cognome, Denominazione azienda</li>
+            <li><strong>Contatti</strong> — Email, Telefono</li>
+            <li><strong>Indirizzo</strong> — Via, CAP, Città, Provincia</li>
+            <li><strong>Dati fiscali</strong> — Partita IVA, Codice Fiscale</li>
+            <li><strong>Note</strong> — Note libere sul cliente</li>
           </ul>
-          <p>I clienti possono essere associati ai preventivi tramite il menu a tendina nel form preventivo. Il CAP del cliente viene usato automaticamente per il calcolo delle tariffe di spedizione PackLink.</p>
+          <h4 style={h4Style}>Eliminazione</h4>
+          <p>L'eliminazione singola o multipla (tramite checkbox) richiede sempre una conferma esplicita. I clienti possono essere associati ai preventivi tramite il menu a tendina nel form preventivo. Il CAP del cliente viene usato automaticamente per il calcolo delle tariffe di spedizione PackLink.</p>
         </div>
       ),
     },
@@ -128,7 +144,12 @@ export function GuidaPage() {
           <h4 style={h4Style}>Metodi di pagamento</h4>
           <p>Configura i metodi accettati (bonifico, PayPal, contanti, ecc.) con commissioni e testo da mostrare nel PDF.</p>
           <h4 style={h4Style}>Interfaccia</h4>
-          <p>Personalizza la dimensione del font (piccolo, medio, grande) e il colore accent dell'interfaccia scegliendo tra 10 temi cromatici.</p>
+          <p>Personalizza l'aspetto dell'intera applicazione:</p>
+          <ul style={ulStyle}>
+            <li><strong>Dimensione font</strong> — Piccolo (12px), Medio (16px), Grande (20px)</li>
+            <li><strong>Colore accent</strong> — 10 temi cromatici (Cyan, Blue, Indigo, Purple, Pink, Rose, Orange, Amber, Green, Teal)</li>
+          </ul>
+          <p>Le modifiche vengono salvate automaticamente e applicate in tempo reale a tutti i bottoni, input, badge, tabelle e tab dell'applicazione.</p>
         </div>
       ),
     },
@@ -155,7 +176,8 @@ export function GuidaPage() {
           <h4 style={h4Style}>Backup</h4>
           <p>Crea un backup completo in formato .zip che include database, loghi e documenti PDF. Puoi scegliere quali elementi includere. Si consiglia di fare un backup regolarmente.</p>
           <h4 style={h4Style}>Ripristino</h4>
-          <p>Seleziona un file .zip di backup per ripristinare i dati. Puoi scegliere se ripristinare database, loghi e/o documenti PDF separatamente. Il ripristino del database richiede il riavvio dell'applicazione.</p>
+          <p>Seleziona un file .zip di backup per ripristinare i dati. Puoi scegliere se ripristinare database, loghi e/o documenti PDF separatamente.</p>
+          <p>Quando il ripristino include il database, l'applicazione mostra un avviso che richiede la chiusura e la riapertura del programma per caricare i dati ripristinati. Un pulsante dedicato permette di chiudere l'applicazione direttamente.</p>
           <h4 style={h4Style}>Esportazione dati</h4>
           <p>Esporta i dati in formato CSV o Excel (.xlsx). Puoi esportare preventivi, clienti, materiali, stampanti, profili e statistiche singolarmente o tutti insieme. Il file Excel include fogli multipli con formattazione.</p>
           <h4 style={h4Style}>Reset dati</h4>
@@ -186,7 +208,7 @@ export function GuidaPage() {
       ),
     },
     {
-      id: "bambu", title: "Bambu Studio", icon: "🖨️",
+      id: "bambu", title: "Bambu Studio", icon: "🧊",
       content: (
         <div style={proseStyle}>
           <p>Sparks3D Preventivi si integra con Bambu Studio per importare automaticamente profili di stampa e materiali.</p>
@@ -203,6 +225,29 @@ export function GuidaPage() {
             <li>Peso del filamento per ogni materiale/colore</li>
             <li>Tipo di filamento utilizzato</li>
             <li>Configurazione multi-materiale AMS (da file 3MF)</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      id: "novita", title: "Novità v1.0.2", icon: "🆕",
+      content: (
+        <div style={proseStyle}>
+          <h4 style={h4Style}>Bug fix</h4>
+          <ul style={ulStyle}>
+            <li>L'eliminazione di preventivi, righe stampa e clienti ora richiede sempre una conferma esplicita</li>
+            <li>Il ripristino da backup mostra un avviso chiaro che guida alla chiusura dell'app</li>
+            <li>Dashboard: fatturato e profitto calcolati solo da preventivi completati</li>
+            <li>Dashboard: conteggio "confermati" corretto (accettato + in produzione + completato)</li>
+            <li>Dashboard: top clienti mostra il nome corretto invece dell'ID</li>
+            <li>Dashboard: rimosso underscore dalle etichette stato (es. "In produzione")</li>
+          </ul>
+          <h4 style={h4Style}>Miglioramenti UI</h4>
+          <ul style={ulStyle}>
+            <li>Tema dinamico: il colore accent e la dimensione font scelti in Impostazioni → Interfaccia si applicano ora a tutta l'app</li>
+            <li>Dimensioni font aggiornate: Piccolo 12px, Medio 16px, Grande 20px</li>
+            <li>Pagina clienti: il form crea/modifica è ora una pagina dedicata (stesso pattern dei preventivi)</li>
+            <li>Dashboard interattiva: etichette stato e numeri preventivo cliccabili per navigazione diretta</li>
           </ul>
         </div>
       ),

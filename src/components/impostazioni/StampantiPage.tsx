@@ -58,46 +58,46 @@ export function StampantiPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Stampanti</h3>
-        <div className="flex gap-2">
-          <button onClick={() => setShowPicker(true)} className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium">Importa da Bambu Studio</button>
-          <button onClick={openNew} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">Nuova stampante</button>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>Stampanti</h3>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => setShowPicker(true)} className="s3d-btn s3d-btn-primary" style={{ background: "var(--orange)", boxShadow: "0 2px 12px rgba(249,115,22,0.3)" }}>Importa da Bambu Studio</button>
+          <button onClick={openNew} className="s3d-btn s3d-btn-primary">Nuova stampante</button>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: 12, background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 10 }}>
         <span className="text-sm font-medium text-amber-800 dark:text-amber-300">Costo energia EUR/kWh</span>
         <input type="number" step="0.01" value={costoEnergia} onChange={(e) => saveCostoEnergia(e.target.value)}
-          className="w-24 px-2 py-1 border border-amber-300 rounded text-sm bg-white dark:bg-gray-800 outline-none" />
+          className="s3d-input" style={{ width: 96 }} />
         <span className="text-xs text-amber-600">Controlla con il tuo fornitore il reale costo</span>
       </div>
 
-      <div className="flex items-center gap-3 mb-4">
-        <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleSelectAll} className="w-4 h-4 rounded" />
-        {selectedIds.size > 0 && <button onClick={handleDeleteSelected} className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-lg">Elimina ({selectedIds.size})</button>}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleSelectAll} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
+        {selectedIds.size > 0 && <button onClick={handleDeleteSelected} className="s3d-btn s3d-btn-danger" style={{ padding: "6px 14px", fontSize: 12 }}>Elimina ({selectedIds.size})</button>}
         <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cerca stampante"
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 outline-none" />
+          className="s3d-input" style={{ flex: 1 }} />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="s3d-card" style={{ overflow: "hidden" }}>
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">{items.length === 0 ? 'Usa "Importa da Bambu Studio" o "Nuova stampante".' : "Nessun risultato."}</div>
+          <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>{items.length === 0 ? 'Usa "Importa da Bambu Studio" o "Nuova stampante".' : "Nessun risultato."}</div>
         ) : (
-          <table className="w-full text-sm"><thead><tr className="border-b bg-gray-50">
-            <th className="w-10 px-4 py-3"></th><th className="text-left px-4 py-3 font-medium text-gray-500">Nome</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-500">Consumo kW/h</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-500">Ammortamento/h</th>
-            <th className="text-right px-4 py-3 font-medium text-gray-500">Azioni</th>
+          <table className="s3d-table"><thead><tr style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border-default)" }}>
+            <th style={{ width: 40 }}></th><th >Nome</th>
+            <th >Consumo kW/h</th>
+            <th >Ammortamento/h</th>
+            <th style={{ textAlign: "right" }}>Azioni</th>
           </tr></thead><tbody>{filtered.map((s) => (
-            <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => openEdit(s)}>
-              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} className="w-4 h-4 rounded" /></td>
-              <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">{s.slicer_origin === "bambu" ? "Bambu" : "Orca"}</span><span className="font-medium">{s.nome}</span></div></td>
-              <td className="px-4 py-3 text-gray-600">{s.consumo_kwh} kW/h</td>
-              <td className="px-4 py-3 text-gray-600">{"\u20AC"} {s.ammortamento_ora.toFixed(2)}/h</td>
-              <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                <button onClick={() => openEdit(s)} className="text-blue-600 text-xs mr-3">Modifica</button>
-                <button onClick={() => handleDelete(s.id)} className="text-red-500 text-xs">Elimina</button>
+            <tr key={s.id} style={{ cursor: "pointer" }} onClick={() => openEdit(s)}>
+              <td  onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} /></td>
+              <td ><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 10, padding: "2px 8px", background: "var(--accent-soft)", color: "var(--accent)", borderRadius: 4, fontWeight: 600 }}>{s.slicer_origin === "bambu" ? "Bambu" : "Orca"}</span><span style={{ fontWeight: 600 }}>{s.nome}</span></div></td>
+              <td style={{ color: "var(--text-secondary)" }}>{s.consumo_kwh} kW/h</td>
+              <td style={{ color: "var(--text-secondary)" }}>{"\u20AC"} {s.ammortamento_ora.toFixed(2)}/h</td>
+              <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+                <button onClick={() => openEdit(s)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>Modifica</button>
+                <button onClick={() => handleDelete(s.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Elimina</button>
               </td>
             </tr>
           ))}</tbody></table>
@@ -107,31 +107,31 @@ export function StampantiPage() {
       {showPicker && <SlicerProfilePicker tipo="machine" onSelect={handleImportProfile} onClose={() => setShowPicker(false)} />}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-bold">{editingId ? "Modifica" : "Nuova stampante"}</h3>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 text-xl">x</button>
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", width: "100%", maxWidth: 520, margin: "0 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{editingId ? "Modifica" : "Nuova stampante"}</h3>
+              <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 18, cursor: "pointer" }}>x</button>
             </div>
-            <div className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
-              {form.profilo_slicer && <div className="p-2 bg-blue-50 rounded-lg text-xs text-blue-700">Profilo slicer: {form.profilo_slicer}</div>}
+            <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+              {error && <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)" }}>{error}</div>}
+              {form.profilo_slicer && <div style={{ padding: 8, background: "var(--accent-soft)", borderRadius: 8, fontSize: 12, color: "var(--accent)" }}>Profilo slicer: {form.profilo_slicer}</div>}
               <div><label className="block text-sm font-medium mb-1">Nome stampante *</label>
                 <input type="text" value={form.nome} onChange={(e) => updateField("nome", e.target.value)} placeholder="Es. Bambu Lab X1C"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white dark:bg-gray-700 outline-none" /></div>
-              <div className="grid grid-cols-2 gap-4">
+                  className="s3d-input" /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label className="block text-sm font-medium mb-1">Consumo medio kW/h</label>
                   <input type="number" step="0.01" value={form.consumo_kwh} onChange={(e) => updateField("consumo_kwh", parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white dark:bg-gray-700 outline-none" /></div>
+                    className="s3d-input" /></div>
                 <div><label className="block text-sm font-medium mb-1">Ammortamento EUR/h</label>
                   <input type="number" step="0.01" value={form.ammortamento_ora} onChange={(e) => updateField("ammortamento_ora", parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white dark:bg-gray-700 outline-none" />
-                  <p className="text-xs text-gray-400 mt-1">Ricambi, manutenzione, svalutamento</p></div>
+                    className="s3d-input" />
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Ricambi, manutenzione, svalutamento</p></div>
               </div>
             </div>
-            <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-              <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">Annulla</button>
-              <button onClick={handleSave} className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">{editingId ? "Salva" : "Crea"}</button>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, padding: "16px 24px", borderTop: "1px solid var(--border-subtle)" }}>
+              <button onClick={() => setShowForm(false)} className="s3d-btn s3d-btn-ghost">Annulla</button>
+              <button onClick={handleSave} className="px-6 py-2 s3d-active-tab rounded-lg text-sm font-medium">{editingId ? "Salva" : "Crea"}</button>
             </div>
           </div>
         </div>

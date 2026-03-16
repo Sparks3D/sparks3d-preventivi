@@ -90,21 +90,32 @@ pub struct TopMateriale {
 pub fn get_dashboard_stats(state: State<AppState>) -> Result<DashboardStats, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
 
-    // 1) KPI aggregati
-    let (totale_preventivi, fatturato_totale, profit_totale, materiale_g, tempo_sec): (i64, f64, f64, f64, f64) =
-        db.query_row(
-            "SELECT COUNT(*),
-                    COALESCE(SUM(totale_finale), 0),
-                    COALESCE(SUM(totale_profit), 0),
-                    COALESCE(SUM(totale_materiale_g), 0),
-                    COALESCE(SUM(totale_tempo_sec), 0)
-             FROM preventivi",
-            [],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?)),
-        ).map_err(|e| e.to_string())?;
+    // 1) KPI aggregati — totali generici
+    let totale_preventivi: i64 = db.query_row(
+        "SELECT COUNT(*) FROM preventivi",
+        [], |row| row.get(0),
+    ).unwrap_or(0);
 
+    // Fatturato e profit solo da preventivi completati
+    let (fatturato_totale, profit_totale): (f64, f64) = db.query_row(
+        "SELECT COALESCE(SUM(totale_finale), 0),
+                COALESCE(SUM(totale_profit), 0)
+         FROM preventivi WHERE stato = 'completato'",
+        [],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    ).map_err(|e| e.to_string())?;
+
+    let (materiale_g, tempo_sec): (f64, f64) = db.query_row(
+        "SELECT COALESCE(SUM(totale_materiale_g), 0),
+                COALESCE(SUM(totale_tempo_sec), 0)
+         FROM preventivi",
+        [],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    ).map_err(|e| e.to_string())?;
+
+    // Confermati = accettato + in_produzione + completato
     let preventivi_confermati: i64 = db.query_row(
-        "SELECT COUNT(*) FROM preventivi WHERE stato = 'confermato'",
+        "SELECT COUNT(*) FROM preventivi WHERE stato IN ('accettato', 'in_produzione', 'completato')",
         [], |row| row.get(0),
     ).unwrap_or(0);
 
@@ -113,8 +124,14 @@ pub fn get_dashboard_stats(state: State<AppState>) -> Result<DashboardStats, Str
     let tasso_conversione = if totale_preventivi > 0 {
         (preventivi_confermati as f64 / totale_preventivi as f64) * 100.0
     } else { 0.0 };
-    let valore_medio = if totale_preventivi > 0 {
-        fatturato_totale / totale_preventivi as f64
+
+    // Conta completati per valore medio
+    let completati: i64 = db.query_row(
+        "SELECT COUNT(*) FROM preventivi WHERE stato = 'completato'",
+        [], |row| row.get(0),
+    ).unwrap_or(0);
+    let valore_medio = if completati > 0 {
+        fatturato_totale / completati as f64
     } else { 0.0 };
 
     // 2) Breakdown per stato
@@ -156,11 +173,13 @@ pub fn get_dashboard_stats(state: State<AppState>) -> Result<DashboardStats, Str
     // 4) Top 5 clienti per fatturato
     let mut stmt = db.prepare(
         "SELECT p.cliente_id,
-                COALESCE(c.denominazione_azienda,
-                    CASE WHEN c.nome != '' OR c.cognome != ''
-                         THEN c.nome || ' ' || c.cognome
-                         ELSE 'Cliente #' || p.cliente_id END,
-                    'Senza cliente') AS nome_display,
+                CASE
+                    WHEN c.denominazione_azienda IS NOT NULL AND c.denominazione_azienda != ''
+                        THEN c.denominazione_azienda
+                    WHEN (c.nome IS NOT NULL AND c.nome != '') OR (c.cognome IS NOT NULL AND c.cognome != '')
+                        THEN TRIM(COALESCE(c.nome, '') || ' ' || COALESCE(c.cognome, ''))
+                    ELSE 'Cliente #' || p.cliente_id
+                END AS nome_display,
                 COALESCE(SUM(p.totale_finale), 0) AS fatt,
                 COUNT(*) AS cnt
          FROM preventivi p

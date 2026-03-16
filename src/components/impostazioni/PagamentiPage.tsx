@@ -140,10 +140,10 @@ export function PagamentiPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">Metodi di pagamento</h3>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>Metodi di pagamento</h3>
         <button onClick={openNew}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+          className="s3d-btn s3d-btn-primary">
           + Nuovo metodo
         </button>
       </div>
@@ -151,7 +151,7 @@ export function PagamentiPage() {
       {/* Predefiniti rapidi — sempre visibili */}
       {(
         <div className="s3d-card-glow p-5 mb-5">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+          <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>
             Aggiungi rapidamente
           </p>
           <div className="flex flex-wrap gap-2">
@@ -171,62 +171,62 @@ export function PagamentiPage() {
       )}
 
       {/* Barra ricerca */}
-      <div className="flex items-center gap-3 mb-4">
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
         <input type="checkbox"
           checked={selectedIds.size === filtered.length && filtered.length > 0}
-          onChange={toggleSelectAll} className="w-4 h-4 rounded" />
+          onChange={toggleSelectAll} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
         {selectedIds.size > 0 && (
           <button onClick={handleDeleteSelected}
-            className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50">
+            className="s3d-btn s3d-btn-danger">
             Elimina selezionati ({selectedIds.size})
           </button>
         )}
         <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
           placeholder="Cerca metodo di pagamento"
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+          className="s3d-input" style={{ flex: 1 }} />
       </div>
 
       {/* Tabella */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="s3d-card" style={{ overflow: "hidden" }}>
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">
+          <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>
             {items.length === 0
               ? 'Nessun metodo di pagamento. Clicca "Nuovo metodo" o usa i predefiniti sopra.'
               : "Nessun risultato."}
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <table className="s3d-table">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="w-10 px-4 py-3"></th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Nome</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Descrizione PDF</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Commissione</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Addebita</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Azioni</th>
+              <tr style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border-default)" }}>
+                <th style={{ width: 40 }}></th>
+                <th >Nome</th>
+                <th >Descrizione PDF</th>
+                <th >Commissione</th>
+                <th >Addebita</th>
+                <th style={{ textAlign: "right" }}>Azioni</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((m) => (
                 <tr key={m.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                  style={{ cursor: "pointer" }}
                   onClick={() => openEdit(m)}>
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <td  onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedIds.has(m.id)}
-                      onChange={() => toggleSelect(m.id)} className="w-4 h-4 rounded" />
+                      onChange={() => toggleSelect(m.id)} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span className="text-lg">{getIcon(m.nome)}</span>
-                      <span className="font-medium text-gray-900">{m.nome}</span>
+                      <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{m.nome}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600" style={{ maxWidth: 300 }}>
+                  <td style={{ color: "var(--text-secondary)", maxWidth: 300 }}>
                     <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {m.descrizione_pdf || "—"}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td >
                     {m.commissione_percentuale > 0 || m.commissione_fissa > 0 ? (
                       <span style={{ color: "var(--orange, #fb923c)", fontWeight: 600, fontSize: 13 }}>
                         {m.commissione_percentuale > 0 && `${m.commissione_percentuale}%`}
@@ -234,10 +234,10 @@ export function PagamentiPage() {
                         {m.commissione_fissa > 0 && eur(m.commissione_fissa)}
                       </span>
                     ) : (
-                      <span className="text-gray-500">—</span>
+                      <span style={{ color: "var(--text-muted)" }}>—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td >
                     {m.addebita_al_cliente ? (
                       <span className="s3d-badge" style={{
                         background: "var(--green-soft, rgba(52,211,153,.15))",
@@ -246,12 +246,12 @@ export function PagamentiPage() {
                         Al cliente
                       </span>
                     ) : (
-                      <span className="text-gray-500 text-xs">No</span>
+                      <span style={{ color: "var(--text-muted)", fontSize: 12 }}>No</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => openEdit(m)} className="text-blue-600 text-xs mr-3">Modifica</button>
-                    <button onClick={() => handleDelete(m.id)} className="text-red-500 text-xs">Elimina</button>
+                  <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => openEdit(m)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>Modifica</button>
+                    <button onClick={() => handleDelete(m.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Elimina</button>
                   </td>
                 </tr>
               ))}
@@ -261,68 +261,68 @@ export function PagamentiPage() {
       </div>
 
       {items.length > 0 && (
-        <div className="mt-3 text-xs text-gray-500">
+        <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)" }}>
           {filtered.length} di {items.length} metodi
         </div>
       )}
 
       {/* ── Modal Crea/Modifica ── */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-bold">
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", width: "100%", maxWidth: 520, margin: "0 16px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
                 {editingId ? "Modifica metodo" : "Nuovo metodo di pagamento"}
               </h3>
               <button onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+                style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 18, cursor: "pointer" }}>✕</button>
             </div>
-            <div className="p-6 space-y-4">
+            <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+                <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)" }}>{error}</div>
               )}
 
               {/* Nome */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome metodo *</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Nome metodo *</label>
                 <input type="text" value={form.nome}
                   onChange={(e) => setForm({ ...form, nome: e.target.value })}
                   placeholder="Es. Bonifico bancario, PayPal, Contanti"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="s3d-input" />
               </div>
 
               {/* Descrizione PDF */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione per PDF</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Descrizione per PDF</label>
                 <textarea value={form.descrizione_pdf}
                   onChange={(e) => setForm({ ...form, descrizione_pdf: e.target.value })}
                   placeholder="Testo stampato nel preventivo PDF…"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-y" />
-                <p className="text-xs text-gray-500 mt-1">Stampato nel PDF accanto al metodo di pagamento</p>
+                  className="s3d-input" style={{ resize: "vertical" }} />
+                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Stampato nel PDF accanto al metodo di pagamento</p>
               </div>
 
               {/* Commissioni */}
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>
                   Commissioni transazione
                 </p>
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Percentuale %</label>
+                    <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Percentuale %</label>
                     <input type="number" step="0.01" min="0"
                       value={form.commissione_percentuale}
                       onChange={(e) => setForm({ ...form, commissione_percentuale: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                    <p className="text-xs text-gray-500 mt-1">Es. PayPal Italia: 3,40%</p>
+                      className="s3d-input" />
+                    <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Es. PayPal Italia: 3,40%</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Fisso (€)</label>
+                    <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Fisso (€)</label>
                     <input type="number" step="0.01" min="0"
                       value={form.commissione_fissa}
                       onChange={(e) => setForm({ ...form, commissione_fissa: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                    <p className="text-xs text-gray-500 mt-1">Es. PayPal Italia: € 0,35</p>
+                      className="s3d-input" />
+                    <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Es. PayPal Italia: € 0,35</p>
                   </div>
                 </div>
 
@@ -331,13 +331,13 @@ export function PagamentiPage() {
                   <input type="checkbox"
                     checked={form.addebita_al_cliente}
                     onChange={(e) => setForm({ ...form, addebita_al_cliente: e.target.checked })}
-                    className="w-4 h-4 rounded" />
-                  <span className="text-sm text-gray-700 font-medium">
+                    style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
+                  <span style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                     Addebita commissione al cliente
                   </span>
                 </label>
                 {form.addebita_al_cliente && (
-                  <p className="text-xs text-gray-500 mt-1.5 ml-7">
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6, marginLeft: 28 }}>
                     La commissione verrà aggiunta automaticamente al totale del preventivo
                   </p>
                 )}
@@ -354,11 +354,11 @@ export function PagamentiPage() {
                       const comm = calcCommissioneEsempio(importo);
                       return (
                         <div key={importo} className="flex justify-between text-sm">
-                          <span className="text-gray-600">Preventivo {eur(importo)}</span>
-                          <span className="font-medium" style={{ color: "var(--orange, #fb923c)" }}>
+                          <span style={{ color: "var(--text-secondary)" }}>Preventivo {eur(importo)}</span>
+                          <span style={{ fontWeight: 600, color: "var(--orange, #fb923c)" }}>
                             + {eur(comm)} commissione
                             {form.addebita_al_cliente && (
-                              <span className="text-gray-500 font-normal"> → cliente paga {eur(importo + comm)}</span>
+                              <span style={{ color: "var(--text-muted)", fontWeight: 400 }}> → cliente paga {eur(importo + comm)}</span>
                             )}
                           </span>
                         </div>
@@ -368,11 +368,11 @@ export function PagamentiPage() {
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, padding: "16px 24px", borderTop: "1px solid var(--border-subtle)" }}>
               <button onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">Annulla</button>
+                className="s3d-btn s3d-btn-ghost">Annulla</button>
               <button onClick={handleSave}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50"
+                className="s3d-btn s3d-btn-primary"
                 disabled={!form.nome.trim()}>
                 {editingId ? "Salva modifiche" : "Crea metodo"}
               </button>

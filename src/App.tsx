@@ -13,6 +13,7 @@ import { Dashboard } from "./components/dashboard/Dashboard";
 import { PreventiviArchivio } from "./components/preventivi/PreventiviArchivio";
 import { NuovoPreventivo } from "./components/preventivi/NuovoPreventivo";
 import { ClientiPage } from "./components/clienti/ClientiPage";
+import { ClienteForm } from "./components/clienti/ClienteForm";
 import { ImpostazioniPage } from "./components/impostazioni/ImpostazioniPage";
 import { RitenutaAccontoPage } from "./components/ritenuta/RitenutaAccontoPage";
 import { RitenuteArchivio } from "./components/ritenuta/RitenuteArchivio";
@@ -24,13 +25,24 @@ import type { PageId } from "./types";
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageId>("dashboard");
   const [preventivoAttivoId, setPreventivoAttivoId] = useState<number | null>(null);
+  const [clienteAttivoId, setClienteAttivoId] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [filtroStatoPreventivi, setFiltroStatoPreventivi] = useState<string | undefined>(undefined);
 
   const navigateTo = useCallback((page: PageId, preventivoId?: number) => {
     setCurrentPage(page);
     if (preventivoId !== undefined) {
       setPreventivoAttivoId(preventivoId);
     }
+    // Reset filtro quando si naviga altrove
+    if (page !== "preventivi") {
+      setFiltroStatoPreventivi(undefined);
+    }
+  }, []);
+
+  const navigateToPreventivi = useCallback((filtroStato?: string) => {
+    setFiltroStatoPreventivi(filtroStato);
+    setCurrentPage("preventivi");
   }, []);
 
   // ── Ctrl+K shortcut ──
@@ -48,12 +60,16 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard
+          onOpenPreventivo={(id) => navigateTo("nuovo-preventivo", id)}
+          onNavigateToPreventivi={navigateToPreventivi}
+        />;
       case "preventivi":
         return (
           <PreventiviArchivio
             onOpenPreventivo={(id) => navigateTo("nuovo-preventivo", id)}
             onNuovoPreventivo={() => navigateTo("nuovo-preventivo")}
+            initialFiltroStato={filtroStatoPreventivi}
           />
         );
       case "nuovo-preventivo":
@@ -64,7 +80,12 @@ export default function App() {
           />
         );
       case "clienti":
-        return <ClientiPage />;
+        return <ClientiPage
+          onOpenCliente={(id) => { setClienteAttivoId(id); setCurrentPage("cliente-form" as PageId); }}
+          onNuovoCliente={() => { setClienteAttivoId(null); setCurrentPage("cliente-form" as PageId); }}
+        />;
+      case "cliente-form":
+        return <ClienteForm clienteId={clienteAttivoId} onBack={() => navigateTo("clienti")} />;
       case "ritenuta":
         return <RitenutaAccontoPage />;
       case "archivio-ritenute":
@@ -85,7 +106,10 @@ export default function App() {
       case "interfaccia":
         return <ImpostazioniPage activeTab={currentPage} onChangeTab={setCurrentPage} />;
       default:
-        return <Dashboard />;
+        return <Dashboard
+          onOpenPreventivo={(id) => navigateTo("nuovo-preventivo", id)}
+          onNavigateToPreventivi={navigateToPreventivi}
+        />;
     }
   };
 
