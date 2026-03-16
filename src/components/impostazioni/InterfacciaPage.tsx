@@ -20,16 +20,36 @@ const ACCENT_COLORS = [
 
 const FONT_SIZES = [
   { value: "small" as const,  label: "Piccolo (12px)" },
-  { value: "medium" as const, label: "Medio (14px)" },
-  { value: "large" as const,  label: "Grande (16px)" },
+  { value: "medium" as const, label: "Medio (16px)" },
+  { value: "large" as const,  label: "Grande (20px)" },
 ];
 
 export function InterfacciaPage() {
   const { settings, updateSettings, resetSettings } = useSettings();
   const toast = useToast();
 
+  const handleUpdate = (partial: Parameters<typeof updateSettings>[0]) => {
+    updateSettings(partial);
+    toast.success("Impostazione salvata");
+  };
+
   return (
     <div style={{ maxWidth: 700, display: "flex", flexDirection: "column", gap: 24 }}>
+
+      {/* Info auto-save */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "10px 16px", borderRadius: 10,
+        background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)",
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round">
+          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+        <span style={{ fontSize: 12, color: "#94a3b8" }}>
+          Le modifiche vengono salvate automaticamente
+        </span>
+      </div>
 
       {/* ═══ DIMENSIONE FONT ═══ */}
       <div style={cardStyle}>
@@ -38,7 +58,7 @@ export function InterfacciaPage() {
           {FONT_SIZES.map((fs) => (
             <button
               key={fs.value}
-              onClick={() => updateSettings({ fontSize: fs.value })}
+              onClick={() => handleUpdate({ fontSize: fs.value })}
               style={{
                 flex: 1,
                 padding: "12px 14px",
@@ -51,7 +71,7 @@ export function InterfacciaPage() {
               }}
             >
               <div style={{
-                fontSize: fs.value === "small" ? 12 : fs.value === "large" ? 16 : 14,
+                fontSize: fs.value === "small" ? 12 : fs.value === "large" ? 20 : 16,
                 fontWeight: 600,
                 color: settings.fontSize === fs.value ? "#e2e8f0" : "#94a3b8",
                 marginBottom: 4,
@@ -75,7 +95,7 @@ export function InterfacciaPage() {
             Anteprima
           </div>
           <div style={{
-            fontSize: settings.fontSize === "small" ? 12 : settings.fontSize === "large" ? 16 : 14,
+            fontSize: settings.fontSize === "small" ? 12 : settings.fontSize === "large" ? 20 : 16,
             color: "#b8c5db", lineHeight: 1.5,
           }}>
             Questa è un'anteprima del testo con la dimensione selezionata. I numeri appaiono così: € 1.234,56
@@ -92,7 +112,7 @@ export function InterfacciaPage() {
           {ACCENT_COLORS.map((c) => (
             <button
               key={c.hex}
-              onClick={() => updateSettings({ accentColor: c.hex, accentName: c.name })}
+              onClick={() => handleUpdate({ accentColor: c.hex, accentName: c.name })}
               style={{
                 padding: "10px 8px",
                 borderRadius: 10,

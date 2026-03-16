@@ -200,19 +200,21 @@ export function CorrieriPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">Corrieri</h3>
-        <div className="flex gap-2">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>Corrieri</h3>
+        <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => setShowPl(!showPl)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              showPl
-                ? "bg-red-50 text-red-600 border-red-300 hover:bg-red-50"
-                : "bg-amber-500 text-white border-transparent hover:bg-amber-600"
-            }`}>
+            style={{
+              padding: "9px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer",
+              border: "none", transition: "all 0.2s",
+              background: showPl ? "var(--red-soft)" : "var(--orange)",
+              color: showPl ? "var(--red)" : "#fff",
+              boxShadow: showPl ? "none" : "0 2px 12px rgba(249,115,22,0.3)",
+            }}>
             {showPl ? "✕ Chiudi PackLink" : "🔍 Cerca tariffe PackLink"}
           </button>
           <button onClick={openNew}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+            className="s3d-btn s3d-btn-primary">
             Nuovo corriere
           </button>
         </div>
@@ -220,21 +222,21 @@ export function CorrieriPage() {
 
       {/* Errore */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4 flex justify-between items-center">
+        <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>⚠️ {error}</span>
-          <button onClick={() => setError("")} className="text-red-500 hover:text-red-700 text-lg leading-none">✕</button>
+          <button onClick={() => setError("")} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 18, cursor: "pointer" }}>✕</button>
         </div>
       )}
 
       {/* ── PackLink Panel ── */}
       {showPl && (
         <div className="s3d-card-glow p-5 mb-5">
-          <h4 className="text-sm font-bold text-gray-300 mb-4">🔗 PACKLINK PRO</h4>
+          <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 16 }}>🔗 PACKLINK PRO</h4>
 
           {/* API Key */}
           <div style={{ marginBottom: 16, padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
-            <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">API Key PackLink Pro</label>
-            <div className="flex gap-2">
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.6 }}>API Key PackLink Pro</label>
+            <div style={{ display: "flex", gap: 8 }}>
               <input
                 type="password"
                 className="s3d-input flex-1"
@@ -259,53 +261,53 @@ export function CorrieriPage() {
           </div>
 
           {/* Ricerca tariffe */}
-          <h5 className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wide">Ricerca tariffe</h5>
+          <h5 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.6 }}>Ricerca tariffe</h5>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Paese destinazione</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Paese destinazione</label>
               <select className="s3d-select" value={plForm.paese}
                 onChange={e => setPlForm({ ...plForm, paese: e.target.value })}>
                 {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.label} ({c.code})</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">CAP destinazione</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>CAP destinazione</label>
               <input className="s3d-input" placeholder="es. 20100" value={plForm.cap}
                 onChange={e => setPlForm({ ...plForm, cap: e.target.value })} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Peso (kg)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Peso (kg)</label>
               <input className="s3d-input" type="number" min="0.1" step="0.1" value={plForm.peso}
                 onChange={e => setPlForm({ ...plForm, peso: +e.target.value })} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Larghezza (cm)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Larghezza (cm)</label>
               <input className="s3d-input" type="number" min="1" value={plForm.larghezza}
                 onChange={e => setPlForm({ ...plForm, larghezza: +e.target.value })} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Altezza (cm)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Altezza (cm)</label>
               <input className="s3d-input" type="number" min="1" value={plForm.altezza}
                 onChange={e => setPlForm({ ...plForm, altezza: +e.target.value })} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Lunghezza (cm)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Lunghezza (cm)</label>
               <input className="s3d-input" type="number" min="1" value={plForm.lunghezza}
                 onChange={e => setPlForm({ ...plForm, lunghezza: +e.target.value })} />
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="s3d-btn s3d-btn-primary" onClick={searchPl} disabled={plLoading || !plForm.cap.trim() || !apiKey.trim()}>
               {plLoading ? "⏳ Ricerca…" : "🚀 Cerca tariffe"}
             </button>
             {plResult && !plResult.errore && (
-              <span className="text-xs text-gray-500">{plResult.servizi.length} tariffe trovate</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{plResult.servizi.length} tariffe trovate</span>
             )}
           </div>
 
           {/* Risultati PackLink */}
           {plResult && plResult.servizi.length > 0 && (
-            <div className="mt-4 max-h-96 overflow-y-auto rounded-lg border border-gray-200">
+            <div style={{ marginTop: 16, maxHeight: 384, overflowY: "auto", borderRadius: 10, border: "1px solid var(--border-subtle)" }}>
               <table className="s3d-table">
                 <thead>
                   <tr>
@@ -330,17 +332,17 @@ export function CorrieriPage() {
                           <span style={{ fontSize: 16 }}>🚚</span>
                         )}
                       </td>
-                      <td className="font-medium text-gray-900">{r.nome_corriere}</td>
+                      <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{r.nome_corriere}</td>
                       <td>
                         <span className="text-xs">{r.nome_servizio}</span>
-                        {r.categoria && <span className="block text-xs text-gray-500 mt-0.5">{r.categoria}</span>}
+                        {r.categoria && <span style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{r.categoria}</span>}
                       </td>
                       <td className="font-bold" style={{ color: "var(--green)" }}>{eur(r.prezzo_totale)}</td>
-                      <td className="text-xs text-gray-500">+{eur(r.prezzo_iva)}</td>
+                      <td style={{ fontSize: 11, color: "var(--text-muted)" }}>+{eur(r.prezzo_iva)}</td>
                       <td>
                         {r.ore_transito ? `${r.ore_transito}h` : r.tempo_transito || "—"}
                         {r.data_consegna_stimata && (
-                          <span className="block text-xs text-gray-500">{r.data_consegna_stimata}</span>
+                          <span style={{ display: "block", fontSize: 11, color: "var(--text-muted)" }}>{r.data_consegna_stimata}</span>
                         )}
                       </td>
                       <td>
@@ -364,19 +366,19 @@ export function CorrieriPage() {
             </div>
           )}
           {plResult && plResult.servizi.length === 0 && !plResult.errore && (
-            <div className="mt-4 p-4 text-center text-gray-500 text-sm">Nessuna tariffa disponibile per questa tratta</div>
+            <div style={{ marginTop: 16, padding: 16, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>Nessuna tariffa disponibile per questa tratta</div>
           )}
         </div>
       )}
 
       {/* ── Barra ricerca + selezione ── */}
-      <div className="flex items-center gap-3 mb-4">
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
         <input type="checkbox"
           checked={selectedIds.size === filtered.length && filtered.length > 0}
-          onChange={toggleSelectAll} className="w-4 h-4 rounded" />
+          onChange={toggleSelectAll} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
         {selectedIds.size > 0 && (
           <button onClick={handleDeleteSelected}
-            className="px-3 py-1.5 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50">
+            className="s3d-btn s3d-btn-danger">
             Elimina selezionati ({selectedIds.size})
           </button>
         )}
@@ -388,7 +390,7 @@ export function CorrieriPage() {
       {/* ── Tabella corrieri ── */}
       <div className="s3d-card overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div style={{ padding: 32, textAlign: "center", color: "var(--text-muted)" }}>
             {items.length === 0
               ? 'Nessun corriere. Usa "Cerca tariffe PackLink" o "Nuovo corriere".'
               : "Nessun risultato."}
@@ -410,11 +412,11 @@ export function CorrieriPage() {
                 <tr key={c.id} className="cursor-pointer" onClick={() => openEdit(c)}>
                   <td onClick={(e) => e.stopPropagation()} style={{ padding: "12px 16px" }}>
                     <input type="checkbox" checked={selectedIds.has(c.id)}
-                      onChange={() => toggleSelect(c.id)} className="w-4 h-4 rounded" />
+                      onChange={() => toggleSelect(c.id)} style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
                   </td>
-                  <td className="font-medium text-gray-900">{c.nome}</td>
+                  <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{c.nome}</td>
                   <td>{c.servizio || "—"}</td>
-                  <td className="font-medium" style={{ color: "var(--green)" }}>{eur(c.costo_spedizione)}</td>
+                  <td style={{ fontWeight: 600, color: "var(--green)" }}>{eur(c.costo_spedizione)}</td>
                   <td>{c.tempo_consegna || "—"}</td>
                   <td>
                     {c.packlink_service_id ? (
@@ -427,8 +429,8 @@ export function CorrieriPage() {
                     {c.note || "—"}
                   </td>
                   <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => openEdit(c)} className="text-blue-600 text-xs mr-3">Modifica</button>
-                    <button onClick={() => handleDelete(c.id)} className="text-red-500 text-xs">Elimina</button>
+                    <button onClick={() => openEdit(c)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>Modifica</button>
+                    <button onClick={() => handleDelete(c.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Elimina</button>
                   </td>
                 </tr>
               ))}
@@ -439,66 +441,66 @@ export function CorrieriPage() {
 
       {/* ── Modal Crea/Modifica ── */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-bold">{editingId ? "Modifica corriere" : "Nuovo corriere"}</h3>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", width: "100%", maxWidth: 520, margin: "0 16px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)" }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{editingId ? "Modifica corriere" : "Nuovo corriere"}</h3>
+              <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 18, cursor: "pointer" }}>✕</button>
             </div>
-            <div className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
+            <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+              {error && <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)" }}>{error}</div>}
               {form.packlink_service_id && (
-                <div className="p-2 bg-blue-50 rounded-lg text-xs text-blue-700">
+                <div style={{ padding: 8, background: "var(--accent-soft)", borderRadius: 8, fontSize: 12, color: "var(--accent)" }}>
                   PackLink Service ID: {form.packlink_service_id}
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome corriere *</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Nome corriere *</label>
                 <input type="text" value={form.nome} onChange={e => updateField("nome", e.target.value)}
                   placeholder="Es. BRT, GLS, DHL"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="s3d-input" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Servizio</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Servizio</label>
                   <input type="text" value={form.servizio} onChange={e => updateField("servizio", e.target.value)}
                     placeholder="Es. Express, Economy"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Costo spedizione (€)</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Costo spedizione (€)</label>
                   <input type="number" step="0.01" min="0" value={form.costo_spedizione}
                     onChange={e => updateField("costo_spedizione", parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tempo consegna</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Tempo consegna</label>
                   <input type="text" value={form.tempo_consegna} onChange={e => updateField("tempo_consegna", e.target.value)}
                     placeholder="Es. 24-48h"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">PackLink Service ID</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>PackLink Service ID</label>
                   <input type="text" value={form.packlink_service_id}
                     onChange={e => updateField("packlink_service_id", e.target.value)}
                     placeholder="Auto da PackLink"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100 outline-none" />
+                    className="s3d-input" style={{ opacity: 0.6 }} />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Note</label>
                 <textarea value={form.note} onChange={e => updateField("note", e.target.value)}
                   placeholder="Note libere…" rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-y" />
+                  className="s3d-input" style={{ resize: "vertical" }} />
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, padding: "16px 24px", borderTop: "1px solid var(--border-subtle)" }}>
               <button onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg">Annulla</button>
+                className="s3d-btn s3d-btn-ghost">Annulla</button>
               <button onClick={handleSave} disabled={saving || !form.nome.trim()}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50">
+                className="s3d-btn s3d-btn-primary">
                 {saving ? "Salvataggio…" : editingId ? "Salva modifiche" : "Crea corriere"}
               </button>
             </div>

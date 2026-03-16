@@ -153,21 +153,21 @@ export function AziendaPage() {
   const currentRegime = REGIMI.find((r) => r.id === form.regime_fiscale);
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-400">Caricamento dati azienda...</div>;
+    return <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>Caricamento dati azienda...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Dati azienda</h3>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>Dati azienda</h3>
         <button onClick={handleSave} disabled={saving || !isModified}
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+          className="s3d-btn s3d-btn-primary">
           {saving ? "⟳ Salvataggio..." : saved ? "✓ Salvato!" : "Salva modifiche"}
         </button>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
+        <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)" }}>
           {error}
         </div>
       )}
@@ -177,130 +177,132 @@ export function AziendaPage() {
         <div className="col-span-2 space-y-6">
 
           {/* Identità */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
               Identità
             </h4>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
                   Ragione sociale / Nome e cognome
                 </label>
                 <input type="text" value={form.ragione_sociale}
                   onChange={(e) => updateField("ragione_sociale", e.target.value)}
                   placeholder="Es. Sparks3D di Mario Rossi oppure Mario Rossi"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
-                <p className="text-xs text-gray-400 mt-1">Comparirà nell'intestazione dei preventivi e documenti PDF</p>
+                  className="s3d-input" />
+                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Comparirà nell'intestazione dei preventivi e documenti PDF</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Partita IVA <span className="text-gray-400 font-normal">(facoltativo)</span>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
+                    Partita IVA <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(facoltativo)</span>
                   </label>
                   <input type="text" value={form.partita_iva}
                     onChange={(e) => updateField("partita_iva", e.target.value)}
                     placeholder="IT01234567890"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Codice Fiscale <span className="text-gray-400 font-normal">(facoltativo)</span>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
+                    Codice Fiscale <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(facoltativo)</span>
                   </label>
                   <input type="text" value={form.codice_fiscale}
                     onChange={(e) => updateField("codice_fiscale", e.target.value.toUpperCase())}
                     placeholder="RSSMRA90A01B157Y"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Email</label>
                   <input type="email" value={form.email}
                     onChange={(e) => updateField("email", e.target.value)}
                     placeholder="info@sparks3d.it"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefono</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Telefono</label>
                   <input type="tel" value={form.telefono}
                     onChange={(e) => updateField("telefono", e.target.value)}
                     placeholder="+39 030 1234567"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Indirizzo */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
               Indirizzo (mittente spedizioni)
             </h4>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Indirizzo</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Indirizzo</label>
                 <input type="text" value={form.indirizzo}
                   onChange={(e) => updateField("indirizzo", e.target.value)}
                   placeholder="Via IV Novembre 59/B"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="s3d-input" />
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CAP</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>CAP</label>
                   <input type="text" value={form.cap}
                     onChange={(e) => updateField("cap", e.target.value)}
                     placeholder="25031"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Città</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Città</label>
                   <input type="text" value={form.citta}
                     onChange={(e) => updateField("citta", e.target.value)}
                     placeholder="Capriolo"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Provincia</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Provincia</label>
                   <input type="text" value={form.provincia} maxLength={2}
                     onChange={(e) => updateField("provincia", e.target.value.toUpperCase())}
                     placeholder="BS"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paese</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Paese</label>
                   <select value={form.paese}
                     onChange={(e) => updateField("paese", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                    className="s3d-input">
                     {PAESI.map((p) => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
               </div>
-              <p className="text-xs text-gray-400">
+              <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
                 Questo indirizzo viene usato come mittente nel calcolo spedizioni PackLink.
               </p>
             </div>
           </div>
 
           {/* Regime Fiscale */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
               Regime fiscale e IVA
             </h4>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Regime</label>
-                <div className="grid grid-cols-2 gap-2">
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>Regime</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {REGIMI.map((r) => (
                     <button key={r.id} onClick={() => handleRegimeChange(r.id)}
-                      className={`text-left px-4 py-3 rounded-lg border-2 text-sm transition-colors ${
-                        form.regime_fiscale === r.id
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300"
-                      }`}>
-                      <div className="font-medium">{r.label}</div>
-                      <div className="text-xs text-gray-400 mt-0.5">
+                      style={{
+                        textAlign: "left", padding: "12px 16px", borderRadius: 10, fontSize: 13,
+                        transition: "all 0.2s", cursor: "pointer",
+                        border: form.regime_fiscale === r.id ? "2px solid var(--accent)" : "2px solid var(--border-subtle)",
+                        background: form.regime_fiscale === r.id ? "var(--accent-soft)" : "transparent",
+                        color: form.regime_fiscale === r.id ? "var(--accent)" : "var(--text-secondary)",
+                      }}>
+                      <div style={{ fontWeight: 600 }}>{r.label}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
                         IVA: {r.iva > 0 ? `${r.iva}%` : "Esente"}
                       </div>
                     </button>
@@ -308,24 +310,24 @@ export function AziendaPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IVA %</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>IVA %</label>
                   <input type="number" step="0.5" value={form.iva_percentuale}
                     onChange={(e) => updateField("iva_percentuale", parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prefisso preventivo</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Prefisso preventivo</label>
                   <input type="text" value={form.prefisso_preventivo}
                     onChange={(e) => updateField("prefisso_preventivo", e.target.value.toUpperCase())}
                     placeholder="S3D"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="s3d-input" />
                 </div>
               </div>
 
               {currentRegime?.nota && (
-                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                <div style={{ padding: 12, background: "rgba(249,115,22,0.08)", borderRadius: 10 }}>
                   <p className="text-xs text-amber-700 dark:text-amber-300">
                     <strong>Nota in fattura/preventivo:</strong> {form.nota_regime}
                   </p>
@@ -333,13 +335,13 @@ export function AziendaPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nota personalizzata regime <span className="text-gray-400 font-normal">(opzionale)</span>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
+                  Nota personalizzata regime <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(opzionale)</span>
                 </label>
                 <textarea value={form.nota_regime}
                   onChange={(e) => updateField("nota_regime", e.target.value)}
                   rows={2} placeholder="Verrà stampata nel PDF del preventivo..."
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
+                  className="s3d-input" style={{ resize: "none" }} />
               </div>
             </div>
           </div>
@@ -349,70 +351,70 @@ export function AziendaPage() {
         <div className="space-y-6">
 
           {/* Logo */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
               Logo
             </h4>
             <div className="flex flex-col items-center gap-4">
               {logoPreview ? (
                 <div className="relative group">
                   <img src={logoPreview} alt="Logo"
-                    className="w-40 h-40 object-contain rounded-lg border border-gray-200 dark:border-gray-600 bg-white p-2" />
+                    style={{ width: 160, height: 160, objectFit: "contain", borderRadius: 10, border: "1px solid var(--border-subtle)", background: "var(--bg-surface)", padding: 8 }} />
                   <button onClick={handleLogoRemove}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    style={{ position: "absolute", top: -8, right: -8, width: 24, height: 24, background: "var(--red)", color: "white", borderRadius: "50%", fontSize: 11, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     ✕
                   </button>
                 </div>
               ) : (
-                <div className="w-40 h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center text-gray-400">
+                <div style={{ width: 160, height: 160, border: "2px dashed var(--border-default)", borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
                   <span className="text-3xl mb-1">🖼️</span>
                   <span className="text-xs">Nessun logo</span>
                 </div>
               )}
               <button onClick={handleLogoSelect}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium w-full">
+                className="s3d-btn s3d-btn-ghost" style={{ width: "100%" }}>
                 {logoPreview ? "Cambia logo" : "Carica logo"}
               </button>
-              <p className="text-xs text-gray-400 text-center">
+              <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center" }}>
                 PNG, JPG o SVG. Verrà usato nei PDF dei preventivi.
               </p>
             </div>
           </div>
 
           {/* Riepilogo */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
               Riepilogo
             </h4>
             <div className="space-y-3 text-sm">
               <div>
-                <span className="text-gray-500 dark:text-gray-400">Ragione sociale</span>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <span style={{ color: "var(--text-muted)" }}>Ragione sociale</span>
+                <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {form.ragione_sociale || "—"}
                 </p>
               </div>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">Indirizzo</span>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <span style={{ color: "var(--text-muted)" }}>Indirizzo</span>
+                <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {form.indirizzo ? `${form.indirizzo}, ${form.cap} ${form.citta} (${form.provincia})` : "—"}
                 </p>
               </div>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">Regime</span>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <span style={{ color: "var(--text-muted)" }}>Regime</span>
+                <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {currentRegime?.label || "—"} — IVA {form.iva_percentuale}%
                 </p>
               </div>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">Prossimo preventivo</span>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <span style={{ color: "var(--text-muted)" }}>Prossimo preventivo</span>
+                <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {form.prefisso_preventivo}-{form.prossimo_numero}
                 </p>
               </div>
               {(form.partita_iva || form.codice_fiscale) && (
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Fiscale</span>
-                  <p className="font-medium text-gray-900 dark:text-white text-xs">
+                  <span style={{ color: "var(--text-muted)" }}>Fiscale</span>
+                  <p style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 12 }}>
                     {form.partita_iva && <span>P.IVA: {form.partita_iva}<br /></span>}
                     {form.codice_fiscale && <span>C.F.: {form.codice_fiscale}</span>}
                   </p>
@@ -422,19 +424,19 @@ export function AziendaPage() {
           </div>
 
           {/* Numerazione */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
               Numerazione preventivi
             </h4>
-            <div className="space-y-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prossimo numero</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Prossimo numero</label>
                 <input type="number" min={1} value={form.prossimo_numero}
                   onChange={(e) => updateField("prossimo_numero", parseInt(e.target.value) || 1)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="s3d-input" />
               </div>
-              <p className="text-xs text-gray-400">
-                Il prossimo preventivo sarà: <strong className="text-gray-600 dark:text-gray-300">{form.prefisso_preventivo}-{form.prossimo_numero}</strong>
+              <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                Il prossimo preventivo sarà: <strong style={{ color: "var(--text-secondary)" }}>{form.prefisso_preventivo}-{form.prossimo_numero}</strong>
               </p>
             </div>
           </div>

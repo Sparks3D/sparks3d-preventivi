@@ -133,17 +133,17 @@ export function RitenutaAccontoPage() {
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h2 className="text-2xl font-bold text-gray-900">Ritenuta d'acconto / Ricevuta</h2>
-        <p className="text-sm text-gray-600 mt-1">
+        <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)" }}>Ritenuta d'acconto / Ricevuta</h2>
+        <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>
           Genera il documento fiscale corretto in base al tipo di cliente
         </p>
       </div>
 
       {/* Messaggi */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4 flex justify-between items-center">
+        <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>⚠️ {error}</span>
-          <button onClick={() => setError("")} className="text-red-500 text-lg leading-none">✕</button>
+          <button onClick={() => setError("")} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 18, cursor: "pointer" }}>✕</button>
         </div>
       )}
       {success && (
@@ -152,16 +152,16 @@ export function RitenutaAccontoPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-6 space-y-5">
+      <div className="s3d-card" style={{ overflow: "hidden" }}>
+        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
 
           {/* ── Carica da preventivo (opzionale) ── */}
           <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>
               Carica da preventivo (opzionale)
             </p>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="s3d-input"
               value={preventivoId ?? ""}
               onChange={(e) => {
                 const v = e.target.value;
@@ -179,28 +179,28 @@ export function RitenutaAccontoPage() {
           </div>
 
           {/* ── Numero e Data ── */}
-          <div className="grid grid-cols-2 gap-4">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Numero ricevuta</label>
+              <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Numero ricevuta</label>
               <input type="text" value={numero}
                 onChange={(e) => setNumero(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                className="s3d-input" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
+              <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Data</label>
               <input type="date" value={data}
                 onChange={(e) => setData(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                className="s3d-input" />
             </div>
           </div>
 
           {/* ── Cliente ── */}
           <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>
               Committente
             </p>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="s3d-input"
               value={clienteId ?? ""}
               onChange={(e) => setClienteId(e.target.value ? Number(e.target.value) : null)}
             >
@@ -240,21 +240,21 @@ export function RitenutaAccontoPage() {
 
           {/* ── Descrizione ── */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrizione della prestazione *</label>
+            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Descrizione della prestazione *</label>
             <textarea value={descrizione}
               onChange={(e) => setDescrizione(e.target.value)}
               placeholder="Es: Servizio di stampa 3D e progettazione modelli personalizzati..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-y" />
+              className="s3d-input" style={{ resize: "vertical" }} />
           </div>
 
           {/* ── Importo ── */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Compenso lordo (€) *</label>
+            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Compenso lordo (€) *</label>
             <input type="number" step="0.01" min="0"
               value={importoLordo}
               onChange={(e) => setImportoLordo(parseFloat(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="s3d-input"
               style={{ fontSize: 18, fontWeight: 700, padding: "12px 16px" }} />
           </div>
 
@@ -287,17 +287,17 @@ export function RitenutaAccontoPage() {
 
           {/* ── Note ── */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Note (opzionale)</label>
+            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Note (opzionale)</label>
             <textarea value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Note aggiuntive da inserire nel documento..."
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-y" />
+              className="s3d-input" style={{ resize: "vertical" }} />
           </div>
         </div>
 
         {/* ── Footer ── */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderTop: "1px solid var(--border-subtle)" }}>
           <div className="text-xs" style={{ color: "var(--text-muted, #6b7fa0)" }}>
             {cliente ? (
               isAzienda
@@ -335,7 +335,7 @@ export function RitenutaAccontoPage() {
             <button
               onClick={handleGenera}
               disabled={loading || !cliente || importoLordo <= 0 || !descrizione.trim()}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-40"
+              className="s3d-btn s3d-btn-primary"
             >
               {loading ? "⏳ Generazione…" : "📄 Genera PDF"}
             </button>

@@ -67,10 +67,10 @@ export function SliceFileImporter({ onImport, compact }: Props) {
     return (
       <div>
         <button onClick={handleImport} disabled={loading}
-          className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium disabled:opacity-50">
+          className="s3d-btn s3d-btn-primary" style={{ background: "var(--orange)", boxShadow: "0 2px 12px rgba(249,115,22,0.3)" }}>
           {loading ? "⏳ Analisi file…" : "📂 Importa GCode / 3MF"}
         </button>
-        {error && <span className="text-red-500 text-xs ml-2">{error}</span>}
+        {error && <span style={{ color: "var(--red)", fontSize: 11, marginLeft: 8 }}>{error}</span>}
         {data && (
           <span className="text-xs ml-2" style={{ color: "var(--green, #22c55e)" }}>
             ✓ {formatTempo(data.tempo_stampa_sec)} • {data.peso_totale_grammi.toFixed(1)}g

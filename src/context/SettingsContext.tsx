@@ -19,8 +19,8 @@ const DEFAULTS: UISettings = {
 
 const FONT_SIZES: Record<string, { base: number; label: number; input: number }> = {
   small:  { base: 12, label: 10, input: 12 },
-  medium: { base: 14, label: 11, input: 14 },
-  large:  { base: 16, label: 12, input: 16 },
+  medium: { base: 16, label: 12, input: 16 },
+  large:  { base: 20, label: 14, input: 20 },
 };
 
 interface SettingsContextValue {
@@ -71,6 +71,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const b = parseInt(hex.slice(5, 7), 16);
     root.style.setProperty("--accent", hex);
     root.style.setProperty("--accent-hover", darken(hex, 15));
+    root.style.setProperty("--accent-secondary", darken(hex, 25));
+    root.style.setProperty("--accent-secondary-hover", darken(hex, 35));
     root.style.setProperty("--accent-glow", `rgba(${r}, ${g}, ${b}, 0.3)`);
     root.style.setProperty("--accent-soft", `rgba(${r}, ${g}, ${b}, 0.1)`);
     root.style.setProperty("--text-accent", lighten(hex, 30));
