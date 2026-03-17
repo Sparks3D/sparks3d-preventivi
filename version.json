@@ -1,6 +1,6 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "download_url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/latest",
-  "release_notes": "Bug fix, tema dinamico, Dashboard migliorata, pagina clienti dedicata",
-  "release_date": "2026-03-16"
+  "release_notes": "Integrazione Orca Slicer, Completo refactoring UI",
+  "release_date": "2026-03-17"
 }

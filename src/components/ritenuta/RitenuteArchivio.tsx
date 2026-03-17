@@ -32,7 +32,7 @@ const dataFmt = (iso: string) => {
   return `${d}/${m}/${y}`;
 };
 
-export function RitenuteArchivio() {
+export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => void }) {
   const [ritenute, setRitenute] = useState<Ritenuta[]>([]);
   const [filtro, setFiltro] = useState("");
   const [annoFiltro, setAnnoFiltro] = useState<string>("tutti");
@@ -334,10 +334,19 @@ export function RitenuteArchivio() {
       <div style={S.header}>
         <div style={S.title}>
           <span>📋</span>
-          Archivio Ritenute
+          Ritenute / Ricevute
           <span style={S.badge}>{filtrate.length} document{filtrate.length !== 1 ? "i" : "o"}</span>
         </div>
         <div style={S.controls}>
+          {onNuovaRitenuta && (
+            <button
+              onClick={onNuovaRitenuta}
+              className="s3d-btn s3d-btn-primary"
+              style={{ fontSize: 13, fontWeight: 600 }}
+            >
+              + Nuova Ritenuta / Ricevuta
+            </button>
+          )}
           <input
             type="text"
             placeholder="🔍 Cerca per cliente, numero, descrizione..."
