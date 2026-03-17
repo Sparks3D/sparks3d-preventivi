@@ -103,10 +103,10 @@ pub struct RigaMateriale {
 #[derive(Debug, Serialize)]
 pub struct SlicerStatus {
     pub nome: String,
+    pub codice: String,  // "bambu", "orca"
     pub installato: bool,
     pub path: Option<String>,
     pub exe_path: Option<String>,
-    pub versione: Option<String>,
 }
 
 // === AZIENDA ===
@@ -238,7 +238,13 @@ fn delete_preventivo(state: State<AppState>, id: i64) -> Result<(), String> { le
 #[tauri::command]
 fn get_slicer_info(is_beta: bool) -> Result<slicer::SlicerInfoResult, String> { Ok(slicer::get_info(is_beta)) }
 #[tauri::command]
-fn scan_slicer_profiles(tipo: String, is_beta: bool, solo_utente: bool) -> Result<Vec<slicer::SlicerProfileEntry>, String> { Ok(slicer::scan_profiles(&tipo, is_beta, solo_utente)) }
+fn scan_slicer_profiles(tipo: String, is_beta: bool, solo_utente: bool, slicer_type: Option<String>) -> Result<Vec<slicer::SlicerProfileEntry>, String> {
+    let st = slicer_type.as_deref().unwrap_or("bambu");
+    match slicer::SlicerType::from_str(st) {
+        Some(s) => Ok(slicer::scan_profiles_for(s, &tipo, is_beta, solo_utente)),
+        None => Ok(slicer::scan_profiles(&tipo, is_beta, solo_utente)),
+    }
+}
 
 // === VERSIONE APP ===
 #[tauri::command]
@@ -246,84 +252,87 @@ fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
-// === SLICER STATUS (rilevamento installazione) ===
+// === SLICER STATUS (rilevamento installazione multi-slicer) ===
 #[tauri::command]
-fn check_slicer_status() -> Result<SlicerStatus, String> {
+fn check_slicer_status() -> Result<Vec<SlicerStatus>, String> {
     let appdata = std::env::var("APPDATA").unwrap_or_default();
-    let bambu_path = std::path::Path::new(&appdata).join("BambuStudio");
-    let installato = bambu_path.exists() && bambu_path.is_dir();
+    let mut slicers = Vec::new();
 
-    // Cerca l'eseguibile nei percorsi comuni
-    let exe_path = if installato {
-        let candidates = vec![
+    // --- Bambu Studio ---
+    let bambu_path = std::path::Path::new(&appdata).join("BambuStudio");
+    let bambu_installato = bambu_path.exists() && bambu_path.is_dir();
+    let bambu_exe = if bambu_installato {
+        vec![
             std::path::PathBuf::from(r"C:\Program Files\Bambu Studio\bambu-studio.exe"),
             std::path::PathBuf::from(r"C:\Program Files (x86)\Bambu Studio\bambu-studio.exe"),
             {
                 let local = std::env::var("LOCALAPPDATA").unwrap_or_default();
                 std::path::Path::new(&local).join("BambuStudio").join("bambu-studio.exe")
             },
-            {
-                let progdata = std::env::var("ProgramData").unwrap_or_default();
-                std::path::Path::new(&progdata).join("BambuStudio").join("bambu-studio.exe")
-            },
-        ];
-        candidates.into_iter().find(|p| p.exists()).map(|p| p.to_string_lossy().to_string())
-    } else {
-        None
-    };
-
-    let versione = if installato {
-        let version_hint = bambu_path.join("system").join("version.txt");
-        if version_hint.exists() {
-            std::fs::read_to_string(&version_hint).ok().map(|v| v.trim().to_string())
-        } else {
-            let user_dir = bambu_path.join("user");
-            if user_dir.exists() {
-                std::fs::read_dir(&user_dir)
-                    .ok()
-                    .and_then(|entries| {
-                        entries
-                            .filter_map(|e| e.ok())
-                            .filter(|e| e.path().is_dir())
-                            .map(|e| e.file_name().to_string_lossy().to_string())
-                            .next()
-                    })
-            } else {
-                None
-            }
-        }
-    } else {
-        None
-    };
-
-    Ok(SlicerStatus {
+        ].into_iter().find(|p| p.exists()).map(|p| p.to_string_lossy().to_string())
+    } else { None };
+    slicers.push(SlicerStatus {
         nome: "Bambu Studio".to_string(),
-        installato,
-        path: if installato { Some(bambu_path.to_string_lossy().to_string()) } else { None },
-        exe_path,
-        versione,
-    })
+        codice: "bambu".to_string(),
+        installato: bambu_installato,
+        path: if bambu_installato { Some(bambu_path.to_string_lossy().to_string()) } else { None },
+        exe_path: bambu_exe,
+    });
+
+    // --- Orca Slicer ---
+    let orca_dir_names = ["OrcaSlicer", "Orca Slicer"];
+    let mut orca_path_found: Option<std::path::PathBuf> = None;
+    for name in &orca_dir_names {
+        let p = std::path::Path::new(&appdata).join(name);
+        if p.exists() && p.is_dir() { orca_path_found = Some(p); break; }
+    }
+    let orca_installato = orca_path_found.is_some();
+    let orca_exe = if orca_installato {
+        vec![
+            std::path::PathBuf::from(r"C:\Program Files\OrcaSlicer\orca-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\OrcaSlicer\OrcaSlicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files (x86)\OrcaSlicer\orca-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Orca Slicer\orca-slicer.exe"),
+        ].into_iter().find(|p| p.exists()).map(|p| p.to_string_lossy().to_string())
+    } else { None };
+    slicers.push(SlicerStatus {
+        nome: "Orca Slicer".to_string(),
+        codice: "orca".to_string(),
+        installato: orca_installato,
+        path: orca_path_found.map(|p| p.to_string_lossy().to_string()),
+        exe_path: orca_exe,
+    });
+
+    Ok(slicers)
 }
 
 #[tauri::command]
-fn open_slicer() -> Result<String, String> {
-    // Cerca l'eseguibile di Bambu Studio
-    let candidates = vec![
-        std::path::PathBuf::from(r"C:\Program Files\Bambu Studio\bambu-studio.exe"),
-        std::path::PathBuf::from(r"C:\Program Files (x86)\Bambu Studio\bambu-studio.exe"),
-        {
-            let local = std::env::var("LOCALAPPDATA").unwrap_or_default();
-            std::path::Path::new(&local).join("BambuStudio").join("bambu-studio.exe")
-        },
-    ];
+fn open_slicer(slicer_code: Option<String>) -> Result<String, String> {
+    let code = slicer_code.as_deref().unwrap_or("bambu");
+    let (candidates, label): (Vec<std::path::PathBuf>, &str) = match code {
+        "orca" => (vec![
+            std::path::PathBuf::from(r"C:\Program Files\OrcaSlicer\orca-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\OrcaSlicer\OrcaSlicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files (x86)\OrcaSlicer\orca-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Orca Slicer\orca-slicer.exe"),
+        ], "Orca Slicer"),
+        _ => (vec![
+            std::path::PathBuf::from(r"C:\Program Files\Bambu Studio\bambu-studio.exe"),
+            std::path::PathBuf::from(r"C:\Program Files (x86)\Bambu Studio\bambu-studio.exe"),
+            {
+                let local = std::env::var("LOCALAPPDATA").unwrap_or_default();
+                std::path::Path::new(&local).join("BambuStudio").join("bambu-studio.exe")
+            },
+        ], "Bambu Studio"),
+    };
 
     if let Some(exe) = candidates.iter().find(|p| p.exists()) {
         std::process::Command::new(exe)
             .spawn()
-            .map_err(|e| format!("Errore avvio Bambu Studio: {}", e))?;
+            .map_err(|e| format!("Errore avvio {}: {}", label, e))?;
         Ok(exe.to_string_lossy().to_string())
     } else {
-        Err("Eseguibile Bambu Studio non trovato. Verifica l'installazione.".into())
+        Err(format!("Eseguibile {} non trovato. Verifica l'installazione.", label))
     }
 }
 
@@ -465,7 +474,11 @@ pub fn run() {
 
                 let appdata = std::env::var("APPDATA").unwrap_or_default();
                 let bambu_path = std::path::Path::new(&appdata).join("BambuStudio");
-                let slicer_ok = bambu_path.exists() && bambu_path.is_dir();
+                let bambu_ok = bambu_path.exists() && bambu_path.is_dir();
+                let orca_candidates = ["OrcaSlicer", "Orca Slicer"];
+                let orca_ok = orca_candidates.iter().any(|name| {
+                    std::path::Path::new(&appdata).join(name).is_dir()
+                });
 
                 // ══════════════════════════════════════════════════
                 // FASE 2: Attendi che lo splash sia pronto
@@ -507,11 +520,17 @@ pub fn run() {
                     Some(format!("{} preventivi in archivio", n_prev)));
                 sleep(1500);
 
-                update_splash(80, "Verifica slicer...", None);
+                update_splash(80, "Verifica slicer installati...", None);
                 sleep(1200);
 
-                update_splash(90, "Slicer verificato",
-                    Some(if slicer_ok { "Bambu Studio rilevato".into() } else { "Bambu Studio non trovato".into() }));
+                update_splash(90, "Slicer verificati",
+                    Some({
+                        let mut parts = Vec::new();
+                        if bambu_ok { parts.push("Bambu Studio ✓"); }
+                        if orca_ok { parts.push("Orca Slicer ✓"); }
+                        if parts.is_empty() { "Nessuno slicer rilevato".to_string() }
+                        else { parts.join(" · ") }
+                    }));
                 sleep(1500);
 
                 update_splash(95, "Preparazione interfaccia...", None);

@@ -15,6 +15,13 @@ import { NuovoPreventivo } from "./components/preventivi/NuovoPreventivo";
 import { ClientiPage } from "./components/clienti/ClientiPage";
 import { ClienteForm } from "./components/clienti/ClienteForm";
 import { ImpostazioniPage } from "./components/impostazioni/ImpostazioniPage";
+import { SlicerImportPage } from "./components/impostazioni/SlicerImportPage";
+import { MaterialeForm } from "./components/impostazioni/MaterialeForm";
+import { StampanteForm } from "./components/impostazioni/StampanteForm";
+import { ProfiloStampaForm } from "./components/impostazioni/ProfiloStampaForm";
+import { ServizioExtraForm } from "./components/impostazioni/ServizioExtraForm";
+import { CorriereForm } from "./components/impostazioni/CorriereForm";
+import { MetodoPagamentoForm } from "./components/impostazioni/MetodoPagamentoForm";
 import { RitenutaAccontoPage } from "./components/ritenuta/RitenutaAccontoPage";
 import { RitenuteArchivio } from "./components/ritenuta/RitenuteArchivio";
 import { BackupRestore } from "./components/impostazioni/BackupRestore";
@@ -29,12 +36,26 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtroStatoPreventivi, setFiltroStatoPreventivi] = useState<string | undefined>(undefined);
 
+  // Form state generico per tutte le pagine form
+  const [formConfig, setFormConfig] = useState<{
+    type: string;
+    editId?: number;
+    prefill?: any;
+    returnPage: PageId;
+  } | null>(null);
+
+  // Slicer import
+  const [slicerImportConfig, setSlicerImportConfig] = useState<{
+    tipo: "filament" | "machine" | "process";
+    defaultSlicer: "bambu" | "orca";
+    returnTab: PageId;
+  } | null>(null);
+
   const navigateTo = useCallback((page: PageId, preventivoId?: number) => {
     setCurrentPage(page);
     if (preventivoId !== undefined) {
       setPreventivoAttivoId(preventivoId);
     }
-    // Reset filtro quando si naviga altrove
     if (page !== "preventivi") {
       setFiltroStatoPreventivi(undefined);
     }
@@ -56,6 +77,30 @@ export default function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Handler per aprire form da ImpostazioniPage
+  const handleOpenForm = (formType: string, editId?: number, prefill?: any) => {
+    // Determina la pagina di ritorno in base al tipo
+    const returnPages: Record<string, PageId> = {
+      materiale: "materiali" as PageId,
+      stampante: "stampanti" as PageId,
+      profilo: "profili" as PageId,
+      servizio: "servizi" as PageId,
+      corriere: "corrieri" as PageId,
+      pagamento: "pagamenti" as PageId,
+    };
+    setFormConfig({ type: formType, editId, prefill, returnPage: returnPages[formType] || "impostazioni" });
+    setCurrentPage("settings-form" as PageId);
+  };
+
+  // Handler slicer import con callback che apre il form
+  const handleSlicerSelect = (profile: any) => {
+    if (!slicerImportConfig) return;
+    const typeMap: Record<string, string> = { filament: "materiale", machine: "stampante", process: "profilo" };
+    const formType = typeMap[slicerImportConfig.tipo] || "materiale";
+    setFormConfig({ type: formType, prefill: profile, returnPage: slicerImportConfig.returnTab });
+    setCurrentPage("settings-form" as PageId);
+  };
 
   const renderPage = () => {
     switch (currentPage) {
@@ -86,10 +131,43 @@ export default function App() {
         />;
       case "cliente-form":
         return <ClienteForm clienteId={clienteAttivoId} onBack={() => navigateTo("clienti")} />;
+
+      // ── Slicer Import Page ──
+      case "slicer-import":
+        return slicerImportConfig ? (
+          <SlicerImportPage
+            tipo={slicerImportConfig.tipo}
+            defaultSlicer={slicerImportConfig.defaultSlicer}
+            onSelect={handleSlicerSelect}
+            onBack={() => setCurrentPage(slicerImportConfig.returnTab)}
+          />
+        ) : null;
+
+      // ── Form pages per impostazioni ──
+      case "settings-form":
+        if (!formConfig) return null;
+        switch (formConfig.type) {
+          case "materiale":
+            return <MaterialeForm editId={formConfig.editId} prefill={formConfig.prefill} onBack={() => setCurrentPage(formConfig.returnPage)} />;
+          case "stampante":
+            return <StampanteForm editId={formConfig.editId} prefill={formConfig.prefill} onBack={() => setCurrentPage(formConfig.returnPage)} />;
+          case "profilo":
+            return <ProfiloStampaForm editId={formConfig.editId} prefill={formConfig.prefill} onBack={() => setCurrentPage(formConfig.returnPage)} />;
+          case "servizio":
+            return <ServizioExtraForm editId={formConfig.editId} prefill={formConfig.prefill} onBack={() => setCurrentPage(formConfig.returnPage)} />;
+          case "corriere":
+            return <CorriereForm editId={formConfig.editId} prefill={formConfig.prefill} onBack={() => setCurrentPage(formConfig.returnPage)} />;
+          case "pagamento":
+            return <MetodoPagamentoForm editId={formConfig.editId} prefill={formConfig.prefill} onBack={() => setCurrentPage(formConfig.returnPage)} />;
+          default: return null;
+        }
+
+      // ── Ritenute (merge archivio + nuova) ──
       case "ritenuta":
-        return <RitenutaAccontoPage />;
-      case "archivio-ritenute":
-        return <RitenuteArchivio />;
+        return <RitenuteArchivio onNuovaRitenuta={() => setCurrentPage("nuova-ritenuta" as PageId)} />;
+      case "nuova-ritenuta":
+        return <RitenutaAccontoPage onBack={() => setCurrentPage("ritenuta")} />;
+
       case "backup":
         return <BackupRestore />;
       case "licenza":
@@ -104,7 +182,15 @@ export default function App() {
       case "corrieri":
       case "pagamenti":
       case "interfaccia":
-        return <ImpostazioniPage activeTab={currentPage} onChangeTab={setCurrentPage} />;
+        return <ImpostazioniPage
+          activeTab={currentPage}
+          onChangeTab={setCurrentPage}
+          onOpenForm={handleOpenForm}
+          onImportSlicer={(tipo, defaultSlicer, returnTab) => {
+            setSlicerImportConfig({ tipo, defaultSlicer, returnTab });
+            setCurrentPage("slicer-import" as PageId);
+          }}
+        />;
       default:
         return <Dashboard
           onOpenPreventivo={(id) => navigateTo("nuovo-preventivo", id)}
@@ -134,7 +220,6 @@ export default function App() {
         background: "linear-gradient(160deg, #0d1224 0%, #0a0f1e 100%)",
         position: "relative",
       }}>
-        {/* ── Barra superiore con Ctrl+K ── */}
         <div style={{
           position: "sticky", top: 0, zIndex: 100,
           padding: "12px 28px",
@@ -191,7 +276,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* ── Modale ricerca globale ── */}
       <GlobalSearch
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
