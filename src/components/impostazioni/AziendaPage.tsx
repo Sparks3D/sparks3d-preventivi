@@ -219,7 +219,7 @@ export function AziendaPage() {
                   <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Email</label>
                   <input type="email" value={form.email}
                     onChange={(e) => updateField("email", e.target.value)}
-                    placeholder="info@sparks3d.it"
+                    placeholder="info@esempio.it"
                     className="s3d-input" />
                 </div>
                 <div>
@@ -243,7 +243,7 @@ export function AziendaPage() {
                 <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Indirizzo</label>
                 <input type="text" value={form.indirizzo}
                   onChange={(e) => updateField("indirizzo", e.target.value)}
-                  placeholder="Via IV Novembre 59/B"
+                  placeholder="Via Roma, 1"
                   className="s3d-input" />
               </div>
               <div className="grid grid-cols-4 gap-4">
@@ -251,21 +251,21 @@ export function AziendaPage() {
                   <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>CAP</label>
                   <input type="text" value={form.cap}
                     onChange={(e) => updateField("cap", e.target.value)}
-                    placeholder="25031"
+                    placeholder="00000"
                     className="s3d-input" />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Città</label>
                   <input type="text" value={form.citta}
                     onChange={(e) => updateField("citta", e.target.value)}
-                    placeholder="Capriolo"
+                    placeholder="Città"
                     className="s3d-input" />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Provincia</label>
                   <input type="text" value={form.provincia} maxLength={2}
                     onChange={(e) => updateField("provincia", e.target.value.toUpperCase())}
-                    placeholder="BS"
+                    placeholder="XX"
                     className="s3d-input" />
                 </div>
                 <div>
