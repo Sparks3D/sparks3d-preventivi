@@ -20,11 +20,16 @@ interface NavItem {
 
 interface SlicerStatus {
   nome: string;
+  codice: string;
   installato: boolean;
   path: string | null;
   exe_path: string | null;
-  versione: string | null;
 }
+
+const SLICER_COLORS: Record<string, { main: string; soft: string; text: string }> = {
+  bambu: { main: "#34d399", soft: "rgba(52, 211, 153,", text: "#a7d8c4" },
+  orca:  { main: "#26a69a", soft: "rgba(38, 166, 154,", text: "#8fd4cc" },
+};
 
 // ── SVG Icons ──
 
@@ -86,43 +91,30 @@ const icons = {
 const mainNav: NavItem[] = [
   { id: "dashboard",    label: "Dashboard",          icon: icons.dashboard },
   { id: "preventivi",   label: "Preventivi",         icon: icons.preventivi },
-  { id: "ritenuta",     label: "Ritenuta / Ricevute", icon: icons.ritenuta },
-  { id: "archivio-ritenute" as PageId, label: "Archivio Ritenute", icon: icons.archivioRitenute },
+  { id: "ritenuta",     label: "Ritenute / Ricevute", icon: icons.ritenuta },
   { id: "clienti",      label: "Clienti",            icon: icons.clienti },
   { id: "backup" as PageId, label: "Backup / Ripristino", icon: icons.backup },
   { id: "impostazioni", label: "Impostazioni",       icon: icons.impostazioni },
 ];
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
-  const [slicerStatus, setSlicerStatus] = useState<SlicerStatus>({
-    nome: "Bambu Studio",
-    installato: false,
-    path: null,
-    exe_path: null,
-    versione: null,
-  });
+  const [slicerStatuses, setSlicerStatuses] = useState<SlicerStatus[]>([]);
   const [slicerChecking, setSlicerChecking] = useState(true);
   const [appVersion, setAppVersion] = useState("");
+  const [openingSlicer, setOpeningSlicer] = useState<string | null>(null);
 
-  // ── Rileva Bambu Studio al mount ──
   useEffect(() => {
     let cancelled = false;
-    const checkSlicer = async () => {
+    const checkSlicers = async () => {
       try {
-        const status = await invoke<SlicerStatus>("check_slicer_status");
-        if (!cancelled) {
-          setSlicerStatus(status);
-          setSlicerChecking(false);
-        }
+        const statuses = await invoke<SlicerStatus[]>("check_slicer_status");
+        if (!cancelled) { setSlicerStatuses(statuses); setSlicerChecking(false); }
       } catch (err) {
         console.warn("Errore check slicer:", err);
-        if (!cancelled) {
-          setSlicerStatus(prev => ({ ...prev, installato: false }));
-          setSlicerChecking(false);
-        }
+        if (!cancelled) setSlicerChecking(false);
       }
     };
-    checkSlicer();
+    checkSlicers();
     return () => { cancelled = true; };
   }, []);
 
@@ -134,43 +126,26 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     if (id === "preventivi") {
       return ["preventivi", "nuovo-preventivo"].includes(currentPage);
     }
+    if (id === "ritenuta") {
+      return ["ritenuta", "nuova-ritenuta"].includes(currentPage);
+    }
     if (id === "impostazioni") {
-      return ["impostazioni", "materiali", "stampanti", "profili", "servizi", "corrieri", "pagamenti", "interfaccia"].includes(currentPage);
+      return ["impostazioni", "materiali", "stampanti", "profili", "servizi", "corrieri", "pagamenti", "interfaccia", "settings-form", "slicer-import"].includes(currentPage);
     }
     return currentPage === id;
   };
 
-  // ── Colore e tooltip del dot slicer ──
-  const slicerDotColor = slicerChecking
-    ? "#f59e0b"  // giallo = verificando
-    : slicerStatus.installato
-      ? "#34d399"  // verde = trovato
-      : "#f87171"; // rosso = non trovato
-
-  const slicerDotShadow = slicerChecking
-    ? "0 0 6px rgba(245, 158, 11, 0.5)"
-    : slicerStatus.installato
-      ? "0 0 6px rgba(52, 211, 153, 0.5)"
-      : "0 0 6px rgba(248, 113, 113, 0.5)";
-
-  const slicerTooltip = slicerChecking
-    ? "Verifica in corso..."
-    : slicerStatus.installato
-      ? `${slicerStatus.nome} rilevato${slicerStatus.versione ? ` (${slicerStatus.versione})` : ""} — Clicca per aprire`
-      : `${slicerStatus.nome} non trovato`;
-
-  const [slicerOpening, setSlicerOpening] = useState(false);
-
-  const handleOpenSlicer = async () => {
-    if (!slicerStatus.installato || slicerChecking || slicerOpening) return;
-    setSlicerOpening(true);
+  const handleOpenSlicer = async (codice: string) => {
+    if (openingSlicer) return;
+    setOpeningSlicer(codice);
     try {
-      await invoke("open_slicer");
+      await invoke("open_slicer", { slicerCode: codice });
     } catch (err) {
       console.warn("Errore apertura slicer:", err);
-      alert("Impossibile aprire Bambu Studio. Verifica l'installazione.");
+      const label = slicerStatuses.find(s => s.codice === codice)?.nome || "Slicer";
+      alert(`Impossibile aprire ${label}. Verifica l'installazione.`);
     } finally {
-      setTimeout(() => setSlicerOpening(false), 2000);
+      setTimeout(() => setOpeningSlicer(null), 2000);
     }
   };
 
@@ -215,113 +190,46 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           </div>
         </div>
 
-        {/* ── Slicer badge (FUNZIONALE + CLICCABILE) ── */}
-        <div
-          title={slicerTooltip}
-          onClick={handleOpenSlicer}
-          style={{
-            marginTop: 14, padding: "7px 12px", borderRadius: 8,
-            background: slicerStatus.installato
-              ? "rgba(52, 211, 153, 0.06)"
-              : slicerChecking
-                ? "rgba(245, 158, 11, 0.06)"
-                : "rgba(248, 113, 113, 0.06)",
-            border: `1px solid ${slicerStatus.installato
-              ? "rgba(52, 211, 153, 0.15)"
-              : slicerChecking
-                ? "rgba(245, 158, 11, 0.15)"
-                : "rgba(248, 113, 113, 0.15)"}`,
-            display: "flex", alignItems: "center", gap: 8,
-            cursor: slicerStatus.installato ? "pointer" : "default",
-            transition: "all 0.3s ease",
-            opacity: slicerOpening ? 0.6 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (slicerStatus.installato) {
-              e.currentTarget.style.background = "rgba(52, 211, 153, 0.12)";
-              e.currentTarget.style.borderColor = "rgba(52, 211, 153, 0.3)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (slicerStatus.installato) {
-              e.currentTarget.style.background = "rgba(52, 211, 153, 0.06)";
-              e.currentTarget.style.borderColor = "rgba(52, 211, 153, 0.15)";
-            }
-          }}
-        >
-          {/* Dot con animazione pulsante */}
-          <div style={{ position: "relative", width: 8, height: 8 }}>
-            {/* Ping animation (solo se installato o checking) */}
-            {(slicerStatus.installato || slicerChecking) && (
-              <div style={{
-                position: "absolute", inset: -2,
-                borderRadius: "50%",
-                background: slicerDotColor,
-                opacity: 0.3,
-                animation: "slicerPing 2s cubic-bezier(0, 0, 0.2, 1) infinite",
-              }} />
-            )}
-            <div style={{
-              width: 8, height: 8, borderRadius: "50%",
-              background: slicerDotColor,
-              boxShadow: slicerDotShadow,
-              position: "relative",
-              transition: "all 0.5s ease",
-            }} />
-          </div>
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{
-              fontSize: 12, fontWeight: 500,
-              color: slicerStatus.installato ? "#a7d8c4" : slicerChecking ? "#d4a853" : "#d4868a",
-              transition: "color 0.3s",
-            }}>
-              {slicerStatus.nome}
-            </span>
-            {/* Mostra versione o stato */}
-            {!slicerChecking && (
-              <span style={{
-                fontSize: 10, color: "#556a89", marginLeft: 6,
-              }}>
-                {slicerStatus.installato
-                  ? (slicerStatus.versione ? `v${slicerStatus.versione}` : "Rilevato")
-                  : "Non trovato"
-                }
-              </span>
-            )}
-            {slicerChecking && (
-              <span style={{ fontSize: 10, color: "#556a89", marginLeft: 6 }}>
-                Verifica...
-              </span>
-            )}
-          </div>
-
-          {/* Icona stato */}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke={slicerStatus.installato ? "#34d399" : slicerChecking ? "#f59e0b" : "#f87171"}
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          >
-            {slicerStatus.installato ? (
-              // External link / open icon
-              <>
-                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </>
-            ) : slicerChecking ? (
-              // Clock
-              <>
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </>
-            ) : (
-              // X mark
-              <>
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </>
-            )}
-          </svg>
+        {/* ── Slicer badges (multi-slicer) ── */}
+        <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 6 }}>
+          {slicerChecking ? (
+            <div style={{ padding: "7px 12px", borderRadius: 8, background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)", display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ position: "relative", width: 8, height: 8 }}>
+                <div style={{ position: "absolute", inset: -2, borderRadius: "50%", background: "#f59e0b", opacity: 0.3, animation: "slicerPing 2s cubic-bezier(0,0,0.2,1) infinite" }} />
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", boxShadow: "0 0 6px rgba(245,158,11,0.5)" }} />
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "#d4a853" }}>Verifica slicer...</span>
+            </div>
+          ) : (
+            slicerStatuses.map((slicer) => {
+              const colors = SLICER_COLORS[slicer.codice] || SLICER_COLORS.bambu;
+              const isOpening = openingSlicer === slicer.codice;
+              const dotColor = slicer.installato ? colors.main : "#f87171";
+              const bgColor = slicer.installato ? `${colors.soft}0.06)` : "rgba(248,113,113,0.06)";
+              const borderColor = slicer.installato ? `${colors.soft}0.15)` : "rgba(248,113,113,0.15)";
+              return (
+                <div key={slicer.codice}
+                  title={slicer.installato ? `${slicer.nome} — Clicca per aprire` : `${slicer.nome} non trovato`}
+                  onClick={() => slicer.installato && handleOpenSlicer(slicer.codice)}
+                  style={{ padding: "7px 12px", borderRadius: 8, background: bgColor, border: `1px solid ${borderColor}`, display: "flex", alignItems: "center", gap: 8, cursor: slicer.installato ? "pointer" : "default", transition: "all 0.3s ease", opacity: isOpening ? 0.6 : 1 }}
+                  onMouseEnter={(e) => { if (slicer.installato) { e.currentTarget.style.background = `${colors.soft}0.12)`; e.currentTarget.style.borderColor = `${colors.soft}0.3)`; } }}
+                  onMouseLeave={(e) => { if (slicer.installato) { e.currentTarget.style.background = bgColor; e.currentTarget.style.borderColor = borderColor; } }}
+                >
+                  <div style={{ position: "relative", width: 8, height: 8, flexShrink: 0 }}>
+                    {slicer.installato && <div style={{ position: "absolute", inset: -2, borderRadius: "50%", background: dotColor, opacity: 0.3, animation: "slicerPing 2s cubic-bezier(0,0,0.2,1) infinite" }} />}
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, boxShadow: `0 0 6px ${slicer.installato?`${colors.soft}0.5)`:"rgba(248,113,113,0.5)"}`, position: "relative" }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: slicer.installato ? colors.text : "#d4868a" }}>{slicer.nome}</span>
+                    <span style={{ fontSize: 10, color: "#556a89", marginLeft: 6 }}>{slicer.installato ? "Installato" : "Non trovato"}</span>
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={slicer.installato ? colors.main : "#f87171"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    {slicer.installato ? (<><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></>) : (<><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>)}
+                  </svg>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
