@@ -21,7 +21,7 @@ interface Preventivo {
 const eur = (n: number) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);
 
-export function RitenutaAccontoPage() {
+export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
   const [clienti, setClienti] = useState<Cliente[]>([]);
   const [preventivi, setPreventivi] = useState<Preventivo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -130,10 +130,19 @@ export function RitenutaAccontoPage() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto" }} className="animate-fade-in">
+      {/* Back button */}
+      {onBack && (
+        <button onClick={onBack} style={{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:"var(--text-muted)",fontSize:13,cursor:"pointer",padding:"6px 0",marginBottom:24}}
+          onMouseEnter={e=>e.currentTarget.style.color="var(--accent)"} onMouseLeave={e=>e.currentTarget.style.color="var(--text-muted)"}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+          ← Torna a Ritenute / Ricevute
+        </button>
+      )}
+
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)" }}>Ritenuta d'acconto / Ricevuta</h2>
+        <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)" }}>Nuova Ritenuta / Ricevuta</h2>
         <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>
           Genera il documento fiscale corretto in base al tipo di cliente
         </p>

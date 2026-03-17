@@ -155,15 +155,15 @@ export function LicenzaPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div style={infoBox}>
             <div style={{ fontSize: 11, color: "#556a89", marginBottom: 4 }}>Sviluppato da</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#e8edf5" }}>Sparks3D</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#e8edf5" }}>Fabio Mazzarella</div>
           </div>
           <div style={infoBox}>
             <div style={{ fontSize: 11, color: "#556a89", marginBottom: 4 }}>Sito web</div>
             <div
               style={{ fontSize: 14, fontWeight: 600, color: "#60a5fa", cursor: "pointer" }}
-              onClick={() => openLink("https://sparks3d.it")}
+              onClick={() => openLink("https://www.sparks3d.it")}
             >
-              sparks3d.it
+              www.sparks3d.it
             </div>
           </div>
         </div>
@@ -218,7 +218,7 @@ export function LicenzaPage() {
 
       {/* ═══ COPYRIGHT ═══ */}
       <div style={{ textAlign: "center", padding: "8px 0 16px", color: "#475569", fontSize: 12 }}>
-        CC BY-NC-ND 4.0 — Sparks3D.it — 2025/2026 — Alcuni diritti riservati
+        CC BY-NC-ND 4.0 — Fabio Mazzarella / Sparks3D.it — 2025/2026 — Alcuni diritti riservati
       </div>
     </div>
   );

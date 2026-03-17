@@ -54,24 +54,15 @@ const COUNTRIES = [
   { code: "HR", label: "Croazia" }, { code: "US", label: "USA" },
 ];
 
-const EMPTY: Corriere = {
-  id: 0, nome: "", servizio: "", costo_spedizione: 0,
-  tempo_consegna: "", packlink_service_id: "", note: "",
-};
-
 const eur = (n: number) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);
 
 // ── Componente ──
 
-export function CorrieriPage() {
+export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:any)=>void }) {
   const [items, setItems] = useState<Corriere[]>([]);
   const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<Corriere>(EMPTY);
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
 
   // PackLink
   const [showPl, setShowPl] = useState(false);
@@ -103,24 +94,8 @@ export function CorrieriPage() {
 
   // ── CRUD ──
 
-  const openNew = () => { setForm({ ...EMPTY }); setEditingId(null); setError(""); setShowForm(true); };
-  const openEdit = (c: Corriere) => {
-    setForm({ ...c }); setEditingId(c.id); setError(""); setShowForm(true);
-  };
-
-  const handleSave = async () => {
-    if (!form.nome.trim()) { setError("Il nome del corriere non può essere vuoto"); return; }
-    try {
-      setSaving(true);
-      if (editingId) {
-        await invoke("update_corriere", { id: editingId, data: form });
-      } else {
-        await invoke("create_corriere", { data: form });
-      }
-      setShowForm(false); setEditingId(null); setError(""); await load();
-    } catch (e: any) { setError(String(e)); }
-    finally { setSaving(false); }
-  };
+  const openNew = () => onOpenForm();
+  const openEdit = (c: Corriere) => onOpenForm(c.id);
 
   const handleDelete = async (id: number) => {
     await invoke("delete_corriere", { id }).catch(() => {});
@@ -138,9 +113,6 @@ export function CorrieriPage() {
     if (selectedIds.size === filtered.length) setSelectedIds(new Set());
     else setSelectedIds(new Set(filtered.map((c) => c.id)));
   };
-
-  const updateField = (field: keyof Corriere, value: string | number) =>
-    setForm((p) => ({ ...p, [field]: value }));
 
   // ── PackLink ──
 
@@ -178,8 +150,7 @@ export function CorrieriPage() {
     const tempo = s.ore_transito
       ? `${s.ore_transito}h (${s.tempo_transito})`
       : s.tempo_transito || "";
-    setForm({
-      id: 0,
+    onOpenForm(undefined, {
       nome: s.nome_corriere,
       servizio: s.nome_servizio,
       costo_spedizione: s.prezzo_totale,
@@ -190,9 +161,6 @@ export function CorrieriPage() {
         s.data_consegna_stimata ? `Consegna: ${s.data_consegna_stimata}` : "",
       ].filter(Boolean).join(" • "),
     });
-    setEditingId(null);
-    setError("");
-    setShowForm(true);
   };
 
   // ── Render ──
@@ -439,74 +407,6 @@ export function CorrieriPage() {
         )}
       </div>
 
-      {/* ── Modal Crea/Modifica ── */}
-      {showForm && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", width: "100%", maxWidth: 520, margin: "0 16px", maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)" }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{editingId ? "Modifica corriere" : "Nuovo corriere"}</h3>
-              <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 18, cursor: "pointer" }}>✕</button>
-            </div>
-            <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-              {error && <div style={{ padding: 12, background: "var(--red-soft)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: 10, fontSize: 13, color: "var(--red)" }}>{error}</div>}
-              {form.packlink_service_id && (
-                <div style={{ padding: 8, background: "var(--accent-soft)", borderRadius: 8, fontSize: 12, color: "var(--accent)" }}>
-                  PackLink Service ID: {form.packlink_service_id}
-                </div>
-              )}
-              <div>
-                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Nome corriere *</label>
-                <input type="text" value={form.nome} onChange={e => updateField("nome", e.target.value)}
-                  placeholder="Es. BRT, GLS, DHL"
-                  className="s3d-input" />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Servizio</label>
-                  <input type="text" value={form.servizio} onChange={e => updateField("servizio", e.target.value)}
-                    placeholder="Es. Express, Economy"
-                    className="s3d-input" />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Costo spedizione (€)</label>
-                  <input type="number" step="0.01" min="0" value={form.costo_spedizione}
-                    onChange={e => updateField("costo_spedizione", parseFloat(e.target.value) || 0)}
-                    className="s3d-input" />
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Tempo consegna</label>
-                  <input type="text" value={form.tempo_consegna} onChange={e => updateField("tempo_consegna", e.target.value)}
-                    placeholder="Es. 24-48h"
-                    className="s3d-input" />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>PackLink Service ID</label>
-                  <input type="text" value={form.packlink_service_id}
-                    onChange={e => updateField("packlink_service_id", e.target.value)}
-                    placeholder="Auto da PackLink"
-                    className="s3d-input" style={{ opacity: 0.6 }} />
-                </div>
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Note</label>
-                <textarea value={form.note} onChange={e => updateField("note", e.target.value)}
-                  placeholder="Note libere…" rows={2}
-                  className="s3d-input" style={{ resize: "vertical" }} />
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, padding: "16px 24px", borderTop: "1px solid var(--border-subtle)" }}>
-              <button onClick={() => setShowForm(false)}
-                className="s3d-btn s3d-btn-ghost">Annulla</button>
-              <button onClick={handleSave} disabled={saving || !form.nome.trim()}
-                className="s3d-btn s3d-btn-primary">
-                {saving ? "Salvataggio…" : editingId ? "Salva modifiche" : "Crea corriere"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

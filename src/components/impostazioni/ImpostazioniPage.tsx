@@ -11,6 +11,8 @@ import { InterfacciaPage } from "./InterfacciaPage";
 interface Props {
   activeTab: PageId;
   onChangeTab: (tab: PageId) => void;
+  onOpenForm: (formType: string, editId?: number, prefill?: any) => void;
+  onImportSlicer?: (tipo: "filament" | "machine" | "process", defaultSlicer: "bambu" | "orca", returnTab: PageId) => void;
 }
 
 const tabs: { id: PageId; label: string }[] = [
@@ -24,16 +26,31 @@ const tabs: { id: PageId; label: string }[] = [
   { id: "interfaccia" as PageId, label: "Interfaccia" },
 ];
 
-export function ImpostazioniPage({ activeTab, onChangeTab }: Props) {
+export function ImpostazioniPage({ activeTab, onChangeTab, onOpenForm, onImportSlicer }: Props) {
   const renderContent = () => {
     switch (activeTab) {
       case "impostazioni": return <AziendaPage />;
-      case "materiali": return <MaterialiPage />;
-      case "stampanti": return <StampantiPage />;
-      case "profili": return <ProfiliStampaPage />;
-      case "servizi": return <ServiziExtraPage />;
-      case "corrieri": return <CorrieriPage />;
-      case "pagamenti": return <PagamentiPage />;
+      case "materiali": return <MaterialiPage
+        onOpenForm={(id, prefill) => onOpenForm("materiale", id, prefill)}
+        onImportSlicer={(slicer) => onImportSlicer?.("filament", slicer, "materiali" as PageId)}
+      />;
+      case "stampanti": return <StampantiPage
+        onOpenForm={(id, prefill) => onOpenForm("stampante", id, prefill)}
+        onImportSlicer={(slicer) => onImportSlicer?.("machine", slicer, "stampanti" as PageId)}
+      />;
+      case "profili": return <ProfiliStampaPage
+        onOpenForm={(id, prefill) => onOpenForm("profilo", id, prefill)}
+        onImportSlicer={(slicer) => onImportSlicer?.("process", slicer, "profili" as PageId)}
+      />;
+      case "servizi": return <ServiziExtraPage
+        onOpenForm={(id, prefill) => onOpenForm("servizio", id, prefill)}
+      />;
+      case "corrieri": return <CorrieriPage
+        onOpenForm={(id, prefill) => onOpenForm("corriere", id, prefill)}
+      />;
+      case "pagamenti": return <PagamentiPage
+        onOpenForm={(id, prefill) => onOpenForm("pagamento", id, prefill)}
+      />;
       case "interfaccia": return <InterfacciaPage />;
       default: return null;
     }
