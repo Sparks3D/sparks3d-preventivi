@@ -28,6 +28,22 @@ Software desktop per la creazione e gestione di preventivi per servizi di stampa
 
 Scarica l'ultima versione dalla sezione [Releases](https://github.com/Sparks3D/sparks3d-preventivi/releases) ed esegui l'installer.
 
+## ⚠️ Antivirus e falsi positivi
+
+Alcuni antivirus (es. Kaspersky, Windows Defender) potrebbero segnalare 
+l'eseguibile come sospetto. Si tratta di un **falso positivo**.
+
+Sparks3D Preventivi è un'applicazione open source sviluppata con 
+[Tauri](https://tauri.app) + Rust. L'avviso appare perché l'eseguibile 
+non è firmato con un certificato digitale (Code Signing), il cui costo 
+annuo è proibitivo per un progetto indie gratuito.
+
+**Il codice sorgente è completamente pubblico e verificabile:**  
+👉 [github.com/Sparks3D/sparks3d-preventivi](https://github.com/Sparks3D/sparks3d-preventivi)
+
+Se il tuo antivirus elimina il file, aggiungi un'eccezione manualmente 
+oppure scarica nuovamente l'installer dalla pagina Release.
+
 ## Licenza
 
 Questo software è distribuito con licenza **Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)**.
