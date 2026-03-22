@@ -29,6 +29,7 @@ interface SlicerStatus {
 const SLICER_COLORS: Record<string, { main: string; soft: string; text: string }> = {
   bambu: { main: "#34d399", soft: "rgba(52, 211, 153,", text: "#a7d8c4" },
   orca:  { main: "#26a69a", soft: "rgba(38, 166, 154,", text: "#8fd4cc" },
+  anycubic: { main: "#42a5f5", soft: "rgba(66, 165, 245,", text: "#90caf9" },
 };
 
 // ── SVG Icons ──

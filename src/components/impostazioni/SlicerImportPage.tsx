@@ -24,7 +24,7 @@ interface SlicerStatus {
 
 interface Props {
   tipo: "filament" | "machine" | "process";
-  defaultSlicer: "bambu" | "orca";
+  defaultSlicer: "bambu" | "orca" | "anycubic";
   onSelect: (profile: SlicerProfile) => void;
   onBack: () => void;
 }
@@ -32,6 +32,7 @@ interface Props {
 const SLICER_TABS = [
   { codice: "bambu", label: "Bambu Studio", color: "#00ae42", icon: "🟢" },
   { codice: "orca", label: "Orca Slicer", color: "#009688", icon: "🐋" },
+  { codice: "anycubic", label: "Anycubic Slicer Next", color: "#42a5f5", icon: "🔷" },
 ];
 
 export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Props) {
@@ -60,7 +61,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
       const currentInstalled = statuses.find(s => s.codice === activeSlicer)?.installato;
       if (!currentInstalled) {
         const firstInstalled = statuses.find(s => s.installato);
-        if (firstInstalled) setActiveSlicer(firstInstalled.codice as "bambu" | "orca");
+        if (firstInstalled) setActiveSlicer(firstInstalled.codice as "bambu" | "orca" | "anycubic");
       }
     }).catch(() => {});
   }, []);
@@ -135,7 +136,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
           return (
             <button
               key={tab.codice}
-              onClick={() => { if (isInstalled) setActiveSlicer(tab.codice as "bambu" | "orca"); }}
+              onClick={() => { if (isInstalled) setActiveSlicer(tab.codice as "bambu" | "orca" | "anycubic"); }}
               disabled={!isInstalled}
               style={{
                 flex: 1,
@@ -223,7 +224,9 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
             <div style={{ fontSize: 12, color: "var(--text-muted)", opacity: 0.6 }}>
               {activeSlicer === "bambu"
                 ? "Percorso: %APPDATA%\\BambuStudio\\"
-                : "Percorso: %APPDATA%\\OrcaSlicer\\"
+                : activeSlicer === "orca"
+                ? "Percorso: %APPDATA%\\OrcaSlicer\\"
+                : "Percorso: %APPDATA%\\AnycubicSlicerNext\\"
               }
             </div>
           </div>
@@ -233,7 +236,9 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
             <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
               {activeSlicer === "bambu"
                 ? "Percorsi cercati: %APPDATA%\\BambuStudio\\ e %ProgramFiles%\\Bambu Studio\\"
-                : "Percorsi cercati: %APPDATA%\\OrcaSlicer\\ e %ProgramFiles%\\OrcaSlicer\\"
+                : activeSlicer === "orca"
+                ? "Percorsi cercati: %APPDATA%\\OrcaSlicer\\ e %ProgramFiles%\\OrcaSlicer\\"
+                : "Percorsi cercati: %APPDATA%\\AnycubicSlicerNext\\ e %ProgramFiles%\\AnycubicSlicerNext\\"
               }
             </p>
           </div>
@@ -259,7 +264,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
                         background: profile.is_user ? "var(--green-soft)" : "var(--bg-surface)",
                         color: profile.is_user ? "var(--green)" : "var(--text-muted)",
                       }}>
-                        {profile.is_user ? "Utente" : (activeSlicer === "bambu" ? "BBL" : "ORC")}
+                        {profile.is_user ? "Utente" : (activeSlicer === "bambu" ? "BBL" : activeSlicer === "orca" ? "ORC" : "AC")}
                       </span>
                     </div>
                   </td>

@@ -33,6 +33,7 @@ pub struct SlicerInfoResult {
 pub enum SlicerType {
     Bambu,
     Orca,
+    Anycubic,
 }
 
 impl SlicerType {
@@ -40,6 +41,7 @@ impl SlicerType {
         match s.to_lowercase().as_str() {
             "bambu" => Some(Self::Bambu),
             "orca" => Some(Self::Orca),
+            "anycubic" => Some(Self::Anycubic),
             _ => None,
         }
     }
@@ -48,6 +50,7 @@ impl SlicerType {
         match self {
             Self::Bambu => "bambu",
             Self::Orca => "orca",
+            Self::Anycubic => "anycubic",
         }
     }
 }
@@ -93,11 +96,33 @@ pub fn detect_orca_slicer() -> Option<PathBuf> {
     None
 }
 
+/// Rileva l'eseguibile di Anycubic Slicer Next
+pub fn detect_anycubic_slicer() -> Option<PathBuf> {
+    let candidates = vec![
+        std::env::var("ProgramFiles").ok(),
+        std::env::var("ProgramFiles(x86)").ok(),
+        Some("C:\\Program Files".to_string()),
+    ];
+    let folders = ["AnycubicSlicerNext", "Anycubic Slicer Next"];
+    let exes = ["AnycubicSlicerNext.exe", "anycubic-slicer-next.exe", "AnycubicSlicer.exe"];
+
+    for base in candidates.into_iter().flatten() {
+        for folder in &folders {
+            for exe in &exes {
+                let path = PathBuf::from(&base).join(folder).join(exe);
+                if path.exists() { return Some(path); }
+            }
+        }
+    }
+    None
+}
+
 /// Rileva l'eseguibile per qualsiasi slicer supportato
 pub fn detect_exe(slicer: SlicerType, is_beta: bool) -> Option<PathBuf> {
     match slicer {
         SlicerType::Bambu => detect_bambu_studio(is_beta),
         SlicerType::Orca => detect_orca_slicer(),
+        SlicerType::Anycubic => detect_anycubic_slicer(),
     }
 }
 
@@ -134,11 +159,24 @@ fn get_orca_appdata_dir() -> Option<PathBuf> {
     None
 }
 
+/// Percorso AppData per Anycubic Slicer Next
+/// → %APPDATA%\AnycubicSlicerNext  (C:\Users\X\AppData\Roaming\AnycubicSlicerNext)
+fn get_anycubic_appdata_dir() -> Option<PathBuf> {
+    let appdata = std::env::var("APPDATA").ok()?;
+    let candidates = ["AnycubicSlicerNext", "Anycubic Slicer Next"];
+    for name in &candidates {
+        let base = PathBuf::from(&appdata).join(name);
+        if base.exists() { return Some(base); }
+    }
+    None
+}
+
 /// Percorso AppData generico per slicer
 fn get_appdata_dir(slicer: SlicerType, is_beta: bool) -> Option<PathBuf> {
     match slicer {
         SlicerType::Bambu => get_bambu_appdata_dir(is_beta),
         SlicerType::Orca => get_orca_appdata_dir(),
+        SlicerType::Anycubic => get_anycubic_appdata_dir(),
     }
 }
 
@@ -308,7 +346,7 @@ fn scan_directory(
             }
         }
 
-        // Scansiona anche sottocartelle (Bambu/Orca organizza per brand)
+        // Scansiona anche sottocartelle (Bambu/Orca/Anycubic organizza per brand)
         if path.is_dir() {
             scan_directory(&path, tipo, origin, is_user, results);
         }
@@ -338,7 +376,7 @@ fn parse_profile_file(
                     "name" | "filament_type" | "filament_density" | "filament_cost" |
                     "filament_colour" | "nozzle_temperature" | "bed_temperature" |
                     "filament_max_volumetric_speed" | "inherits" | "compatible_printers" |
-                    // Orca Slicer usa anche questi campi
+                    // Orca Slicer / Anycubic Slicer Next usano anche questi campi
                     "nozzle_temperature_initial_layer" | "bed_temperature_initial_layer" |
                     "filament_retraction_length" | "filament_retraction_speed"
                 ),
@@ -346,7 +384,7 @@ fn parse_profile_file(
                     "name" | "printer_model" | "printer_variant" | "printable_area" |
                     "printable_height" | "nozzle_diameter" | "inherits" |
                     "machine_max_speed_x" | "machine_max_speed_y" |
-                    // Orca aggiunge anche
+                    // Orca / Anycubic aggiungono anche
                     "machine_max_speed_z" | "machine_max_speed_e" |
                     "extruder_count" | "default_filament_profile"
                 ),
@@ -355,7 +393,7 @@ fn parse_profile_file(
                     "top_shell_layers" | "bottom_shell_layers" | "enable_support" |
                     "support_type" | "inherits" | "initial_layer_height" |
                     "outer_wall_speed" | "inner_wall_speed" | "infill_density" |
-                    // Orca aggiunge anche
+                    // Orca / Anycubic aggiungono anche
                     "travel_speed" | "bridge_speed" | "gap_infill_speed" |
                     "sparse_infill_speed" | "internal_solid_infill_speed"
                 ),

@@ -1,5 +1,5 @@
 // src/components/info/GuidaPage.tsx
-// Sparks3D Preventivi – Guida utente completa (v1.0.3)
+// Sparks3D Preventivi – Guida utente completa (v1.2.0)
 // =====================================================
 
 import { useState } from "react";
@@ -25,7 +25,7 @@ export function GuidaPage() {
             <li>Gestione completa preventivi con calcolo costi automatico</li>
             <li>Supporto multi-materiale AMS (Automatic Material System)</li>
             <li>Import automatico di file GCode e 3MF per tempi e pesi</li>
-            <li>Import profili stampa da <strong>Bambu Studio</strong> e <strong>Orca Slicer</strong></li>
+            <li>Import profili stampa da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong></li>
             <li>Rilevamento automatico slicer installati nella sidebar</li>
             <li>Tariffe corrieri live tramite PackLink Pro</li>
             <li>Export PDF professionale con logo e dati azienda</li>
@@ -134,11 +134,11 @@ export function GuidaPage() {
           <h4 style={h4Style}>Intestazione (Dati Azienda)</h4>
           <p>Configura ragione sociale, indirizzo, P.IVA, CF, email, telefono, logo e regime fiscale. Questi dati appaiono nell'intestazione dei PDF esportati.</p>
           <h4 style={h4Style}>Materiali</h4>
-          <p>Gestisci il catalogo materiali con nome, peso specifico, prezzo al kg, percentuale di markup, percentuale di fallimento stimata e giacenza in magazzino. Puoi importare i profili direttamente da <strong>Bambu Studio</strong> o <strong>Orca Slicer</strong> tramite i pulsanti dedicati. Cliccando su un materiale nella lista si apre la pagina di modifica.</p>
+          <p>Gestisci il catalogo materiali con nome, peso specifico, prezzo al kg, percentuale di markup, percentuale di fallimento stimata e giacenza in magazzino. Puoi importare i profili direttamente da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> o <strong>Anycubic Slicer Next</strong> tramite il pulsante "Importa dallo Slicer". Cliccando su un materiale nella lista si apre la pagina di modifica.</p>
           <h4 style={h4Style}>Stampanti</h4>
-          <p>Configura le stampanti con nome, consumo energetico (kWh) e costo ammortamento orario. Importabili da <strong>Bambu Studio</strong> e <strong>Orca Slicer</strong>. Questi valori vengono usati per calcolare il costo energia e ammortamento di ogni riga preventivo.</p>
+          <p>Configura le stampanti con nome, consumo energetico (kWh) e costo ammortamento orario. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong>. Questi valori vengono usati per calcolare il costo energia e ammortamento di ogni riga preventivo.</p>
           <h4 style={h4Style}>Profili stampa</h4>
-          <p>Gestisci i profili con layer height, numero pareti, infill, top/bottom layers e tipo di supporti. Importabili da <strong>Bambu Studio</strong> e <strong>Orca Slicer</strong>.</p>
+          <p>Gestisci i profili con layer height, numero pareti, infill, top/bottom layers e tipo di supporti. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong>.</p>
           <h4 style={h4Style}>Servizi extra</h4>
           <p>Definisci servizi aggiuntivi (post-processing, verniciatura, assemblaggio, ecc.) con importo predefinito e markup. Sono disponibili preset rapidi per i servizi più comuni. Per ogni servizio puoi scegliere se addebitare al cliente, mostrare nel PDF senza costo, o tenerlo come costo interno.</p>
           <h4 style={h4Style}>Corrieri / PackLink Pro</h4>
@@ -183,25 +183,24 @@ export function GuidaPage() {
       id: "slicer", title: "Slicer integrati", icon: "🧊",
       content: (
         <div style={proseStyle}>
-          <p>Sparks3D Preventivi si integra con <strong>Bambu Studio</strong> e <strong>Orca Slicer</strong> per importare automaticamente profili di stampa e materiali.</p>
+          <p>Sparks3D Preventivi si integra con <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong> per importare automaticamente profili di stampa e materiali.</p>
           <h4 style={h4Style}>Slicer supportati</h4>
           <ul style={ulStyle}>
             <li><strong>🟢 Bambu Studio</strong> — Profili letti da <code style={codeStyle}>%APPDATA%\BambuStudio</code></li>
             <li><strong>🐋 Orca Slicer</strong> — Profili letti da <code style={codeStyle}>%APPDATA%\OrcaSlicer</code></li>
+            <li><strong>🔷 Anycubic Slicer Next</strong> — Profili letti da <code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code></li>
           </ul>
           <h4 style={h4Style}>Rilevamento automatico</h4>
-          <p>All'avvio, l'applicazione verifica quali slicer sono installati. La sidebar mostra un indicatore per ciascuno: punto verde = installato, punto rosso = non trovato.</p>
+          <p>All'avvio, l'applicazione verifica quali slicer sono installati. La sidebar mostra un indicatore per ciascuno: punto verde/blu = installato, punto rosso = non trovato.</p>
           <h4 style={h4Style}>Apertura rapida</h4>
           <p>Cliccando su un indicatore slicer nella sidebar, il programma si apre direttamente. Se l'eseguibile non viene trovato, appare un avviso.</p>
           <h4 style={h4Style}>Import profili</h4>
-          <p>Nelle sezioni Impostazioni → Materiali, Stampanti e Profili stampa trovi due pulsanti dedicati:</p>
-          <ul style={ulStyle}>
-            <li><strong>"🟢 Importa da Bambu Studio"</strong> — apre la pagina di importazione già posizionata sui profili Bambu</li>
-            <li><strong>"🐋 Importa da Orca Slicer"</strong> — apre la pagina di importazione già posizionata sui profili Orca</li>
-          </ul>
+          <p>Nelle sezioni Impostazioni → Materiali, Stampanti e Profili stampa trovi il pulsante <strong>"Importa dallo Slicer"</strong> che apre la pagina di importazione. Da lì puoi scegliere lo slicer sorgente tramite le tab in alto (Bambu Studio, Orca Slicer, Anycubic Slicer Next).</p>
           <p>La pagina di importazione mostra tutti i profili trovati in formato tabella con dettagli tecnici (tipo, densità, costo per i filamenti; layer height, pareti, infill per i processi; modello e nozzle per le macchine). Puoi filtrare per "Solo profili utente" per escludere quelli preinstallati. Cliccando "Importa →" si apre il form di creazione precompilato con i dati letti dal profilo slicer.</p>
           <h4 style={h4Style}>Tab di commutazione</h4>
-          <p>Nella pagina di importazione puoi passare da Bambu Studio a Orca Slicer con le tab in alto. Se uno slicer non è installato, la sua tab appare disattivata.</p>
+          <p>Nella pagina di importazione puoi passare da Bambu Studio, Orca Slicer e Anycubic Slicer Next con le tab in alto. Se uno slicer non è installato, la sua tab appare disattivata.</p>
+          <h4 style={h4Style}>Compatibilità Anycubic Slicer Next</h4>
+          <p>Anycubic Slicer Next è sviluppato sulla base di Orca Slicer, quindi utilizza lo stesso formato di profili JSON. Tutti i profili filamento, macchina e processo creati in Anycubic Slicer Next sono pienamente compatibili con l'importazione automatica.</p>
           <h4 style={h4Style}>Parser GCode / 3MF</h4>
           <p>Quando aggiungi una riga al preventivo, puoi importare un file .gcode o .3mf. Il parser estrae automaticamente:</p>
           <ul style={ulStyle}>
@@ -210,7 +209,7 @@ export function GuidaPage() {
             <li>Tipo di filamento utilizzato</li>
             <li>Configurazione multi-materiale AMS (da file 3MF)</li>
           </ul>
-          <p>Funziona con file generati da Bambu Studio, Orca Slicer e altri slicer compatibili.</p>
+          <p>Funziona con file generati da Bambu Studio, Orca Slicer, Anycubic Slicer Next e altri slicer compatibili.</p>
         </div>
       ),
     },
@@ -253,10 +252,22 @@ export function GuidaPage() {
       ),
     },
     {
-      id: "novita", title: "Novità v1.0.3", icon: "🆕",
+      id: "novita", title: "Novità v1.2.0", icon: "🆕",
       content: (
         <div style={proseStyle}>
-          <h4 style={h4Style}>Orca Slicer</h4>
+          <h4 style={h4Style}>Anycubic Slicer Next</h4>
+          <ul style={ulStyle}>
+            <li>Integrazione completa con <strong>Anycubic Slicer Next</strong>: rilevamento installazione, import profili, apertura rapida dalla sidebar</li>
+            <li>Pulsante unificato <strong>"Importa dallo Slicer"</strong> in Materiali, Stampanti e Profili di stampa (sostituisce i tre pulsanti separati)</li>
+            <li>Nuova tab nella pagina di importazione profili con commutazione Bambu / Orca / Anycubic</li>
+            <li>Sidebar con triplo indicatore slicer (Bambu Studio + Orca Slicer + Anycubic Slicer Next), ciascuno cliccabile per aprire il programma</li>
+            <li>Splash screen aggiornato: mostra lo stato di tutti e tre gli slicer all'avvio</li>
+            <li>Badge "Anycubic" nelle tabelle Materiali, Stampanti e Profili per i dati importati da Anycubic Slicer Next</li>
+            <li>Profili letti da <code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code> — formato compatibile Orca (stesso JSON)</li>
+            <li>Parser GCode / 3MF ora indica esplicitamente Anycubic Slicer Next tra gli slicer compatibili</li>
+          </ul>
+
+          <h4 style={h4Style}>Novità precedenti (v1.0.3)</h4>
           <ul style={ulStyle}>
             <li>Integrazione completa con Orca Slicer: rilevamento installazione, import profili, apertura rapida dalla sidebar</li>
             <li>Pulsanti dedicati "🟢 Importa da Bambu Studio" e "🐋 Importa da Orca Slicer" in Materiali, Stampanti e Profili</li>
@@ -300,7 +311,30 @@ export function GuidaPage() {
   const activeContent = sections.find(s => s.id === activeSection);
 
   return (
-    <div style={{ display: "flex", gap: 24, maxWidth: 900 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 900 }}>
+
+      {/* Banner avviso antivirus */}
+      <div style={{
+        display: "flex", alignItems: "flex-start", gap: 12,
+        padding: "14px 18px",
+        background: "rgba(234,179,8,0.08)",
+        border: "1px solid rgba(234,179,8,0.3)",
+        borderRadius: 12,
+        fontSize: 13, color: "#fbbf24", lineHeight: 1.6,
+      }}>
+        <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+        <span>
+          <strong>Falsi positivi antivirus:</strong> alcuni antivirus (es. Kaspersky, Windows Defender) potrebbero segnalare l'installer come sospetto.
+          Si tratta di un <strong>falso positivo</strong> dovuto all'assenza di firma digitale (Code Signing).
+          Il codice sorgente è completamente open source e verificabile su{" "}
+          <a href="https://github.com/Sparks3D/sparks3d-preventivi" target="_blank" rel="noreferrer"
+            style={{ color: "#60a5fa", textDecoration: "underline" }}>
+            GitHub
+          </a>.
+        </span>
+      </div>
+
+    <div style={{ display: "flex", gap: 24 }}>
       {/* Indice laterale */}
       <div style={{
         width: 200, flexShrink: 0,
@@ -351,6 +385,7 @@ export function GuidaPage() {
           </>
         )}
       </div>
+    </div>
     </div>
   );
 }

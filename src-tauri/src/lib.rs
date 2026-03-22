@@ -303,6 +303,30 @@ fn check_slicer_status() -> Result<Vec<SlicerStatus>, String> {
         exe_path: orca_exe,
     });
 
+    // --- Anycubic Slicer Next ---
+    let anycubic_dir_names = ["AnycubicSlicerNext", "Anycubic Slicer Next"];
+    let mut anycubic_path_found: Option<std::path::PathBuf> = None;
+    for name in &anycubic_dir_names {
+        let p = std::path::Path::new(&appdata).join(name);
+        if p.exists() && p.is_dir() { anycubic_path_found = Some(p); break; }
+    }
+    let anycubic_installato = anycubic_path_found.is_some();
+    let anycubic_exe = if anycubic_installato {
+        vec![
+            std::path::PathBuf::from(r"C:\Program Files\AnycubicSlicerNext\AnycubicSlicerNext.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\AnycubicSlicerNext\anycubic-slicer-next.exe"),
+            std::path::PathBuf::from(r"C:\Program Files (x86)\AnycubicSlicerNext\AnycubicSlicerNext.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Anycubic Slicer Next\AnycubicSlicerNext.exe"),
+        ].into_iter().find(|p| p.exists()).map(|p| p.to_string_lossy().to_string())
+    } else { None };
+    slicers.push(SlicerStatus {
+        nome: "Anycubic Slicer Next".to_string(),
+        codice: "anycubic".to_string(),
+        installato: anycubic_installato,
+        path: anycubic_path_found.map(|p| p.to_string_lossy().to_string()),
+        exe_path: anycubic_exe,
+    });
+
     Ok(slicers)
 }
 
@@ -316,6 +340,12 @@ fn open_slicer(slicer_code: Option<String>) -> Result<String, String> {
             std::path::PathBuf::from(r"C:\Program Files (x86)\OrcaSlicer\orca-slicer.exe"),
             std::path::PathBuf::from(r"C:\Program Files\Orca Slicer\orca-slicer.exe"),
         ], "Orca Slicer"),
+        "anycubic" => (vec![
+            std::path::PathBuf::from(r"C:\Program Files\AnycubicSlicerNext\AnycubicSlicerNext.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\AnycubicSlicerNext\anycubic-slicer-next.exe"),
+            std::path::PathBuf::from(r"C:\Program Files (x86)\AnycubicSlicerNext\AnycubicSlicerNext.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Anycubic Slicer Next\AnycubicSlicerNext.exe"),
+        ], "Anycubic Slicer Next"),
         _ => (vec![
             std::path::PathBuf::from(r"C:\Program Files\Bambu Studio\bambu-studio.exe"),
             std::path::PathBuf::from(r"C:\Program Files (x86)\Bambu Studio\bambu-studio.exe"),
@@ -479,6 +509,10 @@ pub fn run() {
                 let orca_ok = orca_candidates.iter().any(|name| {
                     std::path::Path::new(&appdata).join(name).is_dir()
                 });
+                let anycubic_candidates = ["AnycubicSlicerNext", "Anycubic Slicer Next"];
+                let anycubic_ok = anycubic_candidates.iter().any(|name| {
+                    std::path::Path::new(&appdata).join(name).is_dir()
+                });
 
                 // ══════════════════════════════════════════════════
                 // FASE 2: Attendi che lo splash sia pronto
@@ -528,6 +562,7 @@ pub fn run() {
                         let mut parts = Vec::new();
                         if bambu_ok { parts.push("Bambu Studio ✓"); }
                         if orca_ok { parts.push("Orca Slicer ✓"); }
+                        if anycubic_ok { parts.push("Anycubic Slicer ✓"); }
                         if parts.is_empty() { "Nessuno slicer rilevato".to_string() }
                         else { parts.join(" · ") }
                     }));
