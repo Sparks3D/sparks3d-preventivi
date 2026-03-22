@@ -99,7 +99,7 @@ export function SliceFileImporter({ onImport, compact }: Props) {
             <div style={{ fontSize: 28, marginBottom: 6, opacity: 0.7 }}>📂</div>
             <div className="text-sm font-medium">Importa file GCode o 3MF</div>
             <div className="text-xs mt-1" style={{ color: "var(--text-muted, #6b7fa0)" }}>
-              Bambu Studio, OrcaSlicer, PrusaSlicer
+              Bambu Studio, OrcaSlicer, Anycubic Slicer Next, PrusaSlicer
             </div>
           </div>
         )}

@@ -12,7 +12,7 @@ interface Props {
   activeTab: PageId;
   onChangeTab: (tab: PageId) => void;
   onOpenForm: (formType: string, editId?: number, prefill?: any) => void;
-  onImportSlicer?: (tipo: "filament" | "machine" | "process", defaultSlicer: "bambu" | "orca", returnTab: PageId) => void;
+  onImportSlicer?: (tipo: "filament" | "machine" | "process", defaultSlicer: "bambu" | "orca" | "anycubic", returnTab: PageId) => void;
 }
 
 const tabs: { id: PageId; label: string }[] = [

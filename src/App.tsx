@@ -47,7 +47,7 @@ export default function App() {
   // Slicer import
   const [slicerImportConfig, setSlicerImportConfig] = useState<{
     tipo: "filament" | "machine" | "process";
-    defaultSlicer: "bambu" | "orca";
+    defaultSlicer: "bambu" | "orca" | "anycubic";
     returnTab: PageId;
   } | null>(null);
 
