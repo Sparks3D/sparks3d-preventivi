@@ -1,5 +1,5 @@
 // src/components/info/GuidaPage.tsx
-// Sparks3D Preventivi – Guida utente completa (v1.2.0)
+// Sparks3D Preventivi – Guida utente completa (v1.1.0)
 // =====================================================
 
 import { useState } from "react";
@@ -252,7 +252,7 @@ export function GuidaPage() {
       ),
     },
     {
-      id: "novita", title: "Novità v1.2.0", icon: "🆕",
+      id: "novita", title: "Novità v1.1.0", icon: "🆕",
       content: (
         <div style={proseStyle}>
           <h4 style={h4Style}>Anycubic Slicer Next</h4>
