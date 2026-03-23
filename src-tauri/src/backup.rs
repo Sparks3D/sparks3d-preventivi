@@ -2,6 +2,7 @@
 // Sparks3D Preventivi – Backup e Ripristino Dati
 // =================================================
 
+use crate::db::compute_sha256;
 use serde::Serialize;
 use std::fs;
 use std::io::{Read, Write};
@@ -149,7 +150,6 @@ pub fn get_backup_info() -> Result<BackupInfo, String> {
 
     let logos_size = dir_size(&logos_path);
     let docs_size = dir_size(&prev_path) + dir_size(&rit_path);
-
     let totale = db_size + logos_size + docs_size;
 
     Ok(BackupInfo {
@@ -166,7 +166,8 @@ pub fn get_backup_info() -> Result<BackupInfo, String> {
     })
 }
 
-/// Crea il backup .zip nella destinazione specificata
+/// Crea il backup .zip nella destinazione specificata.
+/// Calcola SHA-256 del database e lo include nel manifest per verifica futura.
 #[tauri::command]
 pub fn create_backup(
     dest_path: String,
@@ -186,12 +187,13 @@ pub fn create_backup(
         .compression_level(Some(6));
 
     let mut files_count: usize = 0;
+    let mut db_sha256 = String::new();
 
-    // 1) Database SQLite
+    // 1) Database SQLite (cifrato con SQLCipher)
     if include_db {
         let db_path = app_data.join("sparks3d.db");
         if db_path.exists() {
-            // Copia il DB prima (per evitare lock WAL)
+            // Copia il DB prima per evitare lock WAL
             let tmp_db = app_data.join("sparks3d_backup_tmp.db");
             fs::copy(&db_path, &tmp_db)
                 .map_err(|e| format!("Errore copia DB: {e}"))?;
@@ -202,6 +204,9 @@ pub fn create_backup(
             db_file.read_to_end(&mut db_buf)
                 .map_err(|e| format!("Errore lettura DB: {e}"))?;
 
+            // Calcola SHA-256 del DB per verifica integrità al restore
+            db_sha256 = compute_sha256(&db_buf);
+
             zip.start_file("sparks3d.db", options)
                 .map_err(|e| format!("Errore zip DB: {e}"))?;
             zip.write_all(&db_buf)
@@ -211,7 +216,7 @@ pub fn create_backup(
             let _ = fs::remove_file(&tmp_db);
         }
 
-        // Anche i file WAL/SHM se esistono
+        // WAL/SHM se esistono
         for wal_ext in &["sparks3d.db-wal", "sparks3d.db-shm"] {
             let wal_path = app_data.join(wal_ext);
             if wal_path.exists() {
@@ -234,17 +239,26 @@ pub fn create_backup(
     // 3) Documenti PDF
     if include_documenti {
         let prev_path = docs.join("Preventivi");
-        let rit_path = docs.join("Ritenute");
+        let rit_path  = docs.join("Ritenute");
         add_dir_to_zip(&mut zip, &prev_path, "Documenti/Preventivi", options, &mut files_count)?;
         add_dir_to_zip(&mut zip, &rit_path, "Documenti/Ritenute", options, &mut files_count)?;
     }
 
-    // Scrivi manifest
+    // 4) Manifest con SHA-256 del DB
     let manifest = format!(
-        "Sparks3D Backup\nData: {}\nVersione: 1.0.0\nFile inclusi: {}\nDB: {}\nLogos: {}\nDocumenti: {}",
+        "Sparks3D Backup\n\
+         Data: {}\n\
+         Versione app: {}\n\
+         File inclusi: {}\n\
+         DB: {} | Logos: {} | Documenti: {}\n\
+         DB-SHA256: {}\n\
+         \n\
+         Nota: l'API key PackLink non e' inclusa nel backup (salvata nel Windows Credential Manager).",
         chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+        env!("CARGO_PKG_VERSION"),
         files_count,
         include_db, include_logos, include_documenti,
+        db_sha256,
     );
     zip.start_file("_manifest.txt", options).map_err(|e| e.to_string())?;
     zip.write_all(manifest.as_bytes()).map_err(|e| e.to_string())?;
@@ -259,11 +273,16 @@ pub fn create_backup(
         path: dest_path,
         size_mb: size as f64 / 1_048_576.0,
         files_count,
-        message: format!("Backup completato: {} file, {:.2} MB", files_count, size as f64 / 1_048_576.0),
+        message: format!(
+            "Backup completato: {} file, {:.2} MB",
+            files_count, size as f64 / 1_048_576.0
+        ),
     })
 }
 
-/// Ripristina da un file .zip
+/// Ripristina da un file .zip.
+/// Scrive il DB pending + un file sidecar SHA-256 che verrà verificato
+/// da `db::apply_pending_restore()` al prossimo avvio dell'app.
 #[tauri::command]
 pub fn restore_backup(
     source_path: String,
@@ -298,52 +317,63 @@ pub fn restore_backup(
         entry.read_to_end(&mut buffer)
             .map_err(|e| format!("Errore lettura {}: {e}", name))?;
 
-        // Database → salva in file "pending" (verrà applicato al riavvio)
-        if restore_db && (name == "sparks3d.db" || name == "sparks3d.db-wal" || name == "sparks3d.db-shm") {
+        // ── Database → salva in file "pending" + sidecar SHA-256 ──
+        // Il DB viene applicato al prossimo riavvio da apply_pending_restore().
+        // Il file .sha256 permette di verificare l'integrità prima dell'applicazione.
+        if restore_db && name == "sparks3d.db" {
+            let staged = app_data.join("sparks3d_restore_pending.db");
+            fs::create_dir_all(&app_data).ok();
+            fs::write(&staged, &buffer)
+                .map_err(|e| format!("Errore scrittura DB pending: {e}"))?;
+
+            // Scrivi hash SHA-256 come file sidecar
+            let hash = compute_sha256(&buffer);
+            let hash_file = app_data.join("sparks3d_restore_pending.sha256");
+            fs::write(&hash_file, hash.as_bytes())
+                .map_err(|e| format!("Errore scrittura SHA-256 sidecar: {e}"))?;
+
+            db_restored = true;
+        }
+
+        // WAL/SHM del DB pending
+        if restore_db && (name == "sparks3d.db-wal" || name == "sparks3d.db-shm") {
             let staged_name = name.replace("sparks3d.", "sparks3d_restore_pending.");
             let dest = app_data.join(&staged_name);
             fs::create_dir_all(&app_data).ok();
             fs::write(&dest, &buffer)
-                .map_err(|e| format!("Errore ripristino DB: {e}"))?;
-            if name == "sparks3d.db" { db_restored = true; }
+                .map_err(|e| format!("Errore ripristino {staged_name}: {e}"))?;
         }
 
-        // Logos
+        // ── Logos ──
         if restore_logos && name.starts_with("logos/") {
             let rel = name.strip_prefix("logos/").unwrap_or(&name);
             if rel.is_empty() { continue; }
             let dest = app_data.join("logos").join(rel);
-            if let Some(parent) = dest.parent() {
-                fs::create_dir_all(parent).ok();
-            }
+            if let Some(parent) = dest.parent() { fs::create_dir_all(parent).ok(); }
             fs::write(&dest, &buffer)
                 .map_err(|e| format!("Errore ripristino logo: {e}"))?;
             logos_restored += 1;
         }
 
-        // Documenti Preventivi
+        // ── Documenti Preventivi ──
         if restore_documenti && name.starts_with("Documenti/Preventivi/") {
             let rel = name.strip_prefix("Documenti/Preventivi/").unwrap_or(&name);
             if rel.is_empty() { continue; }
             let dest = docs.join("Preventivi").join(rel);
-            if let Some(parent) = dest.parent() {
-                fs::create_dir_all(parent).ok();
-            }
+            if let Some(parent) = dest.parent() { fs::create_dir_all(parent).ok(); }
             fs::write(&dest, &buffer)
-                .map_err(|e| format!("Errore ripristino preventivo PDF: {e}"))?;
+                .map_err(|e| format!("Errore ripristino PDF preventivo: {e}"))?;
             pdf_prev_restored += 1;
         }
 
-        // Documenti Ritenute
+        // ── Documenti Ritenute ──
         if restore_documenti && name.starts_with("Documenti/Ritenute/") {
             let rel = name.strip_prefix("Documenti/Ritenute/").unwrap_or(&name);
             if rel.is_empty() { continue; }
             let dest = docs.join("Ritenute").join(rel);
-            if let Some(parent) = dest.parent() {
-                fs::create_dir_all(parent).ok();
-            }
+            if let Some(parent) = dest.parent() { fs::create_dir_all(parent).ok(); }
             fs::write(&dest, &buffer)
-                .map_err(|e| format!("Errore ripristino ritenuta PDF: {e}"))?;
+                .map_err(|e| format!("Errore ripristino PDF ritenuta: {e}"))?;
             pdf_rit_restored += 1;
         }
     }

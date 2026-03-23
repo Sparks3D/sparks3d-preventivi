@@ -1,5 +1,20 @@
+// src-tauri/src/db.rs
+// Sparks3D Preventivi – Database con cifratura SQLCipher
+// =========================================================
+
 use rusqlite::{Connection, Result};
-use std::path::PathBuf;
+use sha2::{Digest, Sha256};
+use std::io::Read;
+use std::path::{Path, PathBuf};
+
+// ── Chiave di cifratura SQLCipher (livello applicazione) ──
+//
+// Protegge i dati da accesso diretto tramite qualsiasi SQLite viewer.
+// Un attaccante con accesso al file system non può aprire il DB senza
+// fare reverse engineering del binario. Per dati classificati usa
+// una chiave machine-specific (DPAPI/keyring), che però rompe la
+// portabilità dei backup tra PC diversi.
+const DB_KEY: &str = "Sp4rks3D-Pr3v3ntivi-2024-S3cur3K3y-v1";
 
 /// Cartella dati applicazione
 fn app_data_dir() -> PathBuf {
@@ -14,21 +29,139 @@ pub fn get_db_path() -> PathBuf {
     dir.join("sparks3d.db")
 }
 
+/// Calcola SHA-256 di una sequenza di byte e lo restituisce come stringa hex.
+pub fn compute_sha256(data: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    hasher.finalize().iter().map(|b| format!("{:02x}", b)).collect()
+}
+
+/// Verifica se il file DB è già cifrato con SQLCipher.
+/// I DB SQLite in chiaro iniziano con il magic header "SQLite format 3\0".
+/// I DB SQLCipher hanno i primi 16 byte cifrati (casuali in apparenza).
+fn is_db_encrypted(path: &Path) -> bool {
+    let Ok(mut f) = std::fs::File::open(path) else { return false };
+    let mut header = [0u8; 16];
+    let Ok(_) = f.read_exact(&mut header) else { return false };
+    &header != b"SQLite format 3\0"
+}
+
+/// Migrazione one-shot: cifra un DB SQLite in chiaro con SQLCipher (AES-256-CBC).
+/// Viene chiamata automaticamente quando si rileva un DB non cifrato
+/// (upgrade da versione < 1.2.0 o ripristino di un backup vecchio).
+fn migrate_to_encrypted(path: &Path) -> std::result::Result<(), String> {
+    eprintln!("[Sparks3D] Avvio cifratura database (SQLCipher AES-256)...");
+    let tmp = path.with_file_name("sparks3d_encrypting_tmp.db");
+
+    // Apri il DB in chiaro (senza chiave — SQLCipher in modalità compatibilità)
+    let conn = Connection::open(path)
+        .map_err(|e| format!("Errore apertura DB per cifratura: {e}"))?;
+
+    // ATTACH del DB cifrato di destinazione + esportazione tramite sqlcipher_export
+    let enc_path = tmp.to_string_lossy().replace('\'', "''");
+    conn.execute_batch(&format!(
+        "ATTACH DATABASE '{enc_path}' AS encrypted KEY '{DB_KEY}'; \
+         SELECT sqlcipher_export('encrypted'); \
+         DETACH DATABASE encrypted;"
+    )).map_err(|e| format!("Errore durante sqlcipher_export: {e}"))?;
+
+    drop(conn); // chiudi la connessione al DB in chiaro
+
+    // Rimuovi WAL/SHM del DB originale prima di sostituirlo
+    let _ = std::fs::remove_file(path.with_extension("db-wal"));
+    let _ = std::fs::remove_file(path.with_extension("db-shm"));
+
+    // Sostituisci il DB in chiaro con quello cifrato
+    std::fs::rename(&tmp, path)
+        .map_err(|e| format!("Errore sostituzione DB: {e}"))?;
+
+    eprintln!("[Sparks3D] Database cifrato con successo.");
+    Ok(())
+}
+
+/// Apre il database con la chiave SQLCipher.
+/// Se il DB esiste in chiaro (upgrade da versione precedente),
+/// lo cifra automaticamente prima di aprirlo.
+pub fn open_db(path: &Path) -> std::result::Result<Connection, String> {
+    // Migrazione automatica per chi aggiorna da v1.1.x o precedente
+    if path.exists() && !is_db_encrypted(path) {
+        if let Err(e) = migrate_to_encrypted(path) {
+            eprintln!("[Sparks3D] Avviso migrazione DB: {e}");
+            // Continua: se la cifratura fallisce si apre il DB in chiaro
+            // (meglio degradare che crashare all'avvio)
+        }
+    }
+
+    let conn = Connection::open(path)
+        .map_err(|e| format!("Impossibile aprire il database: {e}"))?;
+
+    // PRAGMA key: deve essere il PRIMO comando dopo Connection::open con SQLCipher
+    conn.execute_batch(&format!("PRAGMA key = '{DB_KEY}';"))
+        .map_err(|e| format!("Errore impostazione chiave SQLCipher: {e}"))?;
+
+    Ok(conn)
+}
+
 /// Controlla se c'è un ripristino DB in attesa e lo applica prima di aprire il DB.
+///
+/// Sicurezza:
+/// - Verifica l'hash SHA-256 (scritto da create_backup in v1.2.0+) prima di applicare.
+/// - Se il file pending è stato manomesso, il restore viene annullato.
+/// - Se il DB ripristinato è in chiaro (backup da versione < 1.2.0), viene cifrato.
 pub fn apply_pending_restore() {
     let dir = app_data_dir();
     let pending = dir.join("sparks3d_restore_pending.db");
-    let target = dir.join("sparks3d.db");
+    let target  = dir.join("sparks3d.db");
+    let hash_file = dir.join("sparks3d_restore_pending.sha256");
 
     if !pending.exists() { return; }
 
-    // Rimuovi WAL/SHM vecchi
+    // ── 1. Verifica integrità SHA-256 ──
+    // Il file .sha256 è presente nei backup creati da v1.2.0+.
+    // Per i backup più vecchi (senza .sha256) si procede senza verifica
+    // per garantire la retrocompatibilità.
+    if hash_file.exists() {
+        let expected = std::fs::read_to_string(&hash_file)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+
+        match std::fs::read(&pending) {
+            Ok(bytes) => {
+                let actual = compute_sha256(&bytes);
+                if actual != expected {
+                    eprintln!("[Sparks3D] SICUREZZA: hash SHA-256 del DB pending non valido. Ripristino annullato.");
+                    eprintln!("  Atteso:  {}", expected);
+                    eprintln!("  Trovato: {}", actual);
+                    // Elimina tutti i file pending per evitare tentativi successivi
+                    let _ = std::fs::remove_file(&pending);
+                    let _ = std::fs::remove_file(&hash_file);
+                    let _ = std::fs::remove_file(dir.join("sparks3d_restore_pending.db-wal"));
+                    let _ = std::fs::remove_file(dir.join("sparks3d_restore_pending.db-shm"));
+                    return;
+                }
+                eprintln!("[Sparks3D] Verifica SHA-256 backup: OK.");
+            }
+            Err(e) => {
+                eprintln!("[Sparks3D] Errore lettura DB pending per verifica hash: {e}. Ripristino annullato.");
+                return;
+            }
+        }
+        // Hash verificato: rimuovi il file sidecar
+        let _ = std::fs::remove_file(&hash_file);
+    } else {
+        eprintln!("[Sparks3D] Backup senza SHA-256 (versione precedente) — ripristino senza verifica integrità.");
+    }
+
+    // ── 2. Applica il ripristino ──
+
+    // Rimuovi WAL/SHM del DB corrente
     let _ = std::fs::remove_file(dir.join("sparks3d.db-wal"));
     let _ = std::fs::remove_file(dir.join("sparks3d.db-shm"));
 
-    // Sposta file pendenti
     match std::fs::rename(&pending, &target) {
         Ok(_) => {
+            // Sposta anche WAL/SHM del backup se presenti
             let _ = std::fs::rename(
                 dir.join("sparks3d_restore_pending.db-wal"),
                 dir.join("sparks3d.db-wal"),
@@ -38,9 +171,17 @@ pub fn apply_pending_restore() {
                 dir.join("sparks3d.db-shm"),
             );
             eprintln!("[Sparks3D] Database ripristinato da backup.");
+
+            // ── 3. Cifra il DB ripristinato se è in chiaro (backup da v < 1.2.0) ──
+            if !is_db_encrypted(&target) {
+                eprintln!("[Sparks3D] DB ripristinato in chiaro — avvio cifratura...");
+                if let Err(e) = migrate_to_encrypted(&target) {
+                    eprintln!("[Sparks3D] Avviso: impossibile cifrare il DB ripristinato: {e}");
+                }
+            }
         }
         Err(e) => {
-            eprintln!("[Sparks3D] Errore ripristino DB: {e}");
+            eprintln!("[Sparks3D] Errore applicazione ripristino DB: {e}");
             let _ = std::fs::remove_file(&pending);
             let _ = std::fs::remove_file(dir.join("sparks3d_restore_pending.db-wal"));
             let _ = std::fs::remove_file(dir.join("sparks3d_restore_pending.db-shm"));
@@ -49,7 +190,7 @@ pub fn apply_pending_restore() {
 }
 
 pub fn init_schema(conn: &Connection) -> Result<()> {
-    // ── PRAGMA performance ──
+    // ── PRAGMA performance (devono seguire PRAGMA key, già impostato in open_db) ──
     conn.execute_batch("
         PRAGMA journal_mode = WAL;
         PRAGMA foreign_keys = ON;
@@ -288,13 +429,11 @@ pub fn init_schema(conn: &Connection) -> Result<()> {
         INSERT OR IGNORE INTO licenza (id) VALUES (1);
     "#)?;
 
-    // ── Migrazioni sicure (ALTER TABLE non fallisce se colonna esiste gia) ──
+    // ── Migrazioni sicure (ALTER TABLE non fallisce se la colonna esiste già) ──
     let _ = conn.execute("ALTER TABLE azienda ADD COLUMN paese TEXT NOT NULL DEFAULT 'IT'", []);
-    // Corrieri: colonne PackLink
     let _ = conn.execute("ALTER TABLE corrieri ADD COLUMN tempo_consegna TEXT DEFAULT ''", []);
     let _ = conn.execute("ALTER TABLE corrieri ADD COLUMN packlink_service_id TEXT DEFAULT ''", []);
     let _ = conn.execute("ALTER TABLE corrieri ADD COLUMN note TEXT DEFAULT ''", []);
-    // Metodi pagamento: commissioni
     let _ = conn.execute("ALTER TABLE metodi_pagamento ADD COLUMN commissione_percentuale REAL DEFAULT 0.0", []);
     let _ = conn.execute("ALTER TABLE metodi_pagamento ADD COLUMN commissione_fissa REAL DEFAULT 0.0", []);
     let _ = conn.execute("ALTER TABLE metodi_pagamento ADD COLUMN addebita_al_cliente INTEGER DEFAULT 0", []);
@@ -304,7 +443,7 @@ pub fn init_schema(conn: &Connection) -> Result<()> {
         ("costo_energia_kwh", "0.30"), ("soglia_scorte_kg", "1.5"),
         ("slicer_attivo", "bambu"), ("slicer_bambu_beta", "false"),
         ("slicer_solo_profili_utente", "false"), ("slicer_max_workers", "4"),
-        ("tema", "auto"), ("lingua", "it"), ("packlink_api_key", ""),
+        ("tema", "auto"), ("lingua", "it"),
     ];
     for (k, v) in defaults {
         conn.execute("INSERT OR IGNORE INTO impostazioni (chiave, valore) VALUES (?1, ?2)",

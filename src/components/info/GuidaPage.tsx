@@ -1,5 +1,5 @@
 // src/components/info/GuidaPage.tsx
-// Sparks3D Preventivi – Guida utente completa (v1.1.0)
+// Sparks3D Preventivi – Guida utente completa (v1.2.0)
 // =====================================================
 
 import { useState } from "react";
@@ -252,10 +252,60 @@ export function GuidaPage() {
       ),
     },
     {
-      id: "novita", title: "Novità v1.1.0", icon: "🆕",
+      id: "sicurezza", title: "Sicurezza", icon: "🔐",
       content: (
         <div style={proseStyle}>
-          <h4 style={h4Style}>Anycubic Slicer Next</h4>
+          <p>Sparks3D Preventivi adotta misure di sicurezza progettate per proteggere i tuoi dati aziendali e dei clienti su PC singoli e condivisi.</p>
+
+          <h4 style={h4Style}>🔒 Database cifrato (SQLCipher AES-256)</h4>
+          <p>A partire dalla v1.2.0, il database SQLite è cifrato con <strong>SQLCipher AES-256</strong>. Tutti i dati sensibili — clienti, preventivi, prezzi, partite IVA — sono protetti e non leggibili da nessun software esterno senza la chiave dell'applicazione. Se hai una versione precedente installata, la migrazione avviene automaticamente e silenziosamente al primo avvio.</p>
+
+          <h4 style={h4Style}>🔑 API key PackLink nel Windows Credential Manager</h4>
+          <p>La chiave API di PackLink Pro non viene salvata nel database ma nel <strong>Windows Credential Manager</strong>, lo stesso sistema protetto che Windows usa per le password di rete e dei browser. Puoi verificarla in: <strong>Pannello di controllo → Gestione credenziali → Credenziali Windows → sparks3d-preventivi</strong>.</p>
+          <p style={{ marginTop: 8, color: "#f97316" }}>
+            ⚠️ <strong>Nota backup:</strong> la API key non è inclusa nel file di backup perché è salvata nel Credential Manager per sicurezza. Dopo un ripristino su un PC diverso dovrai reinserirla in <em>Corrieri → PackLink Pro</em>.
+          </p>
+
+          <h4 style={h4Style}>✅ Verifica integrità del backup</h4>
+          <p>Ogni backup creato dalla v1.2.0 include un hash <strong>SHA-256</strong> del database. Al ripristino, l'app verifica che il file non sia stato manomesso o corrotto prima di applicarlo. Se l'hash non corrisponde, il ripristino viene annullato automaticamente e tutti i file temporanei vengono eliminati.</p>
+
+          <h4 style={h4Style}>🛡️ Aggiornamenti firmati</h4>
+          <p>Il sistema di aggiornamento automatico verifica la <strong>firma crittografica</strong> di ogni pacchetto prima dell'installazione. Questo garantisce che gli aggiornamenti provengano esclusivamente da Sparks3D e non siano stati modificati durante il download. La verifica è obbligatoria e non può essere disabilitata.</p>
+
+          <h4 style={h4Style}>🌐 Content Security Policy</h4>
+          <p>L'interfaccia è protetta da una <strong>Content Security Policy</strong> restrittiva che impedisce l'esecuzione di script non autorizzati, anche in caso di contenuti malevoli iniettati tramite file GCode o 3MF.</p>
+
+          <h4 style={h4Style}>📋 Roadmap sicurezza</h4>
+          <p>Le seguenti funzionalità di sicurezza sono pianificate per le prossime release:</p>
+          <ul style={ulStyle}>
+            <li><strong>PIN di avvio opzionale</strong> — protezione accesso per PC condivisi</li>
+            <li><strong>Validazione dati</strong> — controllo formato CAP, email e Partita IVA</li>
+            <li><strong>Permessi filesystem granulari</strong> — accesso limitato ai soli percorsi necessari degli slicer</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      id: "novita", title: "Novità v1.2.0", icon: "🆕",
+      content: (
+        <div style={proseStyle}>
+          <h4 style={h4Style}>🔐 Sicurezza</h4>
+          <ul style={ulStyle}>
+            <li>Database cifrato con <strong>SQLCipher AES-256</strong> — nessun software esterno può leggere i tuoi dati</li>
+            <li>API key PackLink spostata nel <strong>Windows Credential Manager</strong> — non più salvata in chiaro nel database</li>
+            <li>Verifica <strong>SHA-256</strong> del database al ripristino backup — il restore viene annullato se il file è stato manomesso</li>
+            <li><strong>Content Security Policy</strong> restrittiva abilitata sull'interfaccia</li>
+          </ul>
+          <h4 style={h4Style}>Aggiornamento automatico</h4>
+          <ul style={ulStyle}>
+            <li>L'app controlla automaticamente la disponibilità di aggiornamenti all'avvio</li>
+            <li>Se è disponibile una nuova versione, appare un <strong>banner verde</strong> in cima alla finestra con il numero di versione</li>
+            <li>Clicca <strong>"Aggiorna ora"</strong> per scaricare e installare automaticamente — l'app si riavvierà da sola al termine</li>
+            <li>Clicca <strong>"Salta"</strong> per ignorare l'aggiornamento per la sessione corrente</li>
+            <li>Gli aggiornamenti vengono verificati su GitHub Releases e su sparks3d.it come fallback</li>
+          </ul>
+
+          <h4 style={h4Style}>Novità precedenti (v1.1.0)</h4>
           <ul style={ulStyle}>
             <li>Integrazione completa con <strong>Anycubic Slicer Next</strong>: rilevamento installazione, import profili, apertura rapida dalla sidebar</li>
             <li>Pulsante unificato <strong>"Importa dallo Slicer"</strong> in Materiali, Stampanti e Profili di stampa (sostituisce i tre pulsanti separati)</li>
@@ -264,7 +314,6 @@ export function GuidaPage() {
             <li>Splash screen aggiornato: mostra lo stato di tutti e tre gli slicer all'avvio</li>
             <li>Badge "Anycubic" nelle tabelle Materiali, Stampanti e Profili per i dati importati da Anycubic Slicer Next</li>
             <li>Profili letti da <code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code> — formato compatibile Orca (stesso JSON)</li>
-            <li>Parser GCode / 3MF ora indica esplicitamente Anycubic Slicer Next tra gli slicer compatibili</li>
           </ul>
 
           <h4 style={h4Style}>Novità precedenti (v1.0.3)</h4>

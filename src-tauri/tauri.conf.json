@@ -1,6 +1,6 @@
 {
   "productName": "Sparks3D Preventivi",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "identifier": "com.sparks3d.preventivi",
   "build": {
     "beforeBuildCommand": "npm run build",
@@ -36,12 +36,13 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src ipc: http://ipc.localhost; font-src 'self'"
     }
   },
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -60,5 +61,13 @@
       }
     }
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk3RjBEOTYyOTI3NjdERDQKUldUVWZYYVNZdG53bDdhZnlhSVF4a3EveDZLR0xrbnl6d1EyelJuRkVsS0o5SzlITURUblVUZ2YK",
+      "endpoints": [
+        "https://github.com/Sparks3D/sparks3d-preventivi/releases/latest/download/latest.json",
+        "https://sparks3d.it/updates/latest.json"
+      ]
+    }
+  }
 }

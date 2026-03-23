@@ -599,6 +599,18 @@ export function BackupRestore() {
           label="Documenti PDF (preventivi + ritenute)"
         />
 
+        {/* Avviso API key PackLink */}
+        <div style={{
+          fontSize: 13, color: "#f97316", marginTop: 16, marginBottom: 4,
+          padding: "12px 16px", borderRadius: 10,
+          background: "rgba(249,115,22,0.07)",
+          border: "1px solid rgba(249,115,22,0.2)",
+          lineHeight: 1.6,
+        }}>
+          🔑 <strong>Nota:</strong> la API key di PackLink Pro <strong>non è inclusa nel backup</strong>, perché è salvata nel Windows Credential Manager per sicurezza.
+          Dopo il ripristino dovrai reinserirla nella sezione <em>Corrieri → PackLink Pro</em>.
+        </div>
+
         <div style={{ marginTop: 16 }}>
           <button
             style={{

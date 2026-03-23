@@ -13,3 +13,4 @@ Thumbs.db
 .vscode/
 .idea/
 .env
+.tauri/sparks3d.key

@@ -54,6 +54,9 @@ const COUNTRIES = [
   { code: "HR", label: "Croazia" }, { code: "US", label: "USA" },
 ];
 
+// Nome della chiave nel Windows Credential Manager
+const PACKLINK_KEY_NAME = "packlink-api-key";
+
 const eur = (n: number) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);
 
@@ -81,7 +84,8 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
   const load = useCallback(async () => {
     try {
       setItems(await invoke<Corriere[]>("get_corrieri"));
-      const key = await invoke<string>("get_impostazione", { chiave: "packlink_api_key" }).catch(() => "");
+      // Leggi l'API key dal Windows Credential Manager (non dal DB)
+      const key = await invoke<string>("get_api_key", { keyName: PACKLINK_KEY_NAME }).catch(() => "");
       setApiKey(key);
     } catch (e) { console.error(e); }
   }, []);
@@ -118,7 +122,8 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
 
   const saveApiKey = async () => {
     try {
-      await invoke("set_impostazione", { chiave: "packlink_api_key", valore: apiKey });
+      // Salva nel Windows Credential Manager tramite backend Rust
+      await invoke("save_api_key", { keyName: PACKLINK_KEY_NAME, value: apiKey });
       setApiKeySaved(true);
       setTimeout(() => setApiKeySaved(false), 3000);
     } catch (e: any) { setError(String(e)); }
@@ -224,6 +229,11 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
             {!apiKey.trim() && (
               <p className="text-xs mt-2" style={{ color: "#f97316" }}>
                 ⚠️ Inserisci la API key per cercare le tariffe. La trovi nel tuo account PackLink Pro → Impostazioni → API.
+              </p>
+            )}
+            {apiKey.trim() && (
+              <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+                🔒 La chiave è salvata nel Windows Credential Manager, non nel database.
               </p>
             )}
           </div>

@@ -226,6 +226,62 @@ fn get_impostazione(state: State<AppState>, chiave: String) -> Result<String, St
 #[tauri::command]
 fn set_impostazione(state: State<AppState>, chiave: String, valore: String) -> Result<(), String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.execute("INSERT OR REPLACE INTO impostazioni (chiave,valore) VALUES (?1,?2)", params![chiave,valore]).map_err(|e| e.to_string())?; Ok(()) }
 
+// === API KEY SICURE (Windows Credential Manager) ===
+// Le chiavi sensibili (es. PackLink) vengono salvate nel Credential Manager
+// di Windows invece che nel database SQLite, che è in chiaro su disco.
+
+const KEYRING_SERVICE: &str = "sparks3d-preventivi";
+
+#[tauri::command]
+fn save_api_key(key_name: String, value: String) -> Result<(), String> {
+    let entry = keyring::Entry::new(KEYRING_SERVICE, &key_name)
+        .map_err(|e| e.to_string())?;
+    entry.set_password(&value)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_api_key(key_name: String) -> Result<String, String> {
+    let entry = keyring::Entry::new(KEYRING_SERVICE, &key_name)
+        .map_err(|e| e.to_string())?;
+    entry.get_password()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn delete_api_key(key_name: String) -> Result<(), String> {
+    let entry = keyring::Entry::new(KEYRING_SERVICE, &key_name)
+        .map_err(|e| e.to_string())?;
+    entry.delete_credential()
+        .map_err(|e| e.to_string())
+}
+
+/// Migrazione one-shot: se l'API key PackLink è ancora salvata nel DB (versioni precedenti),
+/// la sposta nel Windows Credential Manager e la cancella dalla tabella impostazioni.
+/// Chiamata una sola volta all'avvio, prima che la connessione venga messa nel Mutex.
+fn migrate_api_key_to_keyring(conn: &Connection) {
+    let result: rusqlite::Result<String> = conn.query_row(
+        "SELECT valore FROM impostazioni WHERE chiave = 'packlink_api_key'",
+        [],
+        |row| row.get(0),
+    );
+    if let Ok(api_key) = result {
+        if !api_key.trim().is_empty() {
+            if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, "packlink-api-key") {
+                // Salva nel Credential Manager solo se non è già presente
+                if entry.get_password().is_err() {
+                    let _ = entry.set_password(&api_key);
+                }
+            }
+            // Rimuovi dal DB in ogni caso
+            let _ = conn.execute(
+                "DELETE FROM impostazioni WHERE chiave = 'packlink_api_key'",
+                [],
+            );
+        }
+    }
+}
+
 // === PREVENTIVI (semplici) ===
 #[tauri::command]
 fn get_preventivi(state: State<AppState>) -> Result<Vec<Preventivo>, String> { let db = state.db.lock().map_err(|e| e.to_string())?; let mut stmt = db.prepare("SELECT id,numero,cliente_id,stato,data_creazione,markup_globale,sconto_globale,avvio_macchina,metodo_pagamento_id,corriere_id,acconto_tipo,acconto_valore,ritenuta_acconto,note,totale_costo,totale_cliente,totale_profit,totale_materiale_g,totale_tempo_sec,totale_finale FROM preventivi ORDER BY data_creazione DESC").map_err(|e| e.to_string())?; let items = stmt.query_map([], |row| Ok(Preventivo { id:row.get(0)?,numero:row.get(1)?,cliente_id:row.get(2)?,stato:row.get(3)?,data_creazione:row.get(4)?,markup_globale:row.get(5)?,sconto_globale:row.get(6)?,avvio_macchina:row.get(7)?,metodo_pagamento_id:row.get(8)?,corriere_id:row.get(9)?,acconto_tipo:row.get::<_,String>(10)?,acconto_valore:row.get(11)?,ritenuta_acconto:row.get(12)?,note:row.get(13)?,totale_costo:row.get(14)?,totale_cliente:row.get(15)?,totale_profit:row.get(16)?,totale_materiale_g:row.get(17)?,totale_tempo_sec:row.get(18)?,totale_finale:row.get(19)? })).map_err(|e| e.to_string())?.filter_map(|r| r.ok()).collect(); Ok(items) }
@@ -389,7 +445,6 @@ fn reset_database(state: State<AppState>, reset_preventivi: bool, reset_clienti:
 
     if reset_preventivi {
         prev_del = db.query_row("SELECT COUNT(*) FROM preventivi", [], |r| r.get(0)).unwrap_or(0);
-        // Singole query — se una tabella non esiste non blocca le altre
         let _ = db.execute("DELETE FROM riga_materiali", []);
         let _ = db.execute("DELETE FROM righe_preventivo", []);
         let _ = db.execute("DELETE FROM servizi_preventivo", []);
@@ -416,14 +471,15 @@ fn reset_database(state: State<AppState>, reset_preventivi: bool, reset_clienti:
     }
 
     if reset_impostazioni {
-        // Reset dati azienda ai valori vuoti, mantieni la riga
         db.execute(
             "UPDATE azienda SET ragione_sociale='', indirizzo='', cap='', citta='', provincia='', paese='IT', partita_iva='', codice_fiscale='', email='', telefono='', logo_path='', regime_fiscale='forfettario', iva_percentuale=0.0, nota_regime='', prefisso_preventivo='PRV', prossimo_numero=1 WHERE id=1",
             [],
         ).map_err(|e| e.to_string())?;
-        // Pulisci impostazioni tranne ui_settings
         db.execute("DELETE FROM impostazioni WHERE chiave != 'ui_settings'", []).map_err(|e| e.to_string())?;
-        // Pulisci loghi
+        // Rimuovi anche l'API key dal Credential Manager
+        if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, "packlink-api-key") {
+            let _ = entry.delete_credential();
+        }
         let app_data = dirs::data_dir()
             .unwrap_or_else(|| std::path::PathBuf::from("."))
             .join("Sparks3DPreventivi").join("logos");
@@ -436,7 +492,6 @@ fn reset_database(state: State<AppState>, reset_preventivi: bool, reset_clienti:
         }
     }
 
-    // VACUUM per liberare spazio
     let _ = db.execute_batch("VACUUM;");
 
     let tot = prev_del + cli_del + mat_del + sta_del + pro_del;
@@ -458,13 +513,18 @@ pub fn run() {
     db::apply_pending_restore();
 
     let db_path = db::get_db_path();
-    let conn = Connection::open(&db_path).expect("Impossibile aprire il database");
+    let conn = db::open_db(&db_path).expect("Impossibile aprire il database");
     db::init_schema(&conn).expect("Impossibile inizializzare lo schema");
+
+    // Migrazione one-shot: sposta l'API key PackLink dal DB al Credential Manager
+    migrate_api_key_to_keyring(&conn);
+
     let state = AppState { db: Mutex::new(conn) };
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(state)
         .setup(|app| {
             let handle = app.handle().clone();
@@ -472,7 +532,6 @@ pub fn run() {
                 use tauri::Manager;
                 let sleep = |ms: u64| std::thread::sleep(std::time::Duration::from_millis(ms));
 
-                // Helper: esegue JS direttamente nella finestra splash
                 let update_splash = |pct: u32, msg: &str, det: Option<String>| {
                     if let Some(splash) = handle.get_webview_window("splash") {
                         let det_js = match &det {
@@ -487,9 +546,6 @@ pub fn run() {
                     }
                 };
 
-                // ══════════════════════════════════════════════════
-                // FASE 1: Raccogli TUTTI i dati (istantaneo)
-                // ══════════════════════════════════════════════════
                 let db_ok = handle.state::<AppState>().db.lock().is_ok();
 
                 let (n_mat, n_stamp, n_prof, n_prev) = {
@@ -514,9 +570,6 @@ pub fn run() {
                     std::path::Path::new(&appdata).join(name).is_dir()
                 });
 
-                // ══════════════════════════════════════════════════
-                // FASE 2: Attendi che lo splash sia pronto
-                // ══════════════════════════════════════════════════
                 for _ in 0..30 {
                     sleep(100);
                     if let Some(splash) = handle.get_webview_window("splash") {
@@ -525,19 +578,13 @@ pub fn run() {
                         }
                     }
                 }
-                // Pausa extra per assicurarsi che il DOM sia renderizzato
                 sleep(5000);
 
-                // Invia la versione allo splash
                 if let Some(splash) = handle.get_webview_window("splash") {
                     let ver = env!("CARGO_PKG_VERSION");
                     let _ = splash.eval(&format!("if(typeof setVersion==='function')setVersion('{}')", ver));
                 }
                 sleep(300);
-
-                // ══════════════════════════════════════════════════
-                // FASE 3: Mostra avanzamento (solo visual, dati già pronti)
-                // ══════════════════════════════════════════════════
 
                 update_splash(15, "Database inizializzato",
                     Some(if db_ok { "Connessione OK".into() } else { "Errore connessione".into() }));
@@ -574,7 +621,6 @@ pub fn run() {
                 update_splash(100, "Pronto!", None);
                 sleep(1500);
 
-                // Mostra finestra principale e chiudi splash
                 if let Some(main_win) = handle.get_webview_window("main") {
                     let _ = main_win.show();
                     let _ = main_win.set_focus();
@@ -594,6 +640,7 @@ pub fn run() {
             get_servizi_extra, create_servizio_extra, update_servizio_extra, delete_servizio_extra,
             get_metodi_pagamento, create_metodo_pagamento, update_metodo_pagamento, delete_metodo_pagamento,
             get_impostazione, set_impostazione,
+            save_api_key, get_api_key, delete_api_key,
             get_preventivi, create_preventivo, delete_preventivo,
             preventivi::get_preventivi_list, preventivi::get_preventivo_completo,
             preventivi::update_preventivo, preventivi::update_stato_preventivo,
@@ -614,6 +661,7 @@ pub fn run() {
             export::export_data,
             search::global_search,
             updater::check_for_updates,
+            updater::install_update,
             get_slicer_info, scan_slicer_profiles,
             check_slicer_status,
             open_slicer,
