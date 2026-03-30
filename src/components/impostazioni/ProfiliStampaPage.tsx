@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 interface ProfiloStampa { id:number; nome:string; profilo_slicer:string; slicer_origin:string; layer_height_mm:number; numero_pareti:number; infill_percentuale:number; top_layers:number; bottom_layers:number; supporti_albero:boolean; supporti_normali:boolean; }
-interface Props { onOpenForm:(id?:number,prefill?:any)=>void; onImportSlicer?:(slicer:"bambu"|"orca"|"anycubic")=>void; }
+interface Props { onOpenForm:(id?:number,prefill?:any)=>void; onImportSlicer?:(slicer:"bambu"|"orca"|"anycubic"|"prusa")=>void; }
 
-const ORIGIN_LABEL: Record<string,string> = { bambu:"Bambu", orca:"Orca", anycubic:"Anycubic" };
+const ORIGIN_LABEL: Record<string,string> = { bambu:"Bambu", orca:"Orca", anycubic:"Anycubic", prusa:"Prusa" };
 const ORIGIN_COLORS: Record<string,{bg:string;fg:string}> = {
   bambu:    { bg:"var(--accent-soft)", fg:"var(--accent)" },
   orca:     { bg:"rgba(0,150,136,0.15)", fg:"#009688" },
   anycubic: { bg:"rgba(66,165,245,0.15)", fg:"#42a5f5" },
+  prusa:    { bg:"rgba(237,107,33,0.15)", fg:"#ed6b21" },
 };
 
 export function ProfiliStampaPage({ onOpenForm, onImportSlicer }:Props) {

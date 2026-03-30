@@ -103,7 +103,7 @@ pub struct RigaMateriale {
 #[derive(Debug, Serialize)]
 pub struct SlicerStatus {
     pub nome: String,
-    pub codice: String,  // "bambu", "orca"
+    pub codice: String,  // "bambu", "orca", "anycubic", "prusa"
     pub installato: bool,
     pub path: Option<String>,
     pub exe_path: Option<String>,
@@ -256,6 +256,64 @@ fn delete_api_key(key_name: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+// === PIN DI AVVIO (SQLite — hash SHA-256) ===
+// Il PIN viene hashato con SHA-256 e salvato nella tabella impostazioni.
+// L'hash è irreversibile: anche leggendo il DB non si può risalire al PIN.
+
+const PIN_SETTING_KEY: &str = "startup_pin_hash";
+
+#[tauri::command]
+fn has_pin(state: State<AppState>) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let result: rusqlite::Result<String> = db.query_row(
+        "SELECT valore FROM impostazioni WHERE chiave = ?1",
+        params![PIN_SETTING_KEY],
+        |row| row.get(0),
+    );
+    match result {
+        Ok(val) => Ok(!val.is_empty()),
+        Err(_) => Ok(false),
+    }
+}
+
+#[tauri::command]
+fn set_pin(state: State<AppState>, pin: String) -> Result<(), String> {
+    if pin.len() != 6 || !pin.chars().all(|c| c.is_ascii_digit()) {
+        return Err("Il PIN deve essere di 6 cifre numeriche.".to_string());
+    }
+    use sha2::Digest;
+    let hash = format!("{:x}", sha2::Sha256::digest(pin.as_bytes()));
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.execute(
+        "INSERT OR REPLACE INTO impostazioni (chiave, valore) VALUES (?1, ?2)",
+        params![PIN_SETTING_KEY, hash],
+    ).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn verify_pin(state: State<AppState>, pin: String) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let stored_hash: String = db.query_row(
+        "SELECT valore FROM impostazioni WHERE chiave = ?1",
+        params![PIN_SETTING_KEY],
+        |row| row.get(0),
+    ).map_err(|_| "PIN non impostato.".to_string())?;
+    use sha2::Digest;
+    let input_hash = format!("{:x}", sha2::Sha256::digest(pin.as_bytes()));
+    Ok(stored_hash == input_hash)
+}
+
+#[tauri::command]
+fn delete_pin(state: State<AppState>) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.execute(
+        "DELETE FROM impostazioni WHERE chiave = ?1",
+        params![PIN_SETTING_KEY],
+    ).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 /// Migrazione one-shot: se l'API key PackLink è ancora salvata nel DB (versioni precedenti),
 /// la sposta nel Windows Credential Manager e la cancella dalla tabella impostazioni.
 /// Chiamata una sola volta all'avvio, prima che la connessione venga messa nel Mutex.
@@ -306,6 +364,12 @@ fn scan_slicer_profiles(tipo: String, is_beta: bool, solo_utente: bool, slicer_t
 #[tauri::command]
 fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+// === RIAVVIO APP ===
+#[tauri::command]
+fn restart_app(app: tauri::AppHandle) {
+    app.restart();
 }
 
 // === SLICER STATUS (rilevamento installazione multi-slicer) ===
@@ -383,6 +447,31 @@ fn check_slicer_status() -> Result<Vec<SlicerStatus>, String> {
         exe_path: anycubic_exe,
     });
 
+    // --- Prusa Slicer ---
+    let prusa_dir_names = ["PrusaSlicer", "PrusaSlicer-alpha", "PrusaSlicer-beta"];
+    let mut prusa_path_found: Option<std::path::PathBuf> = None;
+    for name in &prusa_dir_names {
+        let p = std::path::Path::new(&appdata).join(name);
+        if p.exists() && p.is_dir() { prusa_path_found = Some(p); break; }
+    }
+    let prusa_installato = prusa_path_found.is_some();
+    let prusa_exe = if prusa_installato {
+        vec![
+            std::path::PathBuf::from(r"C:\Program Files\Prusa3D\PrusaSlicer\prusa-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Prusa3D\PrusaSlicer\PrusaSlicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files (x86)\Prusa3D\PrusaSlicer\prusa-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\PrusaSlicer\prusa-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Prusa3D\PrusaSlicer 2\prusa-slicer.exe"),
+        ].into_iter().find(|p| p.exists()).map(|p| p.to_string_lossy().to_string())
+    } else { None };
+    slicers.push(SlicerStatus {
+        nome: "Prusa Slicer".to_string(),
+        codice: "prusa".to_string(),
+        installato: prusa_installato,
+        path: prusa_path_found.map(|p| p.to_string_lossy().to_string()),
+        exe_path: prusa_exe,
+    });
+
     Ok(slicers)
 }
 
@@ -402,6 +491,13 @@ fn open_slicer(slicer_code: Option<String>) -> Result<String, String> {
             std::path::PathBuf::from(r"C:\Program Files (x86)\AnycubicSlicerNext\AnycubicSlicerNext.exe"),
             std::path::PathBuf::from(r"C:\Program Files\Anycubic Slicer Next\AnycubicSlicerNext.exe"),
         ], "Anycubic Slicer Next"),
+        "prusa" => (vec![
+            std::path::PathBuf::from(r"C:\Program Files\Prusa3D\PrusaSlicer\prusa-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Prusa3D\PrusaSlicer\PrusaSlicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files (x86)\Prusa3D\PrusaSlicer\prusa-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\PrusaSlicer\prusa-slicer.exe"),
+            std::path::PathBuf::from(r"C:\Program Files\Prusa3D\PrusaSlicer 2\prusa-slicer.exe"),
+        ], "Prusa Slicer"),
         _ => (vec![
             std::path::PathBuf::from(r"C:\Program Files\Bambu Studio\bambu-studio.exe"),
             std::path::PathBuf::from(r"C:\Program Files (x86)\Bambu Studio\bambu-studio.exe"),
@@ -476,10 +572,11 @@ fn reset_database(state: State<AppState>, reset_preventivi: bool, reset_clienti:
             [],
         ).map_err(|e| e.to_string())?;
         db.execute("DELETE FROM impostazioni WHERE chiave != 'ui_settings'", []).map_err(|e| e.to_string())?;
-        // Rimuovi anche l'API key dal Credential Manager
+        // Rimuovi anche l'API key dal Credential Manager e il PIN dal DB
         if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, "packlink-api-key") {
             let _ = entry.delete_credential();
         }
+        let _ = db.execute("DELETE FROM impostazioni WHERE chiave = 'startup_pin_hash'", []);
         let app_data = dirs::data_dir()
             .unwrap_or_else(|| std::path::PathBuf::from("."))
             .join("Sparks3DPreventivi").join("logos");
@@ -569,6 +666,10 @@ pub fn run() {
                 let anycubic_ok = anycubic_candidates.iter().any(|name| {
                     std::path::Path::new(&appdata).join(name).is_dir()
                 });
+                let prusa_candidates = ["PrusaSlicer", "PrusaSlicer-alpha", "PrusaSlicer-beta"];
+                let prusa_ok = prusa_candidates.iter().any(|name| {
+                    std::path::Path::new(&appdata).join(name).is_dir()
+                });
 
                 for _ in 0..30 {
                     sleep(100);
@@ -609,7 +710,8 @@ pub fn run() {
                         let mut parts = Vec::new();
                         if bambu_ok { parts.push("Bambu Studio ✓"); }
                         if orca_ok { parts.push("Orca Slicer ✓"); }
-                        if anycubic_ok { parts.push("Anycubic Slicer ✓"); }
+                        if anycubic_ok { parts.push("Anycubic ✓"); }
+                        if prusa_ok { parts.push("Prusa Slicer ✓"); }
                         if parts.is_empty() { "Nessuno slicer rilevato".to_string() }
                         else { parts.join(" · ") }
                     }));
@@ -641,6 +743,7 @@ pub fn run() {
             get_metodi_pagamento, create_metodo_pagamento, update_metodo_pagamento, delete_metodo_pagamento,
             get_impostazione, set_impostazione,
             save_api_key, get_api_key, delete_api_key,
+            has_pin, set_pin, verify_pin, delete_pin,
             get_preventivi, create_preventivo, delete_preventivo,
             preventivi::get_preventivi_list, preventivi::get_preventivo_completo,
             preventivi::update_preventivo, preventivi::update_stato_preventivo,
@@ -667,6 +770,7 @@ pub fn run() {
             open_slicer,
             reset_database,
             get_app_version,
+            restart_app,
         ])
         .run(tauri::generate_context!())
         .expect("Errore avvio applicazione");

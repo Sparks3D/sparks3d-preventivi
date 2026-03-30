@@ -76,6 +76,12 @@ export function BackupRestore() {
   const [confermaRestore, setConfermaRestore] = useState(false);
   const [restorePath, setRestorePath] = useState<string | null>(null);
 
+  // Animazione ripristino
+  type RestorePhase = "idle" | "loading" | "done" | "error";
+  const [restorePhase, setRestorePhase] = useState<RestorePhase>("idle");
+  const [restoreSteps, setRestoreSteps] = useState<{ label: string; status: "pending" | "active" | "done" | "error" }[]>([]);
+  const [restoreError, setRestoreError] = useState<string>("");
+
   // Esportazione
   const [exportTipo, setExportTipo] = useState<string>("tutto");
   const [exportFormato, setExportFormato] = useState<string>("xlsx");
@@ -161,8 +167,36 @@ export function BackupRestore() {
     setConfermaRestore(false);
     setOperazione("restore");
     setRisultato(null);
+    setRestoreError("");
+
+    // Costruisci i passi in base alle opzioni selezionate
+    const steps: { label: string; status: "pending" | "active" | "done" | "error" }[] = [
+      { label: "Apertura file backup", status: "pending" },
+      ...(restDb ? [{ label: "Ripristino database", status: "pending" as const }] : []),
+      ...(restLogos ? [{ label: "Ripristino logo", status: "pending" as const }] : []),
+      ...(restDocs ? [{ label: "Ripristino documenti PDF", status: "pending" as const }] : []),
+      { label: "Completamento", status: "pending" },
+    ];
+    setRestoreSteps(steps);
+    setRestorePhase("loading");
+
+    const setStep = (idx: number, status: "active" | "done" | "error") => {
+      setRestoreSteps(prev => prev.map((s, i) => i === idx ? { ...s, status } : s));
+    };
 
     try {
+      // Passo 0: apertura file
+      setStep(0, "active");
+      await new Promise(r => setTimeout(r, 600));
+      setStep(0, "done");
+
+      // Passi intermedi: uno per tipo di dato
+      let stepIdx = 1;
+      if (restDb) { setStep(stepIdx, "active"); await new Promise(r => setTimeout(r, 500)); stepIdx++; }
+      if (restLogos) { setStep(stepIdx, "active"); await new Promise(r => setTimeout(r, 400)); stepIdx++; }
+      if (restDocs) { setStep(stepIdx, "active"); await new Promise(r => setTimeout(r, 400)); stepIdx++; }
+
+      // Chiamata reale al backend
       const result = await invoke<RestoreResult>("restore_backup", {
         sourcePath: restorePath,
         restoreDb: restDb,
@@ -170,14 +204,26 @@ export function BackupRestore() {
         restoreDocumenti: restDocs,
       });
 
+      // Segna i passi intermedi come done
+      setRestoreSteps(prev => prev.map((s, i) =>
+        i > 0 && i < prev.length - 1 ? { ...s, status: "done" } : s
+      ));
+
+      // Passo finale
+      const lastIdx = steps.length - 1;
+      setStep(lastIdx, "active");
+      await new Promise(r => setTimeout(r, 500));
+      setStep(lastIdx, "done");
+
       if (result.success) {
-        setRisultato({
-          tipo: "ok",
-          testo: `✅ ${result.message}${result.db_restored ? "\n⚠️ Riavvia l'applicazione per caricare il database ripristinato." : ""}`,
-        });
+        setRestorePhase("done");
       }
     } catch (err) {
-      setRisultato({ tipo: "err", testo: `❌ Errore ripristino: ${err}` });
+      setRestoreSteps(prev => prev.map(s =>
+        s.status === "active" ? { ...s, status: "error" } : s
+      ));
+      setRestoreError(String(err));
+      setRestorePhase("error");
     } finally {
       setOperazione("idle");
       setRestorePath(null);
@@ -575,6 +621,160 @@ export function BackupRestore() {
         </div>
       </div>
 
+      {/* ═══ ANIMAZIONE RIPRISTINO (modale) ═══ */}
+      {restorePhase !== "idle" && (
+        <div style={{
+          position: "fixed", inset: 0,
+          background: "rgba(0,0,0,0.65)",
+          backdropFilter: "blur(8px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: "#0f1629",
+            border: `1px solid ${
+              restorePhase === "done"
+                ? "rgba(34,197,94,0.35)"
+                : restorePhase === "error"
+                ? "rgba(244,63,94,0.35)"
+                : "rgba(59,130,246,0.25)"}`,
+            borderRadius: 20,
+            padding: 32,
+            width: 440,
+            boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+            transition: "border-color 0.4s",
+          }}>
+            {/* Titolo */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+              <span style={{ fontSize: 22 }}>
+                {restorePhase === "done" ? "✅" : restorePhase === "error" ? "❌" : "📥"}
+              </span>
+              <span style={{ fontSize: 17, fontWeight: 700, color: "#e2e8f0" }}>
+                {restorePhase === "done"
+                  ? "Ripristino completato"
+                  : restorePhase === "error"
+                  ? "Errore durante il ripristino"
+                  : "Ripristino in corso..."}
+              </span>
+            </div>
+
+            {/* Passi animati */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+              {restoreSteps.map((step, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{
+                    width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 13, fontWeight: 700,
+                    background:
+                      step.status === "done" ? "rgba(34,197,94,0.15)" :
+                      step.status === "active" ? "rgba(59,130,246,0.15)" :
+                      step.status === "error" ? "rgba(244,63,94,0.15)" :
+                      "rgba(255,255,255,0.04)",
+                    border: `1px solid ${
+                      step.status === "done" ? "rgba(34,197,94,0.4)" :
+                      step.status === "active" ? "rgba(59,130,246,0.4)" :
+                      step.status === "error" ? "rgba(244,63,94,0.4)" :
+                      "rgba(255,255,255,0.08)"}`,
+                    transition: "all 0.3s",
+                  }}>
+                    {step.status === "done" && <span style={{ color: "#4ade80" }}>✓</span>}
+                    {step.status === "active" && (
+                      <span style={{
+                        display: "inline-block", width: 10, height: 10, borderRadius: "50%",
+                        background: "#60a5fa",
+                        animation: "pulse 1s infinite",
+                      }} />
+                    )}
+                    {step.status === "error" && <span style={{ color: "#f87171" }}>✕</span>}
+                    {step.status === "pending" && (
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "inline-block" }} />
+                    )}
+                  </div>
+                  <span style={{
+                    fontSize: 14, fontWeight: step.status === "active" ? 600 : 500,
+                    color:
+                      step.status === "done" ? "#4ade80" :
+                      step.status === "active" ? "#93c5fd" :
+                      step.status === "error" ? "#f87171" :
+                      "#475569",
+                    transition: "color 0.3s",
+                  }}>
+                    {step.label}
+                    {step.status === "active" && (
+                      <span style={{ color: "#475569", marginLeft: 6, fontWeight: 400 }}>...</span>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Errore */}
+            {restorePhase === "error" && restoreError && (
+              <div style={{
+                fontSize: 13, color: "#f87171", padding: "10px 14px", borderRadius: 8,
+                background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.2)",
+                marginBottom: 16,
+              }}>
+                {restoreError}
+              </div>
+            )}
+
+            {/* Avviso riavvio */}
+            {restorePhase === "done" && restDb && (
+              <div style={{
+                fontSize: 13, color: "#f97316", padding: "10px 14px", borderRadius: 8,
+                background: "rgba(249,115,22,0.07)", border: "1px solid rgba(249,115,22,0.2)",
+                marginBottom: 16, lineHeight: 1.6,
+              }}>
+                ⚠️ Il database ripristinato verrà caricato al prossimo avvio.
+              </div>
+            )}
+
+            {/* Pulsante riavvia */}
+            {restorePhase === "done" && (
+              <button
+                style={{
+                  width: "100%",
+                  background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                  border: "none", borderRadius: 12,
+                  padding: "14px 28px", color: "#fff",
+                  fontSize: 15, fontWeight: 700, cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(16,185,129,0.35)",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                }}
+                onClick={async () => {
+                  try {
+                    await invoke("restart_app");
+                  } catch {
+                    window.location.reload();
+                  }
+                }}
+              >
+                🔄 Riavvia applicazione
+              </button>
+            )}
+
+            {/* Pulsante chiudi se errore */}
+            {restorePhase === "error" && (
+              <button
+                style={S.btnCancel}
+                onClick={() => { setRestorePhase("idle"); setRestoreSteps([]); }}
+              >
+                Chiudi
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.8); }
+        }
+      `}</style>
+
       {/* ═══ RIPRISTINO ═══ */}
       <div style={S.card}>
         <div style={S.cardTitle}>📥 Ripristina da Backup</div>
@@ -598,18 +798,6 @@ export function BackupRestore() {
           onChange={setRestDocs}
           label="Documenti PDF (preventivi + ritenute)"
         />
-
-        {/* Avviso API key PackLink */}
-        <div style={{
-          fontSize: 13, color: "#f97316", marginTop: 16, marginBottom: 4,
-          padding: "12px 16px", borderRadius: 10,
-          background: "rgba(249,115,22,0.07)",
-          border: "1px solid rgba(249,115,22,0.2)",
-          lineHeight: 1.6,
-        }}>
-          🔑 <strong>Nota:</strong> la API key di PackLink Pro <strong>non è inclusa nel backup</strong>, perché è salvata nel Windows Credential Manager per sicurezza.
-          Dopo il ripristino dovrai reinserirla nella sezione <em>Corrieri → PackLink Pro</em>.
-        </div>
 
         <div style={{ marginTop: 16 }}>
           <button
