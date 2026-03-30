@@ -9,7 +9,7 @@ Software desktop per la creazione e gestione di preventivi per servizi di stampa
 - Gestione completa preventivi con calcolo costi automatico
 - Supporto multi-materiale AMS (Automatic Material System)
 - Import automatico da file GCode e 3MF
-- Import profili stampa da **Bambu Studio**, **Orca Slicer** e **Anycubic Slicer Next**
+- Import profili stampa da **Bambu Studio**, **Orca Slicer**, **Anycubic Slicer Next**, **Prusa Slicer**
 - Rilevamento automatico slicer installati nella sidebar
 - Tariffe corrieri live tramite PackLink Pro
 - Export PDF professionale con logo e dati azienda
