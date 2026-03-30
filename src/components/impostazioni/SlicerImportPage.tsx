@@ -24,7 +24,7 @@ interface SlicerStatus {
 
 interface Props {
   tipo: "filament" | "machine" | "process";
-  defaultSlicer: "bambu" | "orca" | "anycubic";
+  defaultSlicer: "bambu" | "orca" | "anycubic" | "prusa";
   onSelect: (profile: SlicerProfile) => void;
   onBack: () => void;
 }
@@ -33,7 +33,27 @@ const SLICER_TABS = [
   { codice: "bambu", label: "Bambu Studio", color: "#00ae42", icon: "🟢" },
   { codice: "orca", label: "Orca Slicer", color: "#009688", icon: "🐋" },
   { codice: "anycubic", label: "Anycubic Slicer Next", color: "#42a5f5", icon: "🔷" },
+  { codice: "prusa", label: "Prusa Slicer", color: "#ed6b21", icon: "🟠" },
 ];
+
+const SLICER_PATHS: Record<string, { scanning: string; error: string }> = {
+  bambu: {
+    scanning: "Percorso: %APPDATA%\\BambuStudio\\",
+    error: "Percorsi cercati: %APPDATA%\\BambuStudio\\ e %ProgramFiles%\\Bambu Studio\\",
+  },
+  orca: {
+    scanning: "Percorso: %APPDATA%\\OrcaSlicer\\",
+    error: "Percorsi cercati: %APPDATA%\\OrcaSlicer\\ e %ProgramFiles%\\OrcaSlicer\\",
+  },
+  anycubic: {
+    scanning: "Percorso: %APPDATA%\\AnycubicSlicerNext\\",
+    error: "Percorsi cercati: %APPDATA%\\AnycubicSlicerNext\\ e %ProgramFiles%\\AnycubicSlicerNext\\",
+  },
+  prusa: {
+    scanning: "Percorso: %APPDATA%\\PrusaSlicer\\",
+    error: "Percorsi cercati: %APPDATA%\\PrusaSlicer\\ e %ProgramFiles%\\Prusa3D\\PrusaSlicer\\",
+  },
+};
 
 export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Props) {
   const [profiles, setProfiles] = useState<SlicerProfile[]>([]);
@@ -61,7 +81,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
       const currentInstalled = statuses.find(s => s.codice === activeSlicer)?.installato;
       if (!currentInstalled) {
         const firstInstalled = statuses.find(s => s.installato);
-        if (firstInstalled) setActiveSlicer(firstInstalled.codice as "bambu" | "orca" | "anycubic");
+        if (firstInstalled) setActiveSlicer(firstInstalled.codice as "bambu" | "orca" | "anycubic" | "prusa");
       }
     }).catch(() => {});
   }, []);
@@ -96,6 +116,19 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
 
   const getSlicerStatus = (codice: string) =>
     slicerStatuses.find(s => s.codice === codice);
+
+  const getOriginLabel = (profile: SlicerProfile) => {
+    if (profile.is_user) return "Utente";
+    switch (activeSlicer) {
+      case "bambu": return "BBL";
+      case "orca": return "ORC";
+      case "anycubic": return "AC";
+      case "prusa": return "PRS";
+      default: return activeSlicer.toUpperCase().slice(0, 3);
+    }
+  };
+
+  const paths = SLICER_PATHS[activeSlicer] || SLICER_PATHS.bambu;
 
   return (
     <div className="animate-fade-in">
@@ -136,7 +169,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
           return (
             <button
               key={tab.codice}
-              onClick={() => { if (isInstalled) setActiveSlicer(tab.codice as "bambu" | "orca" | "anycubic"); }}
+              onClick={() => { if (isInstalled) setActiveSlicer(tab.codice as "bambu" | "orca" | "anycubic" | "prusa"); }}
               disabled={!isInstalled}
               style={{
                 flex: 1,
@@ -222,24 +255,14 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
           <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>
             <div style={{ marginBottom: 8 }}>Scansione profili {activeTab.label} in corso...</div>
             <div style={{ fontSize: 12, color: "var(--text-muted)", opacity: 0.6 }}>
-              {activeSlicer === "bambu"
-                ? "Percorso: %APPDATA%\\BambuStudio\\"
-                : activeSlicer === "orca"
-                ? "Percorso: %APPDATA%\\OrcaSlicer\\"
-                : "Percorso: %APPDATA%\\AnycubicSlicerNext\\"
-              }
+              {paths.scanning}
             </div>
           </div>
         ) : error && filtered.length === 0 ? (
           <div style={{ padding: "48px 0", textAlign: "center" }}>
             <p style={{ fontSize: 14, color: "var(--orange)", marginBottom: 8 }}>{error}</p>
             <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {activeSlicer === "bambu"
-                ? "Percorsi cercati: %APPDATA%\\BambuStudio\\ e %ProgramFiles%\\Bambu Studio\\"
-                : activeSlicer === "orca"
-                ? "Percorsi cercati: %APPDATA%\\OrcaSlicer\\ e %ProgramFiles%\\OrcaSlicer\\"
-                : "Percorsi cercati: %APPDATA%\\AnycubicSlicerNext\\ e %ProgramFiles%\\AnycubicSlicerNext\\"
-              }
+              {paths.error}
             </p>
           </div>
         ) : (
@@ -264,7 +287,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
                         background: profile.is_user ? "var(--green-soft)" : "var(--bg-surface)",
                         color: profile.is_user ? "var(--green)" : "var(--text-muted)",
                       }}>
-                        {profile.is_user ? "Utente" : (activeSlicer === "bambu" ? "BBL" : activeSlicer === "orca" ? "ORC" : "AC")}
+                        {getOriginLabel(profile)}
                       </span>
                     </div>
                   </td>

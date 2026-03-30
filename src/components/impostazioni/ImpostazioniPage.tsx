@@ -7,12 +7,13 @@ import { ServiziExtraPage } from "./ServiziExtraPage";
 import { CorrieriPage } from "./CorrieriPage";
 import { PagamentiPage } from "./PagamentiPage";
 import { InterfacciaPage } from "./InterfacciaPage";
+import { SicurezzaPage } from "./SicurezzaPage";
 
 interface Props {
   activeTab: PageId;
   onChangeTab: (tab: PageId) => void;
   onOpenForm: (formType: string, editId?: number, prefill?: any) => void;
-  onImportSlicer?: (tipo: "filament" | "machine" | "process", defaultSlicer: "bambu" | "orca" | "anycubic", returnTab: PageId) => void;
+  onImportSlicer?: (tipo: "filament" | "machine" | "process", defaultSlicer: "bambu" | "orca" | "anycubic" | "prusa", returnTab: PageId) => void;
 }
 
 const tabs: { id: PageId; label: string }[] = [
@@ -24,6 +25,7 @@ const tabs: { id: PageId; label: string }[] = [
   { id: "corrieri", label: "Corrieri" },
   { id: "pagamenti", label: "Pagamenti" },
   { id: "interfaccia" as PageId, label: "Interfaccia" },
+  { id: "sicurezza" as PageId, label: "Sicurezza" },
 ];
 
 export function ImpostazioniPage({ activeTab, onChangeTab, onOpenForm, onImportSlicer }: Props) {
@@ -52,6 +54,7 @@ export function ImpostazioniPage({ activeTab, onChangeTab, onOpenForm, onImportS
         onOpenForm={(id, prefill) => onOpenForm("pagamento", id, prefill)}
       />;
       case "interfaccia": return <InterfacciaPage />;
+      case "sicurezza": return <SicurezzaPage />;
       default: return null;
     }
   };

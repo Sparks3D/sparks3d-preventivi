@@ -1,5 +1,5 @@
 // src/components/info/GuidaPage.tsx
-// Sparks3D Preventivi – Guida utente completa (v1.2.0)
+// Sparks3D Preventivi – Guida utente completa (v1.3.0)
 // =====================================================
 
 import { useState } from "react";
@@ -25,8 +25,9 @@ export function GuidaPage() {
             <li>Gestione completa preventivi con calcolo costi automatico</li>
             <li>Supporto multi-materiale AMS (Automatic Material System)</li>
             <li>Import automatico di file GCode e 3MF per tempi e pesi</li>
-            <li>Import profili stampa da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong></li>
+            <li>Import profili stampa da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong></li>
             <li>Rilevamento automatico slicer installati nella sidebar</li>
+            <li>PIN di avvio opzionale per protezione accesso</li>
             <li>Tariffe corrieri live tramite PackLink Pro</li>
             <li>Export PDF professionale con logo e dati azienda</li>
             <li>Dashboard statistiche con KPI, grafici e navigazione interattiva</li>
@@ -134,11 +135,11 @@ export function GuidaPage() {
           <h4 style={h4Style}>Intestazione (Dati Azienda)</h4>
           <p>Configura ragione sociale, indirizzo, P.IVA, CF, email, telefono, logo e regime fiscale. Questi dati appaiono nell'intestazione dei PDF esportati.</p>
           <h4 style={h4Style}>Materiali</h4>
-          <p>Gestisci il catalogo materiali con nome, peso specifico, prezzo al kg, percentuale di markup, percentuale di fallimento stimata e giacenza in magazzino. Puoi importare i profili direttamente da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> o <strong>Anycubic Slicer Next</strong> tramite il pulsante "Importa dallo Slicer". Cliccando su un materiale nella lista si apre la pagina di modifica.</p>
+          <p>Gestisci il catalogo materiali con nome, peso specifico, prezzo al kg, percentuale di markup, percentuale di fallimento stimata e giacenza in magazzino. Puoi importare i profili direttamente da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> o <strong>Prusa Slicer</strong> tramite il pulsante "Importa dallo Slicer". Cliccando su un materiale nella lista si apre la pagina di modifica.</p>
           <h4 style={h4Style}>Stampanti</h4>
-          <p>Configura le stampanti con nome, consumo energetico (kWh) e costo ammortamento orario. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong>. Questi valori vengono usati per calcolare il costo energia e ammortamento di ogni riga preventivo.</p>
+          <p>Configura le stampanti con nome, consumo energetico (kWh) e costo ammortamento orario. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong>. Questi valori vengono usati per calcolare il costo energia e ammortamento di ogni riga preventivo.</p>
           <h4 style={h4Style}>Profili stampa</h4>
-          <p>Gestisci i profili con layer height, numero pareti, infill, top/bottom layers e tipo di supporti. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong>.</p>
+          <p>Gestisci i profili con layer height, numero pareti, infill, top/bottom layers e tipo di supporti. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong>.</p>
           <h4 style={h4Style}>Servizi extra</h4>
           <p>Definisci servizi aggiuntivi (post-processing, verniciatura, assemblaggio, ecc.) con importo predefinito e markup. Sono disponibili preset rapidi per i servizi più comuni. Per ogni servizio puoi scegliere se addebitare al cliente, mostrare nel PDF senza costo, o tenerlo come costo interno.</p>
           <h4 style={h4Style}>Corrieri / PackLink Pro</h4>
@@ -152,6 +153,8 @@ export function GuidaPage() {
             <li><strong>Colore accent</strong> — 10 temi cromatici (Cyan, Blue, Indigo, Purple, Pink, Rose, Orange, Amber, Green, Teal)</li>
           </ul>
           <p>Le modifiche vengono salvate automaticamente e applicate in tempo reale a tutti i bottoni, input, badge, tabelle e tab dell'applicazione.</p>
+          <h4 style={h4Style}>Sicurezza</h4>
+          <p>Configura il <strong>PIN di avvio</strong> opzionale a 6 cifre per proteggere l'accesso all'applicazione. Da questa tab puoi impostare, modificare o rimuovere il PIN. Per maggiori dettagli vedi la sezione <strong>Sicurezza</strong> di questa guida.</p>
         </div>
       ),
     },
@@ -183,22 +186,31 @@ export function GuidaPage() {
       id: "slicer", title: "Slicer integrati", icon: "🧊",
       content: (
         <div style={proseStyle}>
-          <p>Sparks3D Preventivi si integra con <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong> e <strong>Anycubic Slicer Next</strong> per importare automaticamente profili di stampa e materiali.</p>
+          <p>Sparks3D Preventivi si integra con <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong> per importare automaticamente profili di stampa e materiali.</p>
           <h4 style={h4Style}>Slicer supportati</h4>
           <ul style={ulStyle}>
-            <li><strong>🟢 Bambu Studio</strong> — Profili letti da <code style={codeStyle}>%APPDATA%\BambuStudio</code></li>
-            <li><strong>🐋 Orca Slicer</strong> — Profili letti da <code style={codeStyle}>%APPDATA%\OrcaSlicer</code></li>
-            <li><strong>🔷 Anycubic Slicer Next</strong> — Profili letti da <code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code></li>
+            <li><strong>🟢 Bambu Studio</strong> — Profili JSON letti da <code style={codeStyle}>%APPDATA%\BambuStudio</code></li>
+            <li><strong>🐋 Orca Slicer</strong> — Profili JSON letti da <code style={codeStyle}>%APPDATA%\OrcaSlicer</code></li>
+            <li><strong>🔷 Anycubic Slicer Next</strong> — Profili JSON letti da <code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code></li>
+            <li><strong>🟠 Prusa Slicer</strong> — Profili INI letti da <code style={codeStyle}>%APPDATA%\PrusaSlicer</code></li>
           </ul>
           <h4 style={h4Style}>Rilevamento automatico</h4>
-          <p>All'avvio, l'applicazione verifica quali slicer sono installati. La sidebar mostra un indicatore per ciascuno: punto verde/blu = installato, punto rosso = non trovato.</p>
+          <p>All'avvio, l'applicazione verifica quali slicer sono installati. La sidebar mostra un indicatore per ciascuno: punto colorato = installato, punto rosso = non trovato.</p>
           <h4 style={h4Style}>Apertura rapida</h4>
           <p>Cliccando su un indicatore slicer nella sidebar, il programma si apre direttamente. Se l'eseguibile non viene trovato, appare un avviso.</p>
           <h4 style={h4Style}>Import profili</h4>
-          <p>Nelle sezioni Impostazioni → Materiali, Stampanti e Profili stampa trovi il pulsante <strong>"Importa dallo Slicer"</strong> che apre la pagina di importazione. Da lì puoi scegliere lo slicer sorgente tramite le tab in alto (Bambu Studio, Orca Slicer, Anycubic Slicer Next).</p>
+          <p>Nelle sezioni Impostazioni → Materiali, Stampanti e Profili stampa trovi il pulsante <strong>"Importa dallo Slicer"</strong> che apre la pagina di importazione. Da lì puoi scegliere lo slicer sorgente tramite le tab in alto (Bambu Studio, Orca Slicer, Anycubic Slicer Next, Prusa Slicer).</p>
           <p>La pagina di importazione mostra tutti i profili trovati in formato tabella con dettagli tecnici (tipo, densità, costo per i filamenti; layer height, pareti, infill per i processi; modello e nozzle per le macchine). Puoi filtrare per "Solo profili utente" per escludere quelli preinstallati. Cliccando "Importa →" si apre il form di creazione precompilato con i dati letti dal profilo slicer.</p>
-          <h4 style={h4Style}>Tab di commutazione</h4>
-          <p>Nella pagina di importazione puoi passare da Bambu Studio, Orca Slicer e Anycubic Slicer Next con le tab in alto. Se uno slicer non è installato, la sua tab appare disattivata.</p>
+          <h4 style={h4Style}>Prusa Slicer — formato INI</h4>
+          <p>A differenza degli altri slicer che usano profili JSON, Prusa Slicer salva i profili in formato <strong>.ini</strong> (testo con coppie chiave=valore). Sparks3D Preventivi converte automaticamente i campi Prusa nel formato interno dell'applicazione:</p>
+          <ul style={ulStyle}>
+            <li><code style={codeStyle}>perimeters</code> → Numero pareti</li>
+            <li><code style={codeStyle}>fill_density</code> → Infill (con rimozione del suffisso %)</li>
+            <li><code style={codeStyle}>top_solid_layers</code> / <code style={codeStyle}>bottom_solid_layers</code> → Top/Bottom layers</li>
+            <li><code style={codeStyle}>support_material</code> → Supporti abilitati</li>
+            <li><code style={codeStyle}>temperature</code> → Temperatura nozzle</li>
+          </ul>
+          <p>Le cartelle dei profili Prusa hanno nomi diversi: <code style={codeStyle}>print/</code> invece di <code style={codeStyle}>process/</code> e <code style={codeStyle}>printer/</code> invece di <code style={codeStyle}>machine/</code>. La mappatura è gestita automaticamente.</p>
           <h4 style={h4Style}>Compatibilità Anycubic Slicer Next</h4>
           <p>Anycubic Slicer Next è sviluppato sulla base di Orca Slicer, quindi utilizza lo stesso formato di profili JSON. Tutti i profili filamento, macchina e processo creati in Anycubic Slicer Next sono pienamente compatibili con l'importazione automatica.</p>
           <h4 style={h4Style}>Parser GCode / 3MF</h4>
@@ -209,7 +221,7 @@ export function GuidaPage() {
             <li>Tipo di filamento utilizzato</li>
             <li>Configurazione multi-materiale AMS (da file 3MF)</li>
           </ul>
-          <p>Funziona con file generati da Bambu Studio, Orca Slicer, Anycubic Slicer Next e altri slicer compatibili.</p>
+          <p>Funziona con file generati da Bambu Studio, Orca Slicer, Anycubic Slicer Next, Prusa Slicer e altri slicer compatibili.</p>
         </div>
       ),
     },
@@ -257,6 +269,19 @@ export function GuidaPage() {
         <div style={proseStyle}>
           <p>Sparks3D Preventivi adotta misure di sicurezza progettate per proteggere i tuoi dati aziendali e dei clienti su PC singoli e condivisi.</p>
 
+          <h4 style={h4Style}>🔑 PIN di avvio</h4>
+          <p>A partire dalla v1.3.0 puoi impostare un <strong>PIN numerico di 6 cifre</strong> per proteggere l'accesso all'applicazione. Il PIN viene richiesto ogni volta che avvii Sparks3D Preventivi, prima di mostrare l'interfaccia principale.</p>
+          <ul style={ulStyle}>
+            <li><strong>Impostazione:</strong> Vai in <strong>Impostazioni → Sicurezza</strong> e clicca "Imposta PIN". Inserisci il PIN desiderato e confermalo</li>
+            <li><strong>Modifica:</strong> Dalla stessa pagina, clicca "Modifica PIN". Verrà richiesto il PIN attuale prima di impostare quello nuovo</li>
+            <li><strong>Rimozione:</strong> Clicca "Rimuovi PIN" e conferma con il PIN attuale. L'app tornerà ad aprirsi senza protezione</li>
+            <li><strong>Protezione brute-force:</strong> dopo 3 tentativi errati consecutivi, l'accesso viene bloccato per 60 secondi</li>
+            <li><strong>Archiviazione sicura:</strong> il PIN non viene mai salvato in chiaro. Viene memorizzato come hash crittografico SHA-256 — anche leggendo il database non è possibile risalire al PIN originale</li>
+          </ul>
+          <p style={{ marginTop: 8, color: "#f97316" }}>
+            ⚠️ <strong>Attenzione:</strong> se dimentichi il PIN non esiste una procedura di recupero automatica. In caso di emergenza puoi ripristinare un backup precedente.
+          </p>
+
           <h4 style={h4Style}>🔒 Database cifrato (SQLCipher AES-256)</h4>
           <p>A partire dalla v1.2.0, il database SQLite è cifrato con <strong>SQLCipher AES-256</strong>. Tutti i dati sensibili — clienti, preventivi, prezzi, partite IVA — sono protetti e non leggibili da nessun software esterno senza la chiave dell'applicazione. Se hai una versione precedente installata, la migrazione avviene automaticamente e silenziosamente al primo avvio.</p>
 
@@ -278,7 +303,6 @@ export function GuidaPage() {
           <h4 style={h4Style}>📋 Roadmap sicurezza</h4>
           <p>Le seguenti funzionalità di sicurezza sono pianificate per le prossime release:</p>
           <ul style={ulStyle}>
-            <li><strong>PIN di avvio opzionale</strong> — protezione accesso per PC condivisi</li>
             <li><strong>Validazione dati</strong> — controllo formato CAP, email e Partita IVA</li>
             <li><strong>Permessi filesystem granulari</strong> — accesso limitato ai soli percorsi necessari degli slicer</li>
           </ul>
@@ -286,71 +310,67 @@ export function GuidaPage() {
       ),
     },
     {
-      id: "novita", title: "Novità v1.2.0", icon: "🆕",
+      id: "novita", title: "Novità v1.3.0", icon: "🆕",
       content: (
         <div style={proseStyle}>
-          <h4 style={h4Style}>🔐 Sicurezza</h4>
+          <h4 style={h4Style}>🟠 Prusa Slicer</h4>
           <ul style={ulStyle}>
-            <li>Database cifrato con <strong>SQLCipher AES-256</strong> — nessun software esterno può leggere i tuoi dati</li>
-            <li>API key PackLink spostata nel <strong>Windows Credential Manager</strong> — non più salvata in chiaro nel database</li>
-            <li>Verifica <strong>SHA-256</strong> del database al ripristino backup — il restore viene annullato se il file è stato manomesso</li>
-            <li><strong>Content Security Policy</strong> restrittiva abilitata sull'interfaccia</li>
+            <li>Integrazione completa con <strong>Prusa Slicer</strong>: rilevamento installazione, import profili, apertura rapida dalla sidebar</li>
+            <li>Parser nativo per profili <strong>.ini</strong> — formato diverso dai JSON di Bambu/Orca/Anycubic, gestito automaticamente</li>
+            <li>Mappatura automatica cartelle Prusa (<code style={codeStyle}>print/</code>, <code style={codeStyle}>printer/</code>, <code style={codeStyle}>filament/</code>) al formato interno</li>
+            <li>Conversione chiavi Prusa → chiavi standard (es. <code style={codeStyle}>perimeters</code> → pareti, <code style={codeStyle}>fill_density</code> → infill)</li>
+            <li>Nuova tab <strong>Prusa Slicer</strong> (arancione 🟠) nella pagina di importazione profili</li>
+            <li>Sidebar con indicatore Prusa Slicer (arancione) — cliccabile per aprire il programma</li>
+            <li>Badge "Prusa" arancione nelle tabelle Materiali, Stampanti e Profili per i dati importati</li>
+            <li>Profili letti da <code style={codeStyle}>%APPDATA%\PrusaSlicer</code> — supporto anche per versioni alpha/beta</li>
+            <li>Splash screen aggiornato: mostra lo stato di tutti e quattro gli slicer</li>
           </ul>
-          <h4 style={h4Style}>Aggiornamento automatico</h4>
+
+          <h4 style={h4Style}>🔑 PIN di avvio</h4>
           <ul style={ulStyle}>
-            <li>L'app controlla automaticamente la disponibilità di aggiornamenti all'avvio</li>
-            <li>Se è disponibile una nuova versione, appare un <strong>banner verde</strong> in cima alla finestra con il numero di versione</li>
-            <li>Clicca <strong>"Aggiorna ora"</strong> per scaricare e installare automaticamente — l'app si riavvierà da sola al termine</li>
-            <li>Clicca <strong>"Salta"</strong> per ignorare l'aggiornamento per la sessione corrente</li>
-            <li>Gli aggiornamenti vengono verificati su GitHub Releases e su sparks3d.it come fallback</li>
+            <li>Nuovo <strong>PIN numerico di 6 cifre</strong> opzionale per proteggere l'avvio dell'applicazione</li>
+            <li>Schermata di sblocco dedicata con caselle animate, effetto 3D e sfondo con particelle in movimento</li>
+            <li>Protezione brute-force: <strong>3 tentativi</strong> poi blocco <strong>60 secondi</strong> con progress bar</li>
+            <li>PIN salvato come hash SHA-256 nel database — non recuperabile in chiaro</li>
+            <li>Nuova tab <strong>Sicurezza</strong> nelle Impostazioni per gestire il PIN (imposta / modifica / rimuovi)</li>
+            <li>Il PIN viene rimosso automaticamente in caso di reset completo delle impostazioni</li>
+          </ul>
+
+          <h4 style={h4Style}>💾 Ripristino backup migliorato</h4>
+          <ul style={ulStyle}>
+            <li>Nuova <strong>modale di conferma ripristino</strong> con riepilogo degli elementi selezionati e avviso di sovrascrittura</li>
+            <li>Al termine del ripristino del database, appare una <strong>modale di riavvio obbligatorio</strong> che impedisce di continuare a usare l'app con dati inconsistenti</li>
+            <li>Pulsante dedicato per chiudere e riavviare l'applicazione direttamente dalla modale</li>
+          </ul>
+
+          <h4 style={h4Style}>Novità precedenti (v1.2.0)</h4>
+          <ul style={ulStyle}>
+            <li>Database cifrato con <strong>SQLCipher AES-256</strong></li>
+            <li>API key PackLink spostata nel <strong>Windows Credential Manager</strong></li>
+            <li>Verifica <strong>SHA-256</strong> del database al ripristino backup</li>
+            <li><strong>Content Security Policy</strong> restrittiva abilitata sull'interfaccia</li>
+            <li>Sistema di <strong>aggiornamento automatico</strong> con firma crittografica e banner in-app</li>
           </ul>
 
           <h4 style={h4Style}>Novità precedenti (v1.1.0)</h4>
           <ul style={ulStyle}>
-            <li>Integrazione completa con <strong>Anycubic Slicer Next</strong>: rilevamento installazione, import profili, apertura rapida dalla sidebar</li>
-            <li>Pulsante unificato <strong>"Importa dallo Slicer"</strong> in Materiali, Stampanti e Profili di stampa (sostituisce i tre pulsanti separati)</li>
-            <li>Nuova tab nella pagina di importazione profili con commutazione Bambu / Orca / Anycubic</li>
-            <li>Sidebar con triplo indicatore slicer (Bambu Studio + Orca Slicer + Anycubic Slicer Next), ciascuno cliccabile per aprire il programma</li>
-            <li>Splash screen aggiornato: mostra lo stato di tutti e tre gli slicer all'avvio</li>
-            <li>Badge "Anycubic" nelle tabelle Materiali, Stampanti e Profili per i dati importati da Anycubic Slicer Next</li>
-            <li>Profili letti da <code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code> — formato compatibile Orca (stesso JSON)</li>
+            <li>Integrazione completa con <strong>Anycubic Slicer Next</strong></li>
+            <li>Pulsante unificato <strong>"Importa dallo Slicer"</strong> con tab di commutazione</li>
+            <li>Sidebar con triplo indicatore slicer</li>
           </ul>
 
           <h4 style={h4Style}>Novità precedenti (v1.0.3)</h4>
           <ul style={ulStyle}>
-            <li>Integrazione completa con Orca Slicer: rilevamento installazione, import profili, apertura rapida dalla sidebar</li>
-            <li>Pulsanti dedicati "🟢 Importa da Bambu Studio" e "🐋 Importa da Orca Slicer" in Materiali, Stampanti e Profili</li>
-            <li>Pagina di importazione profili a schermo intero con tab di commutazione Bambu/Orca, tabella dettagliata e filtro "Solo utente"</li>
-            <li>Sidebar con doppio indicatore slicer (Bambu Studio + Orca Slicer), ciascuno cliccabile per aprire il programma</li>
-            <li>Splash screen aggiornato: mostra lo stato di entrambi gli slicer all'avvio</li>
-          </ul>
-          <h4 style={h4Style}>Refactoring interfaccia — pagine dedicate</h4>
-          <ul style={ulStyle}>
-            <li>Tutte le operazioni di creazione e modifica ora si aprono come <strong>pagine a schermo intero</strong> invece di modali popup</li>
-            <li>Ogni pagina form ha il pulsante "← Torna indietro" in alto, campi precompilati in modifica, e feedback visivo "✅ Salvato!" con ritorno automatico</li>
-            <li>Convertiti a pagine dedicate: Materiali, Stampanti, Profili stampa, Servizi extra, Corrieri, Metodi di pagamento</li>
-          </ul>
-          <h4 style={h4Style}>Ritenute / Ricevute</h4>
-          <ul style={ulStyle}>
-            <li>Unificate le voci di menu "Ritenuta / Ricevute" e "Archivio Ritenute" in un'unica voce <strong>"Ritenute / Ricevute"</strong></li>
-            <li>La pagina principale mostra l'archivio con il pulsante "+ Nuova Ritenuta / Ricevuta" che apre la pagina di creazione</li>
-            <li>Pulsante "← Torna a Ritenute / Ricevute" per tornare all'archivio</li>
-          </ul>
-          <h4 style={h4Style}>Altre migliorie</h4>
-          <ul style={ulStyle}>
-            <li>Autore aggiornato nella pagina Licenza: Fabio Mazzarella</li>
-            <li>Sito web corretto: www.sparks3d.it</li>
-            <li>Rimossa la versione slicer dalla sidebar (era inaffidabile), mantenuto solo l'indicatore installato/non trovato</li>
-            <li>Codice backend Rust ottimizzato e ripulito (rimossi metodi inutilizzati)</li>
+            <li>Integrazione completa con <strong>Orca Slicer</strong></li>
+            <li>Refactoring completo interfaccia: pagine dedicate invece di modali popup</li>
+            <li>Unificazione voci menu Ritenute / Ricevute</li>
           </ul>
 
           <h4 style={h4Style}>Novità precedenti (v1.0.2)</h4>
           <ul style={ulStyle}>
             <li>Conferma esplicita per eliminazione preventivi, righe e clienti</li>
-            <li>Dashboard: fatturato e profitto solo da preventivi completati</li>
-            <li>Tema dinamico: colore accent e dimensione font applicati globalmente</li>
-            <li>Pagina clienti con form dedicato a schermo intero</li>
-            <li>Dashboard interattiva: etichette e numeri cliccabili</li>
+            <li>Dashboard interattiva con etichette e numeri cliccabili</li>
+            <li>Tema dinamico: colore accent e dimensione font</li>
           </ul>
         </div>
       ),

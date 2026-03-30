@@ -9,6 +9,7 @@ import { ToastProvider } from "./components/layout/ToastProvider";
 import { Sidebar } from "./components/layout/Sidebar";
 import { GlobalSearch } from "./components/layout/GlobalSearch";
 import { UpdateBanner } from "./components/layout/UpdateBanner";
+import { PinLockScreen } from "./components/layout/PinLockScreen";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { PreventiviArchivio } from "./components/preventivi/PreventiviArchivio";
 import { NuovoPreventivo } from "./components/preventivi/NuovoPreventivo";
@@ -35,6 +36,7 @@ export default function App() {
   const [clienteAttivoId, setClienteAttivoId] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [filtroStatoPreventivi, setFiltroStatoPreventivi] = useState<string | undefined>(undefined);
+  const [pinLocked, setPinLocked] = useState<boolean | null>(null); // null = checking, true = locked, false = unlocked
 
   // Form state generico per tutte le pagine form
   const [formConfig, setFormConfig] = useState<{
@@ -47,7 +49,7 @@ export default function App() {
   // Slicer import
   const [slicerImportConfig, setSlicerImportConfig] = useState<{
     tipo: "filament" | "machine" | "process";
-    defaultSlicer: "bambu" | "orca" | "anycubic";
+    defaultSlicer: "bambu" | "orca" | "anycubic" | "prusa";
     returnTab: PageId;
   } | null>(null);
 
@@ -76,6 +78,20 @@ export default function App() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // ── PIN check all'avvio ──
+  useEffect(() => {
+    const checkPin = async () => {
+      try {
+        const { invoke } = await import("@tauri-apps/api/core");
+        const hasPin = await invoke<boolean>("has_pin");
+        setPinLocked(hasPin);
+      } catch {
+        setPinLocked(false);
+      }
+    };
+    checkPin();
   }, []);
 
   // Handler per aprire form da ImpostazioniPage
@@ -182,6 +198,7 @@ export default function App() {
       case "corrieri":
       case "pagamenti":
       case "interfaccia":
+      case "sicurezza":
         return <ImpostazioniPage
           activeTab={currentPage}
           onChangeTab={setCurrentPage}
@@ -202,6 +219,16 @@ export default function App() {
   return (
     <SettingsProvider>
     <ToastProvider>
+    {/* PIN Lock Screen */}
+    {pinLocked === true && (
+      <PinLockScreen onUnlock={() => setPinLocked(false)} />
+    )}
+    {/* Loading while checking PIN */}
+    {pinLocked === null && (
+      <div style={{ width: "100vw", height: "100vh", background: "#080b16" }} />
+    )}
+    {/* Main App (visible only when unlocked) */}
+    {pinLocked === false && (
     <div style={{
       display: "flex",
       height: "100vh",
@@ -282,6 +309,7 @@ export default function App() {
         onNavigate={navigateTo}
       />
     </div>
+    )}
     </ToastProvider>
     </SettingsProvider>
   );
