@@ -7,6 +7,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { invoke } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-shell";
 import i18n from "../i18n";
 
 // ── Tipi ──
@@ -667,8 +670,7 @@ export async function generatePreventivosPdf(
 // ── Export diretto (salva + apri) ──
 
 export async function exportPdfPreventivo(preventivo: PreventivoCompleto, options?: PdfOptions): Promise<void> {
-  const { save } = await import("@tauri-apps/plugin-dialog");
-  const { writeFile } = await import("@tauri-apps/plugin-fs");
+  // save e writeFile importati staticamente in testa al file
 
   const path = await save({
     defaultPath: `${preventivo.numero}.pdf`,
@@ -681,7 +683,7 @@ export async function exportPdfPreventivo(preventivo: PreventivoCompleto, option
 
   // Apri il PDF con il viewer di sistema
   try {
-    const { open } = await import("@tauri-apps/plugin-shell");
+    // open importato staticamente in testa al file
     await open(path);
   } catch {
     // Se non riesce ad aprire, il file è comunque salvato

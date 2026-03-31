@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import "./styles/theme.css";
 import { SettingsProvider } from "./context/SettingsContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -87,7 +88,6 @@ export default function App() {
   useEffect(() => {
     const checkPin = async () => {
       try {
-        const { invoke } = await import("@tauri-apps/api/core");
         const hasPin = await invoke<boolean>("has_pin");
         setPinLocked(hasPin);
       } catch {
