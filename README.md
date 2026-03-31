@@ -7,8 +7,9 @@ Software desktop per la creazione e gestione di preventivi per servizi di stampa
 ## Funzionalità
 
 - Gestione completa preventivi con calcolo costi automatico
-- Supporto multi-materiale AMS (Automatic Material System)
+- Supporto multi-materiale
 - Import automatico da file GCode e 3MF
+- Import automatico anteprime dei modelli 3D
 - Import profili stampa da **Bambu Studio**, **Orca Slicer**, **Anycubic Slicer Next**, **Prusa Slicer**
 - Rilevamento automatico slicer installati nella sidebar
 - Tariffe corrieri live tramite PackLink Pro
@@ -19,7 +20,8 @@ Software desktop per la creazione e gestione di preventivi per servizi di stampa
 - Backup completo e ripristino con verifica integrità SHA-256
 - Esportazione dati CSV / Excel
 - Ricerca globale rapida (Ctrl+K)
-- Personalizzazione interfaccia (font, colori accent)
+- Personalizzazione interfaccia (font, colori accent, Temi)
+- Traduzione completa IT/EN
 
 ---
 
@@ -30,6 +32,7 @@ Software desktop per la creazione e gestione di preventivi per servizi di stampa
 - **Verifica SHA-256** del database al ripristino backup
 - **Aggiornamenti firmati** crittograficamente — impossibile installare versioni non autorizzate
 - **Content Security Policy** restrittiva sull'interfaccia
+- **PIN Lock** a 6 cifre personalizzabile
 
 ---
 
