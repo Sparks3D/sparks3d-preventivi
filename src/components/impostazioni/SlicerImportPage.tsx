@@ -3,6 +3,7 @@
 // =========================================================
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 interface SlicerProfile {
@@ -56,6 +57,7 @@ const SLICER_PATHS: Record<string, { scanning: string; error: string }> = {
 };
 
 export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Props) {
+  const { t } = useTranslation();
   const [profiles, setProfiles] = useState<SlicerProfile[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -65,13 +67,13 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
   const [activeSlicer, setActiveSlicer] = useState(defaultSlicer);
   const [slicerStatuses, setSlicerStatuses] = useState<SlicerStatus[]>([]);
 
-  const tipoLabel = tipo === "filament" ? "Profili filamento"
-    : tipo === "machine" ? "Profili stampante"
-    : "Profili di stampa";
+  const tipoLabel = tipo === "filament" ? t("slicerImport.profiliFil")
+    : tipo === "machine" ? t("slicerImport.profiliStampante")
+    : t("slicerImport.profiliStampa");
 
-  const tipoPageLabel = tipo === "filament" ? "Materiali"
-    : tipo === "machine" ? "Stampanti"
-    : "Profili di stampa";
+  const tipoPageLabel = tipo === "filament" ? t("slicerImport.labelMateriali")
+    : tipo === "machine" ? t("slicerImport.labelStampanti")
+    : t("slicerImport.labelProfili");
 
   const activeTab = SLICER_TABS.find(t => t.codice === activeSlicer) || SLICER_TABS[0];
 
@@ -102,7 +104,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
       });
       setProfiles(data);
       if (data.length === 0) {
-        setError(`Nessun profilo trovato. Verifica che ${activeTab.label} sia installato e abbia profili salvati.`);
+        setError(t("slicerImport.nessunProfilo", { label: activeTab.label }));
       }
     } catch (e: any) {
       setError(String(e));
@@ -118,13 +120,13 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
     slicerStatuses.find(s => s.codice === codice);
 
   const getOriginLabel = (profile: SlicerProfile) => {
-    if (profile.is_user) return "Utente";
+    if (profile.is_user) return t("slicerImport.utente");
     switch (activeSlicer) {
       case "bambu": return "BBL";
       case "orca": return "ORC";
       case "anycubic": return "AC";
       case "prusa": return "PRS";
-      default: return activeSlicer.toUpperCase().slice(0, 3);
+      default: return "SLC";
     }
   };
 
@@ -145,15 +147,15 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Torna a {tipoPageLabel}
+          {t("slicerImport.tornaA", { page: tipoPageLabel })}
         </button>
       </div>
 
       <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", marginBottom: 6 }}>
-        Importa profili slicer
+        {t("slicerImport.title")}
       </h2>
       <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 24 }}>
-        {tipoLabel} — Seleziona un profilo per importarlo in {tipoPageLabel}
+        {t("slicerImport.subtitle", { tipo: tipoLabel, page: tipoPageLabel })}
       </p>
 
       {/* Slicer tabs */}
@@ -199,7 +201,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
                   fontSize: 10, padding: "2px 8px", borderRadius: 6,
                   background: "var(--bg-surface)", color: "var(--text-muted)", fontWeight: 600,
                 }}>
-                  Non installato
+                  {t("slicerImport.nonInstallato")}
                 </span>
               )}
             </button>
@@ -212,7 +214,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <input
             type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Cerca profilo ${activeTab.label}...`}
+            placeholder={`${t("common.search")} ${activeTab.label}...`}
             className="s3d-input" style={{ flex: 1 }}
           />
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -221,7 +223,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
               onChange={(e) => setSoloUtente(e.target.checked)}
               style={{ width: 16, height: 16, borderRadius: 4, accentColor: activeTab.color }}
             />
-            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Solo utente</span>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("slicerImport.soloUtente")}</span>
           </label>
           {activeSlicer === "bambu" && (
             <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -230,14 +232,14 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
                 onChange={(e) => setIsBeta(e.target.checked)}
                 style={{ width: 16, height: 16, borderRadius: 4, accentColor: activeTab.color }}
               />
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Beta</span>
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("slicerImport.beta")}</span>
             </label>
           )}
           <button onClick={loadProfiles} style={{
             fontSize: 12, color: activeTab.color, cursor: "pointer",
             background: "none", border: "none", fontWeight: 600,
           }}>
-            Ricarica
+            {t("slicerImport.ricarica")}
           </button>
         </div>
       </div>
@@ -245,7 +247,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
       {/* Contatore risultati */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-          {loading ? "Scansione in corso..." : `${filtered.length} profili ${activeTab.label}`}
+          {loading ? t("slicerImport.scansione") : `${filtered.length} ${activeTab.label}`}
         </span>
       </div>
 
@@ -253,7 +255,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
       <div className="s3d-card" style={{ overflow: "hidden" }}>
         {loading ? (
           <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>
-            <div style={{ marginBottom: 8 }}>Scansione profili {activeTab.label} in corso...</div>
+            <div style={{ marginBottom: 8 }}>{t("slicerImport.scansioneLabel", { label: activeTab.label })}</div>
             <div style={{ fontSize: 12, color: "var(--text-muted)", opacity: 0.6 }}>
               {paths.scanning}
             </div>
@@ -269,12 +271,12 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
           <table className="s3d-table">
             <thead>
               <tr style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border-default)" }}>
-                <th style={{ width: 80 }}>Origine</th>
-                <th>Nome profilo</th>
-                {tipo === "filament" && <><th>Tipo</th><th>Densità</th><th>Costo</th><th>Nozzle</th></>}
-                {tipo === "process" && <><th>Layer</th><th>Pareti</th><th>Infill</th><th>Supporti</th></>}
-                {tipo === "machine" && <><th>Modello</th><th>Nozzle</th><th>Altezza</th></>}
-                <th style={{ textAlign: "right", width: 100 }}>Azione</th>
+                <th style={{ width: 80 }}>{t("slicerImport.thOrigine")}</th>
+                <th>{t("common.name")}</th>
+                {tipo === "filament" && <><th>{t("slicerImport.thTipo")}</th><th>{t("slicerImport.thDensita")}</th><th>{t("slicerImport.thCosto")}</th><th>{t("slicerImport.thNozzle")}</th></>}
+                {tipo === "process" && <><th>{t("slicerImport.thLayer")}</th><th>{t("profili.thPareti")}</th><th>{t("slicerImport.thInfill")}</th><th>{t("profili.thSupporti")}</th></>}
+                {tipo === "machine" && <><th>{t("slicerImport.thModello")}</th><th>{t("slicerImport.thNozzle")}</th><th>{t("slicerImport.thAltezza")}</th></>}
+                <th style={{ textAlign: "right", width: 100 }}>{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -323,7 +325,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
                         {profile.params.sparse_infill_density ? String(profile.params.sparse_infill_density) : "—"}
                       </td>
                       <td style={{ color: "var(--text-secondary)", fontSize: 12 }}>
-                        {profile.params.enable_support && String(profile.params.enable_support) === "1" ? "Sì" : "No"}
+                        {profile.params.enable_support && String(profile.params.enable_support) === "1" ? t("common.yes") : t("common.no")}
                       </td>
                     </>
                   )}
@@ -349,7 +351,7 @@ export function SlicerImportPage({ tipo, defaultSlicer, onSelect, onBack }: Prop
                         fontWeight: 600, cursor: "pointer",
                       }}
                     >
-                      Importa →
+                      {t("slicerImport.importa")}
                     </button>
                   </td>
                 </tr>

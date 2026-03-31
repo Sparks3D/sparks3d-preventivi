@@ -3,6 +3,7 @@
 // ================================================
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import type { PageId } from "../../types";
 
@@ -23,17 +24,18 @@ interface Props {
   onNavigate: (page: PageId, preventivoId?: number) => void;
 }
 
-const CATEGORIA_LABELS: Record<string, string> = {
-  preventivo: "Preventivi",
-  cliente: "Clienti",
-  materiale: "Materiali",
-  stampante: "Stampanti",
-  profilo: "Profili stampa",
+const CATEGORIA_LABEL_KEYS: Record<string, string> = {
+  preventivo: "search.categoriaPreventivo",
+  cliente: "search.categoriaCliente",
+  materiale: "search.categoriaMateriale",
+  stampante: "search.categoriaStampante",
+  profilo: "search.categoriaProfilo",
 };
 
 const CATEGORIA_ORDER = ["preventivo", "cliente", "materiale", "stampante", "profilo"];
 
 export function GlobalSearch({ open, onClose, onNavigate }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -105,7 +107,7 @@ export function GlobalSearch({ open, onClose, onNavigate }: Props) {
   // Raggruppa risultati per categoria
   const grouped = CATEGORIA_ORDER.map((cat) => ({
     categoria: cat,
-    label: CATEGORIA_LABELS[cat] || cat,
+    label: CATEGORIA_LABEL_KEYS[cat] ? t(CATEGORIA_LABEL_KEYS[cat]) : cat,
     items: results.filter((r) => r.categoria === cat),
   })).filter((g) => g.items.length > 0);
 
@@ -154,7 +156,7 @@ export function GlobalSearch({ open, onClose, onNavigate }: Props) {
             value={query}
             onChange={(e) => handleInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Cerca preventivi, clienti, materiali..."
+            placeholder={t("search.placeholder")}
             style={{
               flex: 1, background: "transparent", border: "none", outline: "none",
               color: "#e2e8f0", fontSize: 15, fontWeight: 500,
@@ -184,7 +186,7 @@ export function GlobalSearch({ open, onClose, onNavigate }: Props) {
               padding: "32px 20px", textAlign: "center",
               color: "#475569", fontSize: 14,
             }}>
-              Nessun risultato per "{query}"
+              {t("search.noResults", { query })}
             </div>
           )}
 
@@ -199,16 +201,16 @@ export function GlobalSearch({ open, onClose, onNavigate }: Props) {
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
               </div>
-              Digita almeno 2 caratteri per cercare
+              {t("search.minChars")}
               <div style={{ marginTop: 12, display: "flex", gap: 16, justifyContent: "center", fontSize: 11, color: "#3d5170" }}>
                 <span>
-                  <kbd style={kbdStyle}>↑</kbd> <kbd style={kbdStyle}>↓</kbd> Naviga
+                  <kbd style={kbdStyle}>↑</kbd> <kbd style={kbdStyle}>↓</kbd> {t("search.navigate")}
                 </span>
                 <span>
-                  <kbd style={kbdStyle}>↵</kbd> Apri
+                  <kbd style={kbdStyle}>↵</kbd> {t("search.open")}
                 </span>
                 <span>
-                  <kbd style={kbdStyle}>Esc</kbd> Chiudi
+                  <kbd style={kbdStyle}>Esc</kbd> {t("search.close")}
                 </span>
               </div>
             </div>
@@ -291,10 +293,10 @@ export function GlobalSearch({ open, onClose, onNavigate }: Props) {
             display: "flex", justifyContent: "space-between", alignItems: "center",
             fontSize: 11, color: "#3d5170",
           }}>
-            <span>{results.length} risultat{results.length === 1 ? "o" : "i"}</span>
+            <span>{t("search.resultCount", { count: results.length })}</span>
             <div style={{ display: "flex", gap: 12 }}>
-              <span><kbd style={kbdStyle}>↑</kbd> <kbd style={kbdStyle}>↓</kbd> Naviga</span>
-              <span><kbd style={kbdStyle}>↵</kbd> Apri</span>
+              <span><kbd style={kbdStyle}>↑</kbd> <kbd style={kbdStyle}>↓</kbd> {t("search.navigate")}</span>
+              <span><kbd style={kbdStyle}>↵</kbd> {t("search.open")}</span>
             </div>
           </div>
         )}

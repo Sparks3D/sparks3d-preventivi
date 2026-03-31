@@ -3,6 +3,7 @@
 // ===============================================================
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Props {
@@ -13,6 +14,7 @@ const MAX_ATTEMPTS = 3;
 const LOCKOUT_SECONDS = 60;
 
 export function PinLockScreen({ onUnlock }: Props) {
+  const { t } = useTranslation();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
@@ -100,15 +102,15 @@ export function PinLockScreen({ onUnlock }: Props) {
         if (newAttempts >= MAX_ATTEMPTS) {
           setLockoutEnd(Date.now() + LOCKOUT_SECONDS * 1000);
           setLockoutRemaining(LOCKOUT_SECONDS);
-          setError(`Troppi tentativi. Attendi ${LOCKOUT_SECONDS} secondi.`);
+          setError(t("pin.tooManyAttempts", { seconds: LOCKOUT_SECONDS }));
         } else {
           const remaining = MAX_ATTEMPTS - newAttempts;
-          setError(`PIN errato. ${remaining} tentativ${remaining === 1 ? "o" : "i"} rimanent${remaining === 1 ? "e" : "i"}.`);
+          setError(t("pin.wrongPin", { remaining }));
         }
         setPin("");
       }
     } catch (e) {
-      setError("Errore verifica PIN.");
+      setError(t("pin.verifyError"));
       setPin("");
     }
     setVerifying(false);
@@ -133,6 +135,7 @@ export function PinLockScreen({ onUnlock }: Props) {
 
   return (
     <div
+      className="pin-lock-screen"
       style={{
         position: "fixed", inset: 0, zIndex: 100000,
         display: "flex", flexDirection: "column",
@@ -328,17 +331,17 @@ export function PinLockScreen({ onUnlock }: Props) {
           fontStyle: "italic",
           textShadow: "0 0 40px rgba(234,125,0,0.2), 0 2px 10px rgba(0,0,0,0.5)",
         }}>
-          Sblocca <span style={{
+          {t("pin.unlock")} <span style={{
             color: "#ea7d00",
             textShadow: "0 0 30px rgba(234,125,0,0.3)",
-          }}>Sparks3D Preventivi</span>
+          }}>{t("common.appName")}</span>
         </h1>
 
         <p style={{
           fontSize: 14, color: "#6b7a94", marginBottom: 48,
           fontWeight: 400, letterSpacing: 0.5,
         }}>
-          Inserisci il tuo PIN per continuare
+          {t("pin.enterPin")}
         </p>
 
         {/* ═══ 6 caselle PIN ═══ */}
@@ -441,7 +444,7 @@ export function PinLockScreen({ onUnlock }: Props) {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Accesso consentito
+              {t("pin.accessGranted")}
             </div>
           ) : isLockedOut ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
@@ -453,7 +456,7 @@ export function PinLockScreen({ onUnlock }: Props) {
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
-                Bloccato — riprova tra {lockoutRemaining}s
+                {t("pin.locked", { seconds: lockoutRemaining })}
               </div>
               <div style={{
                 width: 220, height: 3, borderRadius: 2,
@@ -484,7 +487,7 @@ export function PinLockScreen({ onUnlock }: Props) {
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
               }} />
-              Verifica in corso...
+              {t("pin.verifying")}
             </div>
           ) : null}
         </div>

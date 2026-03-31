@@ -28,6 +28,8 @@ pub struct UpdatePreventivoInput {
     pub costo_spedizione: Option<f64>,
 }
 
+fn default_piatto() -> i64 { 1 }
+
 #[derive(Debug, Deserialize)]
 pub struct RigaInput {
     pub nome_file: String,
@@ -48,6 +50,8 @@ pub struct RigaInput {
     pub tempo_manuale: bool,
     pub peso_manuale: bool,
     pub ordine: i64,
+    #[serde(default = "default_piatto")]
+    pub piatto: i64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -118,6 +122,9 @@ pub struct RigaCompleta {
     pub tempo_manuale: bool,
     pub peso_manuale: bool,
     pub ordine: i64,
+    pub piatto: i64,
+    pub thumbnail_path: String,
+    pub thumbnails_json: String,
     // Costi calcolati
     pub costo_materiale_totale: f64,
     pub costo_energia: f64,
@@ -275,7 +282,7 @@ pub fn get_preventivo_completo(state: State<AppState>, id: i64) -> Result<Preven
                     r.tempo_stampa_sec, r.peso_totale_grammi,
                     r.ingombro_x_mm, r.ingombro_y_mm, r.ingombro_z_mm,
                     r.markup_riga, r.sconto_riga, r.fallimento_riga, r.post_processing,
-                    r.tempo_manuale, r.peso_manuale, r.ordine,
+                    r.tempo_manuale, r.peso_manuale, r.ordine, COALESCE(r.piatto, 1), COALESCE(r.thumbnail_path, ''), COALESCE(r.thumbnails_json, '[]'),
                     r.costo_materiale_totale, r.costo_energia, r.costo_ammortamento,
                     r.costo_fallimento, r.totale_costo, r.totale_cliente, r.profit,
                     COALESCE(s.nome, '') as stampante_nome,
@@ -309,15 +316,18 @@ pub fn get_preventivo_completo(state: State<AppState>, id: i64) -> Result<Preven
                 tempo_manuale: row.get(17)?,
                 peso_manuale: row.get(18)?,
                 ordine: row.get(19)?,
-                costo_materiale_totale: row.get(20)?,
-                costo_energia: row.get(21)?,
-                costo_ammortamento: row.get(22)?,
-                costo_fallimento: row.get(23)?,
-                totale_costo: row.get(24)?,
-                totale_cliente: row.get(25)?,
-                profit: row.get(26)?,
-                stampante_nome: row.get(27)?,
-                profilo_nome: row.get(28)?,
+                piatto: row.get(20)?,
+                thumbnail_path: row.get(21)?,
+                thumbnails_json: row.get(22)?,
+                costo_materiale_totale: row.get(23)?,
+                costo_energia: row.get(24)?,
+                costo_ammortamento: row.get(25)?,
+                costo_fallimento: row.get(26)?,
+                totale_costo: row.get(27)?,
+                totale_cliente: row.get(28)?,
+                profit: row.get(29)?,
+                stampante_nome: row.get(30)?,
+                profilo_nome: row.get(31)?,
                 materiali: Vec::new(),
             })
         }).map_err(|e| e.to_string())?;
@@ -514,15 +524,15 @@ pub fn add_riga_preventivo(state: State<AppState>, preventivo_id: i64, data: Rig
             tempo_stampa_sec, peso_totale_grammi,
             ingombro_x_mm, ingombro_y_mm, ingombro_z_mm,
             markup_riga, sconto_riga, fallimento_riga, post_processing,
-            tempo_manuale, peso_manuale, ordine
-        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)",
+            tempo_manuale, peso_manuale, ordine, piatto
+        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)",
         params![
             preventivo_id, data.nome_file, data.titolo_visualizzato,
             data.stampante_id, data.profilo_stampa_id, data.quantita, data.is_multicolore,
             data.tempo_stampa_sec, data.peso_totale_grammi,
             data.ingombro_x_mm, data.ingombro_y_mm, data.ingombro_z_mm,
             data.markup_riga, data.sconto_riga, data.fallimento_riga, data.post_processing,
-            data.tempo_manuale, data.peso_manuale, data.ordine
+            data.tempo_manuale, data.peso_manuale, data.ordine, data.piatto
         ],
     ).map_err(|e| e.to_string())?;
 
@@ -541,8 +551,8 @@ pub fn update_riga_preventivo(state: State<AppState>, riga_id: i64, data: RigaIn
             tempo_stampa_sec = ?7, peso_totale_grammi = ?8,
             ingombro_x_mm = ?9, ingombro_y_mm = ?10, ingombro_z_mm = ?11,
             markup_riga = ?12, sconto_riga = ?13, fallimento_riga = ?14,
-            post_processing = ?15, tempo_manuale = ?16, peso_manuale = ?17, ordine = ?18
-         WHERE id = ?19",
+            post_processing = ?15, tempo_manuale = ?16, peso_manuale = ?17, ordine = ?18, piatto = ?19
+         WHERE id = ?20",
         params![
             data.nome_file, data.titolo_visualizzato,
             data.stampante_id, data.profilo_stampa_id,
@@ -551,7 +561,7 @@ pub fn update_riga_preventivo(state: State<AppState>, riga_id: i64, data: RigaIn
             data.ingombro_x_mm, data.ingombro_y_mm, data.ingombro_z_mm,
             data.markup_riga, data.sconto_riga, data.fallimento_riga,
             data.post_processing, data.tempo_manuale, data.peso_manuale,
-            data.ordine, riga_id
+            data.ordine, data.piatto, riga_id
         ],
     ).map_err(|e| e.to_string())?;
 
@@ -561,10 +571,71 @@ pub fn update_riga_preventivo(state: State<AppState>, riga_id: i64, data: RigaIn
 #[tauri::command]
 pub fn delete_riga_preventivo(state: State<AppState>, riga_id: i64) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
+    // Elimina file thumbnail se esiste
+    let thumb_path: String = db.query_row(
+        "SELECT COALESCE(thumbnail_path, '') FROM righe_preventivo WHERE id = ?1",
+        params![riga_id], |row| row.get(0),
+    ).unwrap_or_default();
+    if !thumb_path.is_empty() {
+        let _ = std::fs::remove_file(&thumb_path);
+    }
     // CASCADE elimina anche riga_materiali
     db.execute("DELETE FROM righe_preventivo WHERE id = ?1", params![riga_id])
         .map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+pub fn save_riga_thumbnail(state: State<AppState>, riga_id: i64, base64_data: String) -> Result<String, String> {
+    use base64::Engine;
+    // Rimuovi prefisso data URI
+    let raw = base64_data
+        .trim_start_matches("data:image/png;base64,")
+        .trim_start_matches("data:image/jpeg;base64,");
+    let bytes = base64::engine::general_purpose::STANDARD.decode(raw)
+        .map_err(|e| format!("Errore decodifica base64: {e}"))?;
+    // Salva in {data_dir}/Sparks3DPreventivi/thumbnails/
+    let data_dir = dirs::data_dir().ok_or("Impossibile trovare la cartella dati")?;
+    let thumb_dir = data_dir.join("Sparks3DPreventivi").join("thumbnails");
+    std::fs::create_dir_all(&thumb_dir).map_err(|e| format!("Errore creazione cartella: {e}"))?;
+    let file_path = thumb_dir.join(format!("{riga_id}.png"));
+    std::fs::write(&file_path, &bytes).map_err(|e| format!("Errore scrittura thumbnail: {e}"))?;
+    let path_str = file_path.to_string_lossy().to_string();
+    // Aggiorna DB
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.execute("UPDATE righe_preventivo SET thumbnail_path = ?1 WHERE id = ?2",
+        params![path_str, riga_id]).map_err(|e| e.to_string())?;
+    Ok(path_str)
+}
+
+/// Salva multiple immagini thumbnail per una riga (piatti multipli)
+#[tauri::command]
+pub fn save_riga_thumbnails(state: State<AppState>, riga_id: i64, images: Vec<String>) -> Result<Vec<String>, String> {
+    use base64::Engine;
+    let data_dir = dirs::data_dir().ok_or("Impossibile trovare la cartella dati")?;
+    let thumb_dir = data_dir.join("Sparks3DPreventivi").join("thumbnails");
+    std::fs::create_dir_all(&thumb_dir).map_err(|e| format!("Errore creazione cartella: {e}"))?;
+
+    let mut paths: Vec<String> = Vec::new();
+    for (i, b64) in images.iter().enumerate() {
+        let raw = b64
+            .trim_start_matches("data:image/png;base64,")
+            .trim_start_matches("data:image/jpeg;base64,");
+        if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(raw) {
+            let file_path = thumb_dir.join(format!("{}_{}.png", riga_id, i + 1));
+            if std::fs::write(&file_path, &bytes).is_ok() {
+                paths.push(file_path.to_string_lossy().to_string());
+            }
+        }
+    }
+
+    // Salva primo come thumbnail_path principale + JSON array di tutti
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let main_thumb = paths.first().cloned().unwrap_or_default();
+    let json = serde_json::to_string(&paths).unwrap_or_else(|_| "[]".to_string());
+    db.execute("UPDATE righe_preventivo SET thumbnail_path = ?1, thumbnails_json = ?2 WHERE id = ?3",
+        params![main_thumb, json, riga_id]).map_err(|e| e.to_string())?;
+    Ok(paths)
 }
 
 // ── Set materiali per una riga (replace all) ──
@@ -755,7 +826,8 @@ pub fn ricalcola_preventivo(state: State<AppState>, id: i64) -> Result<Preventiv
         totale_costo_preventivo += totale_costo_riga;
         totale_cliente_preventivo += totale_cliente_riga;
         totale_materiale_g += peso_riga_g * quantita as f64;
-        totale_tempo_sec += tempo_sec * quantita as i64;
+        // Il tempo slicer è per piatto — non moltiplicare per quantità
+        totale_tempo_sec += tempo_sec;
     }
 
     // ── Servizi extra ──
@@ -829,12 +901,12 @@ pub fn duplica_preventivo(state: State<AppState>, id: i64) -> Result<i64, String
                 stampante_id, profilo_stampa_id, quantita, is_multicolore,
                 tempo_stampa_sec, peso_totale_grammi, ingombro_x_mm, ingombro_y_mm, ingombro_z_mm,
                 markup_riga, sconto_riga, fallimento_riga, post_processing,
-                tempo_manuale, peso_manuale, ordine)
+                tempo_manuale, peso_manuale, ordine, piatto, thumbnail_path, thumbnails_json)
              SELECT ?1, nome_file, titolo_visualizzato,
                     stampante_id, profilo_stampa_id, quantita, is_multicolore,
                     tempo_stampa_sec, peso_totale_grammi, ingombro_x_mm, ingombro_y_mm, ingombro_z_mm,
                     markup_riga, sconto_riga, fallimento_riga, post_processing,
-                    tempo_manuale, peso_manuale, ordine
+                    tempo_manuale, peso_manuale, ordine, piatto, thumbnail_path
              FROM righe_preventivo WHERE id = ?2",
             params![new_id, old_riga_id],
         ).map_err(|e| e.to_string())?;

@@ -3,6 +3,7 @@
 // =================================================================
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { generaRitenutaPdf, esportaRitenutaConNome, DatiRitenuta } from "../../utils/ritenutaPdf";
 
@@ -22,6 +23,7 @@ const eur = (n: number) =>
   new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(n);
 
 export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
+  const { t } = useTranslation();
   const [clienti, setClienti] = useState<Cliente[]>([]);
   const [preventivi, setPreventivi] = useState<Preventivo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -78,16 +80,16 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
     const p = preventivi.find((pr) => pr.id === id);
     if (p) {
       setImportoLordo(p.totale_finale);
-      setDescrizione(`Servizio di stampa 3D come da preventivo n. ${p.numero}`);
+      setDescrizione(t("ritenuta.descDefault", { numero: p.numero }));
       if (p.cliente_id) setClienteId(p.cliente_id);
     }
   };
 
   // Genera PDF
   const handleGenera = async () => {
-    if (!cliente) { setError("Seleziona un cliente"); return; }
-    if (importoLordo <= 0) { setError("L'importo deve essere maggiore di zero"); return; }
-    if (!descrizione.trim()) { setError("Inserisci una descrizione della prestazione"); return; }
+    if (!cliente) { setError(t("ritenuta.errCliente")); return; }
+    if (importoLordo <= 0) { setError(t("ritenuta.errImporto")); return; }
+    if (!descrizione.trim()) { setError(t("ritenuta.errDescrizione")); return; }
 
     try {
       setLoading(true); setError(""); setSuccess("");
@@ -111,8 +113,8 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
 
       const risultato = await generaRitenutaPdf(dati);
 
-      const tipoDoc = isAzienda ? "Ritenuta" : "Ricevuta";
-      let msg = `✅ PDF "${tipoDoc}" generato e salvato in Documenti/Sparks3D/Ritenute/`;
+      const tipoDoc = isAzienda ? t("ritenuta.tipoRitenuta") : t("ritenuta.tipoRicevuta");
+      let msg = `✅ PDF "${tipoDoc}" → Documenti/Sparks3D/Ritenute/`;
       if (risultato.salvato_in_archivio) {
         msg += "\n📋 Archiviato nel database.";
       }
@@ -136,15 +138,15 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
         <button onClick={onBack} style={{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:"var(--text-muted)",fontSize:13,cursor:"pointer",padding:"6px 0",marginBottom:24}}
           onMouseEnter={e=>e.currentTarget.style.color="var(--accent)"} onMouseLeave={e=>e.currentTarget.style.color="var(--text-muted)"}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-          ← Torna a Ritenute / Ricevute
+          {t("ritenuta.torna")}
         </button>
       )}
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)" }}>Nuova Ritenuta / Ricevuta</h2>
+        <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)" }}>{t("ritenuta.title")}</h2>
         <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>
-          Genera il documento fiscale corretto in base al tipo di cliente
+          {t("ritenuta.subtitle")}
         </p>
       </div>
 
@@ -167,7 +169,7 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
           {/* ── Carica da preventivo (opzionale) ── */}
           <div>
             <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>
-              Carica da preventivo (opzionale)
+              {t("ritenuta.caricaDaPreventivo")}
             </p>
             <select
               className="s3d-input"
@@ -178,7 +180,7 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
                 else { setPreventivoId(null); }
               }}
             >
-              <option value="">— Seleziona un preventivo (opzionale) —</option>
+              <option value="">{t("ritenuta.selezionaPreventivo")}</option>
               {preventivi.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.numero} — {eur(p.totale_finale)}
@@ -190,13 +192,13 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
           {/* ── Numero e Data ── */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Numero ricevuta</label>
+              <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("ritenuta.numeroRicevuta")}</label>
               <input type="text" value={numero}
                 onChange={(e) => setNumero(e.target.value)}
                 className="s3d-input" />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Data</label>
+              <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("common.date")}</label>
               <input type="date" value={data}
                 onChange={(e) => setData(e.target.value)}
                 className="s3d-input" />
@@ -206,14 +208,14 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
           {/* ── Cliente ── */}
           <div>
             <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>
-              Committente
+              {t("ritenuta.committente")}
             </p>
             <select
               className="s3d-input"
               value={clienteId ?? ""}
               onChange={(e) => setClienteId(e.target.value ? Number(e.target.value) : null)}
             >
-              <option value="">— Seleziona cliente —</option>
+              <option value="">{t("ritenuta.selezionaCliente")}</option>
               {clienti.map((c) => (
                 <option key={c.id} value={c.id}>
                   {displayCliente(c)}
@@ -235,13 +237,13 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
                     background: isAzienda ? "rgba(14,165,233,.15)" : "rgba(249,115,22,.15)",
                     color: isAzienda ? "var(--accent, #0ea5e9)" : "var(--orange, #f97316)",
                   }}>
-                    {isAzienda ? "🏢 AZIENDA / P.IVA" : "👤 PRIVATO"}
+                    {isAzienda ? `🏢 ${t("ritenuta.tipoAzienda")}` : `👤 ${t("ritenuta.tipoPrivato")}`}
                   </span>
                 </div>
                 <p className="text-xs mt-1" style={{ color: "var(--text-secondary, #b8c5db)" }}>
                   {isAzienda
-                    ? `Il committente è sostituto d'imposta → si applica la ritenuta d'acconto del 20% (art. 25 DPR 600/73)`
-                    : `Prestazione occasionale tra privati → nessuna ritenuta. L'importo lordo corrisponde al netto.`}
+                    ? t("ritenuta.helpAzienda")
+                    : t("ritenuta.helpPrivato")}
                 </p>
               </div>
             )}
@@ -249,17 +251,17 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
 
           {/* ── Descrizione ── */}
           <div>
-            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Descrizione della prestazione *</label>
+            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("ritenuta.descrizioneLabel")}</label>
             <textarea value={descrizione}
               onChange={(e) => setDescrizione(e.target.value)}
-              placeholder="Es: Servizio di stampa 3D e progettazione modelli personalizzati..."
+              placeholder={t("ritenuta.phDescrizione")}
               rows={3}
               className="s3d-input" style={{ resize: "vertical" }} />
           </div>
 
           {/* ── Importo ── */}
           <div>
-            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Compenso lordo (€) *</label>
+            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("ritenuta.compensoLordo")}</label>
             <input type="number" step="0.01" min="0"
               value={importoLordo}
               onChange={(e) => setImportoLordo(parseFloat(e.target.value) || 0)}
@@ -274,21 +276,21 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
               border: "1px solid var(--border-default, rgba(99,180,255,.22))",
             }}>
               <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-label, #7dd3fc)" }}>
-                Riepilogo calcolo
+                {t("ritenuta.riepilogo")}
               </p>
               <div className="space-y-2">
-                <Row label="Compenso lordo" value={eur(importoLordo)} />
+                <Row label={t("ritenuta.compensoLordoLabel")} value={eur(importoLordo)} />
                 {isAzienda && (
-                  <Row label={`Ritenuta d'acconto (${RITENUTA_PCT}%)`} value={`- ${eur(ritenuta)}`} color="var(--red, #f43f5e)" />
+                  <Row label={`${t("ritenuta.ritenutaAcconto")} (${RITENUTA_PCT}%)`} value={`- ${eur(ritenuta)}`} color="var(--red, #f43f5e)" />
                 )}
                 {!isAzienda && (
-                  <Row label="Ritenuta d'acconto" value="Non applicata (privato)" muted />
+                  <Row label={t("ritenuta.ritenutaAcconto")} value={t("ritenuta.nonApplicata")} muted />
                 )}
                 {marcaBollo > 0 && (
-                  <Row label="Marca da bollo" value={`+ ${eur(marcaBollo)}`} />
+                  <Row label={t("ritenuta.marcaDaBollo")} value={`+ ${eur(marcaBollo)}`} />
                 )}
                 <div style={{ borderTop: "1px solid var(--border-default, rgba(99,180,255,.15))", paddingTop: 8, marginTop: 8 }}>
-                  <Row label="NETTO A PAGARE" value={eur(totaleAPagare)} bold color="var(--green, #22c55e)" />
+                  <Row label={t("ritenuta.nettoPagare")} value={eur(totaleAPagare)} bold color="var(--green, #22c55e)" />
                 </div>
               </div>
             </div>
@@ -296,10 +298,10 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
 
           {/* ── Note ── */}
           <div>
-            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Note (opzionale)</label>
+            <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("ritenuta.noteLabel")}</label>
             <textarea value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Note aggiuntive da inserire nel documento..."
+              placeholder={t("ritenuta.phNote")}
               rows={2}
               className="s3d-input" style={{ resize: "vertical" }} />
           </div>
@@ -310,16 +312,16 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
           <div className="text-xs" style={{ color: "var(--text-muted, #6b7fa0)" }}>
             {cliente ? (
               isAzienda
-                ? "Verrà generata una ricevuta con ritenuta d'acconto al 20%"
-                : "Verrà generata una ricevuta senza ritenuta (tra privati)"
-            ) : "Seleziona un cliente per procedere"}
+                ? t("ritenuta.helpRitenuta")
+                : t("ritenuta.helpRicevuta")
+            ) : t("ritenuta.selezionaClienteErr")}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={async () => {
-                if (!cliente) { setError("Seleziona un cliente"); return; }
-                if (importoLordo <= 0) { setError("L'importo deve essere maggiore di zero"); return; }
-                if (!descrizione.trim()) { setError("Inserisci una descrizione"); return; }
+                if (!cliente) { setError(t("ritenuta.errCliente")); return; }
+                if (importoLordo <= 0) { setError(t("ritenuta.errImporto")); return; }
+                if (!descrizione.trim()) { setError(t("ritenuta.errDescrizioneCorta")); return; }
                 const prev = preventivi.find((p) => p.id === preventivoId);
                 const dati: DatiRitenuta = {
                   numero, data, cliente_nome: displayCliente(cliente),
@@ -339,14 +341,14 @@ export function RitenutaAccontoPage({ onBack }: { onBack?: () => void }) {
               className="px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-40"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", cursor: "pointer" }}
             >
-              💾 Salva con nome...
+              {t("ritenuta.salvaConNome")}
             </button>
             <button
               onClick={handleGenera}
               disabled={loading || !cliente || importoLordo <= 0 || !descrizione.trim()}
               className="s3d-btn s3d-btn-primary"
             >
-              {loading ? "⏳ Generazione…" : "📄 Genera PDF"}
+              {loading ? "⏳ Generazione…" : t("ritenuta.generaPdf")}
             </button>
           </div>
         </div>

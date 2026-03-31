@@ -180,6 +180,34 @@ fn update_materiale(state: State<AppState>, id: i64, data: Materiale) -> Result<
 #[tauri::command]
 fn delete_materiale(state: State<AppState>, id: i64) -> Result<(), String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.execute("DELETE FROM materiali WHERE id=?1", params![id]).map_err(|e| e.to_string())?; Ok(()) }
 
+/// Cerca un materiale per nome (case-insensitive). Se non esiste, lo crea con valori default dallo slicer.
+#[tauri::command]
+fn find_or_create_materiale(state: State<AppState>, nome: String, densita: f64) -> Result<Materiale, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    // Cerca match esatto (case-insensitive)
+    let existing: Option<Materiale> = db.query_row(
+        "SELECT id,nome,profilo_slicer,slicer_origin,peso_specifico_gcm3,prezzo_kg,markup_percentuale,fallimento_percentuale,magazzino_kg,link_acquisto FROM materiali WHERE LOWER(nome) = LOWER(?1)",
+        params![nome],
+        |row| Ok(Materiale { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,peso_specifico_gcm3:row.get(4)?,prezzo_kg:row.get(5)?,markup_percentuale:row.get(6)?,fallimento_percentuale:row.get(7)?,magazzino_kg:row.get(8)?,link_acquisto:row.get(9)? }),
+    ).ok();
+    if let Some(mat) = existing { return Ok(mat); }
+    // Cerca match parziale (il nome contiene il tipo filamento)
+    let partial: Option<Materiale> = db.query_row(
+        "SELECT id,nome,profilo_slicer,slicer_origin,peso_specifico_gcm3,prezzo_kg,markup_percentuale,fallimento_percentuale,magazzino_kg,link_acquisto FROM materiali WHERE LOWER(nome) LIKE '%' || LOWER(?1) || '%' LIMIT 1",
+        params![nome],
+        |row| Ok(Materiale { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,peso_specifico_gcm3:row.get(4)?,prezzo_kg:row.get(5)?,markup_percentuale:row.get(6)?,fallimento_percentuale:row.get(7)?,magazzino_kg:row.get(8)?,link_acquisto:row.get(9)? }),
+    ).ok();
+    if let Some(mat) = partial { return Ok(mat); }
+    // Non trovato: crea con valori di default
+    let densita_val = if densita > 0.0 { densita } else { 1.24 };
+    db.execute(
+        "INSERT INTO materiali (nome, profilo_slicer, slicer_origin, peso_specifico_gcm3, prezzo_kg, markup_percentuale, fallimento_percentuale, magazzino_kg, link_acquisto) VALUES (?1, '', 'auto-import', ?2, 25.0, 0.0, 5.0, 0.0, '')",
+        params![nome, densita_val],
+    ).map_err(|e| e.to_string())?;
+    let id = db.last_insert_rowid();
+    Ok(Materiale { id, nome, profilo_slicer: String::new(), slicer_origin: "auto-import".into(), peso_specifico_gcm3: densita_val, prezzo_kg: 25.0, markup_percentuale: 0.0, fallimento_percentuale: 5.0, magazzino_kg: 0.0, link_acquisto: String::new() })
+}
+
 // === STAMPANTI ===
 #[tauri::command]
 fn get_stampanti(state: State<AppState>) -> Result<Vec<Stampante>, String> { let db = state.db.lock().map_err(|e| e.to_string())?; let mut stmt = db.prepare("SELECT id,nome,profilo_slicer,slicer_origin,consumo_kwh,ammortamento_ora FROM stampanti ORDER BY nome").map_err(|e| e.to_string())?; let items = stmt.query_map([], |row| Ok(Stampante { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,consumo_kwh:row.get(4)?,ammortamento_ora:row.get(5)? })).map_err(|e| e.to_string())?.filter_map(|r| r.ok()).collect(); Ok(items) }
@@ -190,6 +218,32 @@ fn update_stampante(state: State<AppState>, id: i64, data: Stampante) -> Result<
 #[tauri::command]
 fn delete_stampante(state: State<AppState>, id: i64) -> Result<(), String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.execute("DELETE FROM stampanti WHERE id=?1", params![id]).map_err(|e| e.to_string())?; Ok(()) }
 
+/// Cerca una stampante per nome. Se non esiste, la crea con valori default.
+#[tauri::command]
+fn find_or_create_stampante(state: State<AppState>, nome: String) -> Result<Stampante, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    // Cerca esatto (case-insensitive)
+    let existing: Option<Stampante> = db.query_row(
+        "SELECT id,nome,profilo_slicer,slicer_origin,consumo_kwh,ammortamento_ora FROM stampanti WHERE LOWER(nome) = LOWER(?1)",
+        params![nome],
+        |row| Ok(Stampante { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,consumo_kwh:row.get(4)?,ammortamento_ora:row.get(5)? }),
+    ).ok();
+    if let Some(s) = existing { return Ok(s); }
+    // Match parziale
+    let partial: Option<Stampante> = db.query_row(
+        "SELECT id,nome,profilo_slicer,slicer_origin,consumo_kwh,ammortamento_ora FROM stampanti WHERE LOWER(nome) LIKE '%' || LOWER(?1) || '%' LIMIT 1",
+        params![nome],
+        |row| Ok(Stampante { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,consumo_kwh:row.get(4)?,ammortamento_ora:row.get(5)? }),
+    ).ok();
+    if let Some(s) = partial { return Ok(s); }
+    // Crea con default (consumo 0.2 kWh, ammortamento 0.5 €/h)
+    db.execute(
+        "INSERT INTO stampanti (nome, profilo_slicer, slicer_origin, consumo_kwh, ammortamento_ora) VALUES (?1, '', 'auto-import', 0.2, 0.5)",
+        params![nome],
+    ).map_err(|e| e.to_string())?;
+    Ok(Stampante { id: db.last_insert_rowid(), nome, profilo_slicer: String::new(), slicer_origin: "auto-import".into(), consumo_kwh: 0.2, ammortamento_ora: 0.5 })
+}
+
 // === PROFILI ===
 #[tauri::command]
 fn get_profili(state: State<AppState>) -> Result<Vec<ProfiloStampa>, String> { let db = state.db.lock().map_err(|e| e.to_string())?; let mut stmt = db.prepare("SELECT id,nome,profilo_slicer,slicer_origin,layer_height_mm,numero_pareti,infill_percentuale,top_layers,bottom_layers,supporti_albero,supporti_normali FROM profili_stampa ORDER BY nome").map_err(|e| e.to_string())?; let items = stmt.query_map([], |row| Ok(ProfiloStampa { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,layer_height_mm:row.get(4)?,numero_pareti:row.get(5)?,infill_percentuale:row.get(6)?,top_layers:row.get(7)?,bottom_layers:row.get(8)?,supporti_albero:row.get(9)?,supporti_normali:row.get(10)? })).map_err(|e| e.to_string())?.filter_map(|r| r.ok()).collect(); Ok(items) }
@@ -199,6 +253,35 @@ fn create_profilo(state: State<AppState>, data: ProfiloStampa) -> Result<Profilo
 fn update_profilo(state: State<AppState>, id: i64, data: ProfiloStampa) -> Result<ProfiloStampa, String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.execute("UPDATE profili_stampa SET nome=?1,profilo_slicer=?2,slicer_origin=?3,layer_height_mm=?4,numero_pareti=?5,infill_percentuale=?6,top_layers=?7,bottom_layers=?8,supporti_albero=?9,supporti_normali=?10 WHERE id=?11", params![data.nome,data.profilo_slicer,data.slicer_origin,data.layer_height_mm,data.numero_pareti,data.infill_percentuale,data.top_layers,data.bottom_layers,data.supporti_albero,data.supporti_normali,id]).map_err(|e| e.to_string())?; Ok(ProfiloStampa { id, ..data }) }
 #[tauri::command]
 fn delete_profilo(state: State<AppState>, id: i64) -> Result<(), String> { let db = state.db.lock().map_err(|e| e.to_string())?; db.execute("DELETE FROM profili_stampa WHERE id=?1", params![id]).map_err(|e| e.to_string())?; Ok(()) }
+
+/// Cerca un profilo di stampa per parametri (layer_height + infill). Se non esiste, lo crea.
+#[tauri::command]
+fn find_or_create_profilo(state: State<AppState>, nome: String, layer_height: f64, pareti: i64, infill: f64, top_layers: i64, bottom_layers: i64, supporti: bool) -> Result<ProfiloStampa, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    // Cerca per nome esatto
+    let existing: Option<ProfiloStampa> = db.query_row(
+        "SELECT id,nome,profilo_slicer,slicer_origin,layer_height_mm,numero_pareti,infill_percentuale,top_layers,bottom_layers,supporti_albero,supporti_normali FROM profili_stampa WHERE LOWER(nome) = LOWER(?1)",
+        params![nome],
+        |row| Ok(ProfiloStampa { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,layer_height_mm:row.get(4)?,numero_pareti:row.get(5)?,infill_percentuale:row.get(6)?,top_layers:row.get(7)?,bottom_layers:row.get(8)?,supporti_albero:row.get(9)?,supporti_normali:row.get(10)? }),
+    ).ok();
+    if let Some(p) = existing { return Ok(p); }
+    // Cerca per parametri simili (stessa layer height e infill)
+    if layer_height > 0.0 {
+        let similar: Option<ProfiloStampa> = db.query_row(
+            "SELECT id,nome,profilo_slicer,slicer_origin,layer_height_mm,numero_pareti,infill_percentuale,top_layers,bottom_layers,supporti_albero,supporti_normali FROM profili_stampa WHERE ABS(layer_height_mm - ?1) < 0.01 AND ABS(infill_percentuale - ?2) < 1 LIMIT 1",
+            params![layer_height, infill],
+            |row| Ok(ProfiloStampa { id:row.get(0)?,nome:row.get(1)?,profilo_slicer:row.get(2)?,slicer_origin:row.get(3)?,layer_height_mm:row.get(4)?,numero_pareti:row.get(5)?,infill_percentuale:row.get(6)?,top_layers:row.get(7)?,bottom_layers:row.get(8)?,supporti_albero:row.get(9)?,supporti_normali:row.get(10)? }),
+        ).ok();
+        if let Some(p) = similar { return Ok(p); }
+    }
+    // Crea
+    let prof_name = if nome.is_empty() { format!("{:.2}mm {}%", layer_height, infill as i64) } else { nome.clone() };
+    db.execute(
+        "INSERT INTO profili_stampa (nome, profilo_slicer, slicer_origin, layer_height_mm, numero_pareti, infill_percentuale, top_layers, bottom_layers, supporti_albero, supporti_normali) VALUES (?1, '', 'auto-import', ?2, ?3, ?4, ?5, ?6, ?7, 0)",
+        params![prof_name, layer_height, pareti, infill, top_layers, bottom_layers, supporti],
+    ).map_err(|e| e.to_string())?;
+    Ok(ProfiloStampa { id: db.last_insert_rowid(), nome: prof_name, profilo_slicer: String::new(), slicer_origin: "auto-import".into(), layer_height_mm: layer_height, numero_pareti: pareti, infill_percentuale: infill, top_layers, bottom_layers, supporti_albero: supporti, supporti_normali: false })
+}
 
 // === SERVIZI EXTRA ===
 #[tauri::command]
@@ -233,27 +316,48 @@ fn set_impostazione(state: State<AppState>, chiave: String, valore: String) -> R
 const KEYRING_SERVICE: &str = "sparks3d-preventivi";
 
 #[tauri::command]
-fn save_api_key(key_name: String, value: String) -> Result<(), String> {
-    let entry = keyring::Entry::new(KEYRING_SERVICE, &key_name)
-        .map_err(|e| e.to_string())?;
-    entry.set_password(&value)
-        .map_err(|e| e.to_string())
+fn save_api_key(state: tauri::State<AppState>, key_name: String, value: String) -> Result<(), String> {
+    // Salva nel keyring (tentativo)
+    let _ = keyring::Entry::new(KEYRING_SERVICE, &key_name)
+        .and_then(|e| e.set_password(&value));
+    // Salva anche nel DB come fallback affidabile
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.execute(
+        "INSERT OR REPLACE INTO impostazioni (chiave, valore) VALUES (?1, ?2)",
+        rusqlite::params![key_name, value],
+    ).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 #[tauri::command]
-fn get_api_key(key_name: String) -> Result<String, String> {
-    let entry = keyring::Entry::new(KEYRING_SERVICE, &key_name)
-        .map_err(|e| e.to_string())?;
-    entry.get_password()
-        .map_err(|e| e.to_string())
+fn get_api_key(state: tauri::State<AppState>, key_name: String) -> Result<String, String> {
+    // Prova keyring
+    if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, &key_name) {
+        if let Ok(pw) = entry.get_password() {
+            if !pw.is_empty() { return Ok(pw); }
+        }
+    }
+    // Fallback: leggi dal DB
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.query_row(
+        "SELECT valore FROM impostazioni WHERE chiave = ?1",
+        rusqlite::params![key_name],
+        |row| row.get::<_, String>(0),
+    ).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn delete_api_key(key_name: String) -> Result<(), String> {
-    let entry = keyring::Entry::new(KEYRING_SERVICE, &key_name)
-        .map_err(|e| e.to_string())?;
-    entry.delete_credential()
-        .map_err(|e| e.to_string())
+fn delete_api_key(state: tauri::State<AppState>, key_name: String) -> Result<(), String> {
+    // Rimuovi dal keyring
+    let _ = keyring::Entry::new(KEYRING_SERVICE, &key_name)
+        .and_then(|e| e.delete_credential());
+    // Rimuovi dal DB
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let _ = db.execute(
+        "DELETE FROM impostazioni WHERE chiave = ?1",
+        rusqlite::params![key_name],
+    );
+    Ok(())
 }
 
 // === PIN DI AVVIO (SQLite — hash SHA-256) ===
@@ -736,9 +840,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_azienda, update_azienda, import_logo, load_logo_preview,
             get_clienti, get_cliente, create_cliente, update_cliente, delete_cliente,
-            get_materiali, create_materiale, update_materiale, delete_materiale,
-            get_stampanti, create_stampante, update_stampante, delete_stampante,
-            get_profili, create_profilo, update_profilo, delete_profilo,
+            get_materiali, create_materiale, update_materiale, delete_materiale, find_or_create_materiale,
+            get_stampanti, create_stampante, update_stampante, delete_stampante, find_or_create_stampante,
+            get_profili, create_profilo, update_profilo, delete_profilo, find_or_create_profilo,
             get_servizi_extra, create_servizio_extra, update_servizio_extra, delete_servizio_extra,
             get_metodi_pagamento, create_metodo_pagamento, update_metodo_pagamento, delete_metodo_pagamento,
             get_impostazione, set_impostazione,
@@ -748,7 +852,7 @@ pub fn run() {
             preventivi::get_preventivi_list, preventivi::get_preventivo_completo,
             preventivi::update_preventivo, preventivi::update_stato_preventivo,
             preventivi::add_riga_preventivo, preventivi::update_riga_preventivo,
-            preventivi::delete_riga_preventivo, preventivi::set_riga_materiali,
+            preventivi::delete_riga_preventivo, preventivi::save_riga_thumbnail, preventivi::save_riga_thumbnails, preventivi::set_riga_materiali,
             preventivi::ricalcola_preventivo, preventivi::duplica_preventivo,
             preventivi::add_servizio_preventivo, preventivi::remove_servizio_preventivo,
             dashboard::get_dashboard_stats,

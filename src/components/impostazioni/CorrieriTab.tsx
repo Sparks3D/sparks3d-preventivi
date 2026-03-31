@@ -4,6 +4,7 @@
 
 import { useState, useEffect, CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 
 // ── Tipi (match con packlink.rs) ──
 
@@ -43,42 +44,23 @@ interface RispostaSpedizione {
 // ── Costanti ──
 
 const C = {
-  bg: "#0b1426",
-  card: "#0f1d35",
-  border: "#1a2d4d",
-  borderLight: "#243a5c",
-  text: "#e8edf5",
-  textMuted: "#7a8ba8",
-  textDim: "#4a5f80",
-  accent: "#3b82f6",
-  green: "#22c55e",
-  amber: "#f59e0b",
-  red: "#ef4444",
-  cyan: "#06b6d4",
-  inputBg: "#0a1222",
-  overlay: "rgba(4,8,20,.75)",
+  bg: "var(--bg-base)",
+  card: "var(--bg-card)",
+  border: "var(--border-subtle)",
+  borderLight: "var(--border-default)",
+  text: "var(--text-primary)",
+  textMuted: "var(--text-muted)",
+  textDim: "var(--text-muted)",
+  accent: "var(--accent)",
+  green: "var(--green)",
+  amber: "var(--orange)",
+  red: "var(--red)",
+  cyan: "var(--cyan)",
+  inputBg: "var(--bg-input)",
+  overlay: "rgba(0,0,0,.5)",
 };
 
-const COUNTRIES = [
-  { code: "IT", label: "Italia" },
-  { code: "DE", label: "Germania" },
-  { code: "FR", label: "Francia" },
-  { code: "ES", label: "Spagna" },
-  { code: "AT", label: "Austria" },
-  { code: "BE", label: "Belgio" },
-  { code: "NL", label: "Paesi Bassi" },
-  { code: "PT", label: "Portogallo" },
-  { code: "CH", label: "Svizzera" },
-  { code: "GB", label: "Regno Unito" },
-  { code: "PL", label: "Polonia" },
-  { code: "SE", label: "Svezia" },
-  { code: "DK", label: "Danimarca" },
-  { code: "CZ", label: "Rep. Ceca" },
-  { code: "RO", label: "Romania" },
-  { code: "GR", label: "Grecia" },
-  { code: "HR", label: "Croazia" },
-  { code: "US", label: "USA" },
-];
+const COUNTRY_CODES = ["IT","DE","FR","ES","AT","BE","NL","PT","CH","GB","PL","SE","DK","CZ","RO","GR","HR","US"];
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { style: "currency", currency: "EUR" });
@@ -91,6 +73,7 @@ const EMPTY: Corriere = {
 // ── Componente principale ──
 
 export function CorrieriTab() {
+  const { t } = useTranslation();
   const [corrieri, setCorrieri] = useState<Corriere[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -121,7 +104,7 @@ export function CorrieriTab() {
       setCorrieri(data);
       setError("");
     } catch (e: any) {
-      setError(e?.toString() || "Errore");
+      setError(e?.toString() || t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -144,7 +127,7 @@ export function CorrieriTab() {
       setModalOpen(false);
       await load();
     } catch (e: any) {
-      setError(e?.toString() || "Errore salvataggio");
+      setError(e?.toString() || t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -156,7 +139,7 @@ export function CorrieriTab() {
       setDeleteId(null);
       await load();
     } catch (e: any) {
-      setError(e?.toString() || "Errore eliminazione");
+      setError(e?.toString() || t("common.error"));
     }
   };
 
@@ -183,7 +166,7 @@ export function CorrieriTab() {
       setPlResult(result);
       if (result.errore) setError(result.errore);
     } catch (e: any) {
-      setError(e?.toString() || "Errore ricerca");
+      setError(e?.toString() || t("common.error"));
     } finally {
       setPlLoading(false);
     }
@@ -201,7 +184,7 @@ export function CorrieriTab() {
       tempo_consegna: tempo,
       packlink_service_id: s.id,
       note: [
-        s.consegna_punto_ritiro ? "Punto di ritiro" : "Domicilio",
+        s.consegna_punto_ritiro ? t("corrieriModal.puntoRitiro") : t("corrieriModal.domicilio"),
         s.data_consegna_stimata ? `Consegna stimata: ${s.data_consegna_stimata}` : "",
         s.dimensioni_max ? `Max: ${s.dimensioni_max}` : "",
       ].filter(Boolean).join(" • "),
@@ -216,14 +199,14 @@ export function CorrieriTab() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <div>
-          <h2 style={st.title}>Corrieri</h2>
-          <p style={st.subtitle}>Gestisci corrieri e cerca tariffe live con PackLink Pro</p>
+          <h2 style={st.title}>{t("corrieri.title")}</h2>
+          <p style={st.subtitle}>{t("corrieri.ricercaTariffe")}</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button style={st.btnSec} onClick={() => setShowPl(!showPl)}>
-            {showPl ? "✕ Chiudi PackLink" : "🔍 Cerca tariffe"}
+            {showPl ? t("corrieri.chiudiPacklink") : t("corrieri.cercaPacklink")}
           </button>
-          <button style={st.btnPri} onClick={openNew}>+ Aggiungi corriere</button>
+          <button style={st.btnPri} onClick={openNew}>{t("corrieri.nuovo")}</button>
         </div>
       </div>
 
@@ -238,43 +221,43 @@ export function CorrieriTab() {
       {showPl && (
         <div style={st.plPanel}>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: C.text, margin: "0 0 16px" }}>
-            🔗 Ricerca tariffe PackLink Pro
+            {t("corrieri.packlinkPro")}
           </h3>
           <div style={st.plGrid}>
-            <Fl label="Paese destinazione">
+            <Fl label={t("corrieri.paeseDestinazione")}>
               <select style={st.select} value={plForm.paese}
                 onChange={e => setPlForm({ ...plForm, paese: e.target.value })}>
-                {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.label} ({c.code})</option>)}
+                {COUNTRY_CODES.map(code => <option key={code} value={code}>{t(`paesi.${code}`)} ({code})</option>)}
               </select>
             </Fl>
-            <Fl label="CAP destinazione">
-              <input style={st.input} placeholder="es. 20100" value={plForm.cap}
+            <Fl label={t("corrieri.capDestinazione")}>
+              <input style={st.input} placeholder={t("preventivi.phCap")} value={plForm.cap}
                 onChange={e => setPlForm({ ...plForm, cap: e.target.value })} />
             </Fl>
-            <Fl label="Peso (kg)">
+            <Fl label={t("corrieri.peso")}>
               <input style={st.input} type="number" min="0.1" step="0.1" value={plForm.peso}
                 onChange={e => setPlForm({ ...plForm, peso: +e.target.value })} />
             </Fl>
-            <Fl label="Larghezza (cm)">
+            <Fl label={t("corrieri.larghezza")}>
               <input style={st.input} type="number" min="1" value={plForm.larghezza}
                 onChange={e => setPlForm({ ...plForm, larghezza: +e.target.value })} />
             </Fl>
-            <Fl label="Altezza (cm)">
+            <Fl label={t("corrieri.altezza")}>
               <input style={st.input} type="number" min="1" value={plForm.altezza}
                 onChange={e => setPlForm({ ...plForm, altezza: +e.target.value })} />
             </Fl>
-            <Fl label="Lunghezza (cm)">
+            <Fl label={t("corrieri.lunghezza")}>
               <input style={st.input} type="number" min="1" value={plForm.lunghezza}
                 onChange={e => setPlForm({ ...plForm, lunghezza: +e.target.value })} />
             </Fl>
           </div>
           <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12 }}>
             <button style={st.btnPri} onClick={searchPl} disabled={plLoading || !plForm.cap.trim()}>
-              {plLoading ? "⏳ Ricerca…" : "🚀 Cerca tariffe"}
+              {plLoading ? t("corrieri.ricerca") : t("corrieri.cercaTariffe")}
             </button>
             {plResult && !plResult.errore && (
               <span style={{ fontSize: 12, color: C.textMuted }}>
-                {plResult.servizi.length} tariffe trovate
+                {t("corrieri.tariffeTrovate", { count: plResult.servizi.length })}
               </span>
             )}
           </div>
@@ -285,7 +268,7 @@ export function CorrieriTab() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    {["", "Corriere", "Servizio", "Prezzo", "IVA", "Tempo", "Tipo", ""].map((h, i) => (
+                    {["", t("corrieri.thCorriere"), t("corrieri.thServizio"), t("corrieri.thPrezzo"), t("corrieri.thIva"), t("corrieri.thTempo"), t("corrieri.thTipo"), ""].map((h, i) => (
                       <th key={i} style={st.th}>{h}</th>
                     ))}
                   </tr>
@@ -331,14 +314,14 @@ export function CorrieriTab() {
                       </td>
                       <td style={st.td}>
                         {r.consegna_punto_ritiro ? (
-                          <span style={st.badgeAmber}>📦 Ritiro</span>
+                          <span style={st.badgeAmber}>{t("corrieriModal.badgeRitiro")}</span>
                         ) : (
-                          <span style={st.badgeBlue}>🏠 Casa</span>
+                          <span style={st.badgeBlue}>{t("corrieriModal.badgeCasa")}</span>
                         )}
                       </td>
                       <td style={{ ...st.td, textAlign: "right" }}>
                         <button style={st.btnSaveSmall} onClick={() => importFromPl(r)}>
-                          💾 Salva
+                          {t("corrieri.salva")}
                         </button>
                       </td>
                     </tr>
@@ -349,7 +332,7 @@ export function CorrieriTab() {
           )}
           {plResult && plResult.servizi.length === 0 && !plResult.errore && (
             <div style={{ ...st.emptyBox, marginTop: 16, padding: 24 }}>
-              Nessuna tariffa disponibile per questa tratta
+              {t("corrieri.nessunaTariffa")}
             </div>
           )}
         </div>
@@ -359,17 +342,17 @@ export function CorrieriTab() {
       {loading ? (
         <div style={st.loadingBox}>
           <div style={st.spinner} />
-          <span style={{ color: C.textMuted, fontSize: 13 }}>Caricamento…</span>
+          <span style={{ color: C.textMuted, fontSize: 13 }}>{t("common.loading")}</span>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : corrieri.length === 0 ? (
         <div style={st.emptyBox}>
           <div style={{ fontSize: 44, marginBottom: 12 }}>🚚</div>
           <p style={{ fontSize: 15, fontWeight: 600, color: C.text, margin: "0 0 6px" }}>
-            Nessun corriere salvato
+            {t("corrieri.noCorrieri")}
           </p>
           <p style={{ fontSize: 13, color: C.textMuted, margin: 0 }}>
-            Aggiungi manualmente o cerca tariffe con PackLink
+
           </p>
         </div>
       ) : (
@@ -377,7 +360,7 @@ export function CorrieriTab() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["Corriere", "Servizio", "Costo", "Tempo", "PackLink ID", "Note", ""].map((h, i) => (
+                {[t("corrieri.thCorriere"), t("common.service"), t("common.cost"), t("corrieri.thTempo"), t("corrieri.thPacklinkId"), t("common.notes"), ""].map((h, i) => (
                   <th key={i} style={st.th}>{h}</th>
                 ))}
               </tr>
@@ -426,45 +409,45 @@ export function CorrieriTab() {
         <div style={st.modalOv} onClick={() => setModalOpen(false)}>
           <div style={st.modal} onClick={e => e.stopPropagation()}>
             <h3 style={{ fontSize: 17, fontWeight: 600, color: C.text, margin: "0 0 20px" }}>
-              {editItem.id === 0 ? "Nuovo corriere" : "Modifica corriere"}
+              {editItem.id === 0 ? t("corrieri.formTitleNew") : t("corrieri.formTitleEdit")}
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <Fl label="Nome corriere *">
-                <input style={st.input} placeholder="es. BRT, GLS, DHL"
+              <Fl label={t("corrieri.labelNome")}>
+                <input style={st.input} placeholder={t("corrieri.phNome")}
                   value={editItem.nome}
                   onChange={e => setEditItem({ ...editItem, nome: e.target.value })} />
               </Fl>
-              <Fl label="Servizio">
-                <input style={st.input} placeholder="es. Express, Economy"
+              <Fl label={t("corrieri.labelServizio")}>
+                <input style={st.input} placeholder={t("corrieri.phServizio")}
                   value={editItem.servizio}
                   onChange={e => setEditItem({ ...editItem, servizio: e.target.value })} />
               </Fl>
-              <Fl label="Costo spedizione (€)">
+              <Fl label={t("corrieri.labelCosto")}>
                 <input style={st.input} type="number" min="0" step="0.01"
                   value={editItem.costo_spedizione}
                   onChange={e => setEditItem({ ...editItem, costo_spedizione: +e.target.value })} />
               </Fl>
-              <Fl label="Tempo consegna">
-                <input style={st.input} placeholder="es. 24-48h"
+              <Fl label={t("corrieri.labelTempo")}>
+                <input style={st.input} placeholder={t("corrieri.phTempo")}
                   value={editItem.tempo_consegna}
                   onChange={e => setEditItem({ ...editItem, tempo_consegna: e.target.value })} />
               </Fl>
-              <Fl label="PackLink Service ID" span2>
-                <input style={st.input} placeholder="Auto da PackLink"
+              <Fl label={t("corrieri.labelPacklinkId")} span2>
+                <input style={st.input} placeholder={t("corrieri.packlinkAuto")}
                   value={editItem.packlink_service_id}
                   onChange={e => setEditItem({ ...editItem, packlink_service_id: e.target.value })} />
               </Fl>
-              <Fl label="Note" span2>
+              <Fl label={t("corrieri.labelNote")} span2>
                 <textarea style={{ ...st.input, minHeight: 60, resize: "vertical" as const }}
-                  placeholder="Note libere…"
+                  placeholder={t("corrieri.phNote")}
                   value={editItem.note}
                   onChange={e => setEditItem({ ...editItem, note: e.target.value })} />
               </Fl>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
-              <button style={st.btnSec} onClick={() => setModalOpen(false)}>Annulla</button>
+              <button style={st.btnSec} onClick={() => setModalOpen(false)}>{t("common.cancel")}</button>
               <button style={st.btnPri} onClick={save} disabled={saving || !editItem.nome.trim()}>
-                {saving ? "Salvataggio…" : editItem.id === 0 ? "Crea corriere" : "Salva modifiche"}
+                {saving ? t("common.saving") : editItem.id === 0 ? t("corrieri.crea") : t("common.save")}
               </button>
             </div>
           </div>

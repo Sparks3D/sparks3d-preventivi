@@ -23,6 +23,7 @@ export type PageId =
   | "licenza"
   | "guida"
   | "slicer-import"
+  | "sicurezza"
   | "settings-form";
 
 // ── Entità principali ──

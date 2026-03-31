@@ -146,3 +146,267 @@ div[style*="background:rgba(59,130,246"] * {
 /* Selezione attiva */
 [aria-selected="true"], [data-selected="true"], .selected { color: #000000 !important; }
 [aria-selected="true"] *, [data-selected="true"] *, .selected * { color: #000000 !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   TEMA CHIARO — Override Tailwind utilities
+   ═══════════════════════════════════════════════════════════ */
+
+html[data-theme="light"], html[data-theme="light"] body { background: #f0f2f5 !important; color: #1a1a2e !important; color-scheme: light !important; }
+
+/* Backgrounds */
+html[data-theme="light"] .bg-white          { background-color: #ffffff !important; }
+html[data-theme="light"] .bg-gray-50        { background-color: #f9fafb !important; }
+html[data-theme="light"] .bg-gray-100       { background-color: #f3f4f6 !important; }
+html[data-theme="light"] .bg-gray-200       { background-color: #e5e7eb !important; }
+html[data-theme="light"] .bg-gray-700       { background-color: #374151 !important; }
+html[data-theme="light"] .bg-gray-800       { background-color: #1f2937 !important; }
+html[data-theme="light"] .bg-gray-900       { background-color: #111827 !important; }
+html[data-theme="light"] .bg-red-50         { background-color: rgba(220, 38, 38, 0.06) !important; }
+html[data-theme="light"] .bg-blue-50        { background-color: rgba(14, 165, 233, 0.06) !important; }
+html[data-theme="light"] .bg-blue-100       { background-color: rgba(14, 165, 233, 0.1) !important; }
+html[data-theme="light"] .bg-black\/40, html[data-theme="light"] .bg-black\/50 { background-color: rgba(0, 0, 0, 0.4) !important; }
+html[data-theme="light"] .hover\:bg-gray-50:hover   { background-color: #f3f4f6 !important; }
+html[data-theme="light"] .hover\:bg-gray-100:hover  { background-color: #e5e7eb !important; }
+html[data-theme="light"] .hover\:bg-red-50:hover    { background-color: rgba(220, 38, 38, 0.1) !important; }
+
+/* Text */
+html[data-theme="light"] .text-gray-900     { color: #111827 !important; }
+html[data-theme="light"] .text-gray-800     { color: #1f2937 !important; }
+html[data-theme="light"] .text-gray-700     { color: #374151 !important; }
+html[data-theme="light"] .text-gray-600     { color: #4b5563 !important; }
+html[data-theme="light"] .text-gray-500     { color: #6b7280 !important; }
+html[data-theme="light"] .text-gray-400     { color: #9ca3af !important; }
+html[data-theme="light"] .text-gray-300     { color: #d1d5db !important; }
+html[data-theme="light"] .text-white        { color: #ffffff !important; }
+html[data-theme="light"] .text-red-700      { color: #b91c1c !important; }
+html[data-theme="light"] .text-red-600      { color: #dc2626 !important; }
+html[data-theme="light"] .text-red-500      { color: #ef4444 !important; }
+html[data-theme="light"] .text-blue-700     { color: #0369a1 !important; }
+html[data-theme="light"] .text-blue-600     { color: #0284c7 !important; }
+html[data-theme="light"] .text-blue-300     { color: #7dd3fc !important; }
+
+/* Borders */
+html[data-theme="light"] .border-gray-100   { border-color: #f3f4f6 !important; }
+html[data-theme="light"] .border-gray-200   { border-color: #e5e7eb !important; }
+html[data-theme="light"] .border-gray-300   { border-color: #d1d5db !important; }
+html[data-theme="light"] .border-gray-600   { border-color: #4b5563 !important; }
+html[data-theme="light"] .border-gray-700   { border-color: #374151 !important; }
+html[data-theme="light"] .border-red-200    { border-color: #fecaca !important; }
+html[data-theme="light"] .border-red-300    { border-color: #fca5a5 !important; }
+
+/* Input */
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea { background-color: #ffffff !important; color: #1a1a2e !important; border-color: #d1d5db !important; }
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder { color: #9ca3af !important; }
+html[data-theme="light"] input:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus { border-color: #0284c7 !important; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important; }
+html[data-theme="light"] select option { background: #ffffff; color: #1a1a2e; }
+
+/* Shadow */
+html[data-theme="light"] .shadow-xl { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important; }
+html[data-theme="light"] .shadow-lg { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important; }
+
+/* Hover text */
+html[data-theme="light"] .hover\:text-gray-600:hover { color: #1f2937 !important; }
+html[data-theme="light"] .hover\:text-gray-700:hover { color: #111827 !important; }
+html[data-theme="light"] .hover\:text-gray-300:hover { color: #4b5563 !important; }
+
+/* Scrollbar */
+html[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12) !important; }
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.22) !important; }
+
+/* Contrasto */
+html[data-theme="light"] .font-medium.text-gray-900,
+html[data-theme="light"] td .font-medium { color: #dc2626 !important; }
+html[data-theme="light"] label.text-sm.font-medium { color: #0369a1 !important; }
+html[data-theme="light"] .uppercase.tracking-wider,
+html[data-theme="light"] .uppercase.tracking-wide { color: #0284c7 !important; }
+html[data-theme="light"] button.text-blue-600 { color: #0284c7 !important; }
+html[data-theme="light"] button.text-blue-600:hover { color: #0369a1 !important; }
+html[data-theme="light"] button.text-red-500 { color: #dc2626 !important; }
+html[data-theme="light"] button.text-red-500:hover { color: #b91c1c !important; }
+
+/* Logo preview — nessun override nel tema chiaro (sfondo già chiaro) */
+html[data-theme="light"] img[alt*="logo" i],
+html[data-theme="light"] img[alt*="Logo" i],
+html[data-theme="light"] img[alt*="anteprima" i] { background-color: #f5f5f5 !important; }
+html[data-theme="light"] [style*="dashed"],
+html[data-theme="light"] .border-dashed { background-color: #f5f5f5 !important; border-color: #d1d5db !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   TEMA CHIARO — Override colori hardcoded inline
+   Intercetta i pattern più comuni usati nei componenti React
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Sfondi card/section scuri → bianco ── */
+html[data-theme="light"] [style*="background: #13233d"],
+html[data-theme="light"] [style*="background:#13233d"],
+html[data-theme="light"] [style*="background: #1a2340"],
+html[data-theme="light"] [style*="background:#1a2340"],
+html[data-theme="light"] [style*="background: #0f1628"],
+html[data-theme="light"] [style*="background:#0f1628"],
+html[data-theme="light"] [style*="background: #151c32"],
+html[data-theme="light"] [style*="background:#151c32"],
+html[data-theme="light"] [style*="background: #0d1224"],
+html[data-theme="light"] [style*="background:#0d1224"],
+html[data-theme="light"] [style*="background: #080b16"],
+html[data-theme="light"] [style*="background:#080b16"],
+html[data-theme="light"] [style*="background: #243256"],
+html[data-theme="light"] [style*="background:#243256"],
+html[data-theme="light"] [style*="background: #1f2b4d"],
+html[data-theme="light"] [style*="background:#1f2b4d"] {
+  background: #ffffff !important;
+}
+
+/* ── Bordi scuri → bordi chiari ── */
+html[data-theme="light"] [style*="border: 1px solid rgba(56, 119, 214"],
+html[data-theme="light"] [style*="border: 1px solid rgba(56,119,214"],
+html[data-theme="light"] [style*="border-color: rgba(56, 119, 214"],
+html[data-theme="light"] [style*="border-color: rgba(56,119,214"] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme="light"] [style*="border: 1px solid rgba(99, 180, 255"],
+html[data-theme="light"] [style*="border: 1px solid rgba(99,180,255"] {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ── Testo bianco/chiaro → scuro (visibilità) ── */
+html[data-theme="light"] [style*="color: #e8edf5"],
+html[data-theme="light"] [style*="color:#e8edf5"],
+html[data-theme="light"] [style*="color: #f0f4fa"],
+html[data-theme="light"] [style*="color:#f0f4fa"],
+html[data-theme="light"] [style*="color: #ffffff"],
+html[data-theme="light"] [style*="color:#ffffff"],
+html[data-theme="light"] [style*="color: white"],
+html[data-theme="light"] [style*="color: #e2e8f0"],
+html[data-theme="light"] [style*="color:#e2e8f0"] {
+  color: #1a1a2e !important;
+}
+
+/* ── Testo secondario/muted troppo chiaro → leggibile ── */
+html[data-theme="light"] [style*="color: #b8c5db"],
+html[data-theme="light"] [style*="color:#b8c5db"] {
+  color: #4a5568 !important;
+}
+
+html[data-theme="light"] [style*="color: #6b7fa0"],
+html[data-theme="light"] [style*="color:#6b7fa0"],
+html[data-theme="light"] [style*="color: #6b7fa3"],
+html[data-theme="light"] [style*="color:#6b7fa3"] {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] [style*="color: #556a89"],
+html[data-theme="light"] [style*="color:#556a89"] {
+  color: #6b7280 !important;
+}
+
+html[data-theme="light"] [style*="color: #7a8daa"],
+html[data-theme="light"] [style*="color:#7a8daa"] {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] [style*="color: #8899b4"],
+html[data-theme="light"] [style*="color:#8899b4"] {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] [style*="color: #94a3b8"],
+html[data-theme="light"] [style*="color:#94a3b8"] {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] [style*="color: #475569"],
+html[data-theme="light"] [style*="color:#475569"] {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] [style*="color: #9ca3af"],
+html[data-theme="light"] [style*="color:#9ca3af"] {
+  color: #6b7280 !important;
+}
+
+html[data-theme="light"] [style*="color: #3d5170"],
+html[data-theme="light"] [style*="color:#3d5170"] {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="light"] [style*="color: #4a5e7a"],
+html[data-theme="light"] [style*="color:#4a5e7a"] {
+  color: #64748b !important;
+}
+
+/* ── Testo accent blu → versione scura leggibile ── */
+html[data-theme="light"] [style*="color: #60a5fa"],
+html[data-theme="light"] [style*="color:#60a5fa"] {
+  color: #0284c7 !important;
+}
+
+html[data-theme="light"] [style*="color: #38bdf8"],
+html[data-theme="light"] [style*="color:#38bdf8"] {
+  color: #0369a1 !important;
+}
+
+html[data-theme="light"] [style*="color: #7dd3fc"],
+html[data-theme="light"] [style*="color:#7dd3fc"] {
+  color: #0284c7 !important;
+}
+
+/* ── Sfondi semitrasparenti scuri → chiari ── */
+html[data-theme="light"] [style*="background: rgba(255, 255, 255, 0.05)"],
+html[data-theme="light"] [style*="background: rgba(255,255,255,0.05)"],
+html[data-theme="light"] [style*="background: rgba(255, 255, 255, 0.03)"],
+html[data-theme="light"] [style*="background: rgba(255,255,255,0.03)"] {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+html[data-theme="light"] [style*="background: rgba(255, 255, 255, 0.025)"],
+html[data-theme="light"] [style*="background: rgba(255,255,255,0.025)"] {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* ── Card con var(--bg-card) già funzionano, ma cattura gradient scuri ── */
+html[data-theme="light"] [style*="background: linear-gradient(135deg, rgba(59, 130, 246"],
+html[data-theme="light"] [style*="background: linear-gradient(160deg, #0d1224"],
+html[data-theme="light"] [style*="background: linear-gradient(180deg, rgba(13, 18, 36"] {
+  background: var(--bg-base) !important;
+}
+
+/* ── Box-shadow glow scuri → chiari ── */
+html[data-theme="light"] [style*="box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35)"] {
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* ── Bordi con var() già funzionano, cattura rgba fissi ── */
+html[data-theme="light"] [style*="border: 1px solid rgba(255, 255, 255, 0.06)"],
+html[data-theme="light"] [style*="border: 1px solid rgba(255,255,255,0.06)"],
+html[data-theme="light"] [style*="border: 1px solid rgba(255, 255, 255, 0.05)"],
+html[data-theme="light"] [style*="border: 1px solid rgba(255,255,255,0.05)"],
+html[data-theme="light"] [style*="border: 1px solid rgba(255, 255, 255, 0.1)"],
+html[data-theme="light"] [style*="border: 1px solid rgba(255,255,255,0.1)"],
+html[data-theme="light"] [style*="border: 1px solid rgba(255, 255, 255, 0.08)"],
+html[data-theme="light"] [style*="border: 1px solid rgba(255,255,255,0.08)"] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── Sfondi card specifici dei form (con border compound) ── */
+html[data-theme="light"] [style*="background: rgb(19, 35, 61)"],
+html[data-theme="light"] [style*="background-color: rgb(19, 35, 61)"],
+html[data-theme="light"] [style*="background: rgb(26, 35, 64)"],
+html[data-theme="light"] [style*="background-color: rgb(26, 35, 64)"],
+html[data-theme="light"] [style*="background: rgb(13, 18, 36)"],
+html[data-theme="light"] [style*="background-color: rgb(13, 18, 36)"],
+html[data-theme="light"] [style*="background: rgb(15, 22, 40)"],
+html[data-theme="light"] [style*="background-color: rgb(15, 22, 40)"] {
+  background: #ffffff !important;
+}
+
+/* ── Testo nei form label/input wrapper ── */
+html[data-theme="light"] [style*="color: #6b7280"] {
+  color: #6b7280 !important; /* già ok */
+}
+

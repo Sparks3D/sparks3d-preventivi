@@ -279,3 +279,319 @@ html { background: #080b16; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   TEMA CHIARO — Sparks3D Preventivi v1.4.0
+   ═══════════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  /* Background layers */
+  --bg-deep: #f0f2f5;
+  --bg-base: #f5f7fa;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0f4f8;
+  --bg-elevated: #e8ecf1;
+  --bg-input: #ffffff;
+
+  /* Borders */
+  --border-subtle: rgba(0, 0, 0, 0.07);
+  --border-default: rgba(0, 0, 0, 0.13);
+  --border-active: rgba(14, 165, 233, 0.5);
+  --border-glow: rgba(14, 165, 233, 0.25);
+
+  /* Text */
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a5568;
+  --text-muted: #8895a7;
+  --text-accent: #0284c7;
+  --text-label: #64748b;
+
+  /* Accent */
+  --accent: #0284c7;
+  --accent-hover: #0369a1;
+  --accent-secondary: #4f46e5;
+  --accent-secondary-hover: #4338ca;
+  --accent-glow: rgba(14, 165, 233, 0.2);
+  --accent-soft: rgba(14, 165, 233, 0.08);
+
+  /* Colori stato */
+  --green: #16a34a;
+  --green-soft: rgba(22, 163, 74, 0.1);
+  --red: #dc2626;
+  --red-soft: rgba(220, 38, 38, 0.08);
+  --orange: #ea580c;
+  --orange-soft: rgba(234, 88, 12, 0.08);
+  --purple: #9333ea;
+  --purple-soft: rgba(147, 51, 234, 0.08);
+  --cyan: #0891b2;
+  --cyan-soft: rgba(8, 145, 178, 0.08);
+  --pink: #db2777;
+  --pink-soft: rgba(219, 39, 119, 0.08);
+  --magenta: #c026d3;
+  --yellow: #ca8a04;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.09);
+  --shadow-glow: 0 0 16px rgba(14, 165, 233, 0.06);
+}
+
+/* ── Base overrides per tema chiaro ── */
+html[data-theme="light"] {
+  background: #f0f2f5;
+}
+
+[data-theme="light"] body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+}
+
+/* ── Input overrides ── */
+[data-theme="light"] .s3d-input {
+  background: var(--bg-input);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+[data-theme="light"] .s3d-input::placeholder {
+  color: var(--text-muted);
+}
+[data-theme="light"] .s3d-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+[data-theme="light"] .s3d-select {
+  background: var(--bg-input);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+/* ── Button overrides ── */
+[data-theme="light"] .s3d-btn-ghost {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text-secondary);
+  border-color: var(--border-default);
+}
+[data-theme="light"] .s3d-btn-ghost:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+[data-theme="light"] .s3d-btn-danger {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+/* ── Card overrides ── */
+[data-theme="light"] .s3d-card {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="light"] .s3d-card:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Table overrides ── */
+[data-theme="light"] .s3d-table thead th {
+  background: var(--bg-base) !important;
+  color: #64748b !important;
+  border-bottom-color: var(--border-default) !important;
+}
+[data-theme="light"] .s3d-table tbody tr:hover {
+  background: var(--bg-card-hover) !important;
+}
+[data-theme="light"] .s3d-table tbody td {
+  color: var(--text-secondary) !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+/* ── Scrollbar chiara ── */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+/* ── Selection ── */
+[data-theme="light"] ::selection {
+  background: rgba(14, 165, 233, 0.2);
+  color: #1a1a2e;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TEMA CHIARO — Override globali per colori inline hardcoded
+   Molti componenti usano colori inline (es. color: "#e2e8f0")
+   pensati per il tema scuro. Questi override li rendono leggibili.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Titoli h1-h4 */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4 {
+  color: var(--text-primary) !important;
+}
+
+/* Colori chiari hardcoded → scuri per tema chiaro */
+[data-theme="light"] [style*="color: #e2e8f0"],
+[data-theme="light"] [style*="color: #e8edf5"],
+[data-theme="light"] [style*="color: #cbd5e1"],
+[data-theme="light"] [style*="color: #b8c5db"],
+[data-theme="light"] [style*="color: #ffffff"],
+[data-theme="light"] [style*="color: rgb(255"] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] [style*="color: #94a3b8"],
+[data-theme="light"] [style*="color: #7a8daa"],
+[data-theme="light"] [style*="color: #7a8ba8"],
+[data-theme="light"] [style*="color: #6b7fa0"],
+[data-theme="light"] [style*="color: #556a89"],
+[data-theme="light"] [style*="color: #4a5f80"],
+[data-theme="light"] [style*="color: #475569"],
+[data-theme="light"] [style*="color: #3d5170"] {
+  color: var(--text-muted) !important;
+}
+
+/* Pin lock screen: sfondo scuro fisso, ripristina colori originali (vince su tutto) */
+[data-theme="light"] .pin-lock-screen h1[style] { color: #ffffff !important; }
+[data-theme="light"] .pin-lock-screen h1[style] span[style] { color: #ea7d00 !important; }
+[data-theme="light"] .pin-lock-screen p[style] { color: #6b7a94 !important; }
+[data-theme="light"] .pin-lock-screen div[style*="color: #22c55e"] { color: #22c55e !important; }
+[data-theme="light"] .pin-lock-screen div[style*="color: #f87171"] { color: #f87171 !important; }
+[data-theme="light"] .pin-lock-screen div[style*="color: #6b7a94"] { color: #6b7a94 !important; }
+[data-theme="light"] .pin-lock-screen span[style*="color: #9ca3b8"] { color: #9ca3b8 !important; }
+[data-theme="light"] .pin-lock-screen span[style*="color: #7a8194"] { color: #7a8194 !important; }
+
+[data-theme="light"] [style*="color: #64748b"] {
+  color: #64748b !important; /* Già ok per chiaro */
+}
+
+/* Background scuri inline → trasparenti/chiari */
+[data-theme="light"] [style*="background: #0f1629"],
+[data-theme="light"] [style*="background: #0d1224"],
+[data-theme="light"] [style*="background: #1a2340"],
+[data-theme="light"] [style*="background: #0f1d35"],
+[data-theme="light"] [style*="background: #0b1426"],
+[data-theme="light"] [style*="background: #0a1222"] {
+  background: var(--bg-card) !important;
+  border-color: var(--border-default) !important;
+}
+
+/* Card glow e surface per tema chiaro */
+[data-theme="light"] .s3d-card-glow {
+  background: var(--bg-card);
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Fix rgba backgrounds che appaiono troppo scuri in chiaro */
+[data-theme="light"] [style*="background: rgba(255,255,255,0.0"] {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+[data-theme="light"] [style*="background: rgba(255,255,255,0.025)"] {
+  background: var(--bg-surface) !important;
+}
+[data-theme="light"] [style*="background: rgba(255,255,255,0.04)"] {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+[data-theme="light"] [style*="background: rgba(255,255,255,0.05)"] {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+[data-theme="light"] [style*="background: rgba(255,255,255,0.06)"] {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Fix bordi con rgba bianco */
+[data-theme="light"] [style*="border: 1px solid rgba(255,255,255,0.0"],
+[data-theme="light"] [style*="border: 1px solid rgba(255,255,255,0.1"] {
+  border-color: var(--border-default) !important;
+}
+
+/* Fix border-bottom/top con rgba bianco */
+[data-theme="light"] [style*="border-bottom: 1px solid rgba(255,255,255"] {
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+/* Tabella - header th e section title nel tema chiaro */
+[data-theme="light"] th[style*="color: #7dd3fc"],
+[data-theme="light"] [style*="color: #7dd3fc"],
+[data-theme="light"] th {
+  color: #64748b !important;
+}
+[data-theme="light"] .s3d-section-title {
+  color: #64748b !important;
+}
+
+/* Fix modali - overlay e box */
+[data-theme="light"] [style*="background: rgba(0,0,0,0.5"],
+[data-theme="light"] [style*="background: rgba(0,0,0,0.55)"],
+[data-theme="light"] [style*="background: rgba(0,0,0,0.6"],
+[data-theme="light"] [style*="background: rgba(0,0,0,0.65)"],
+[data-theme="light"] [style*="background: rgba(4,8,20"] {
+  background: rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Fix accent colors per tema chiaro (i verdi/rossi/arancioni vanno bene) */
+[data-theme="light"] [style*="color: #60a5fa"] {
+  color: var(--accent) !important;
+}
+[data-theme="light"] [style*="color: #38bdf8"] {
+  color: var(--text-accent) !important;
+}
+[data-theme="light"] [style*="color: #93c5fd"] {
+  color: var(--accent) !important;
+}
+
+/* Dashboard V object colors */
+[data-theme="light"] [style*="color: #6ee7b7"] {
+  color: var(--green) !important;
+}
+[data-theme="light"] [style*="color: #34d399"] {
+  color: var(--green) !important;
+}
+[data-theme="light"] [style*="color: #f87171"] {
+  color: var(--red) !important;
+}
+[data-theme="light"] [style*="color: #fb923c"] {
+  color: var(--orange) !important;
+}
+[data-theme="light"] [style*="color: #c084fc"] {
+  color: var(--purple) !important;
+}
+
+/* Fix border con rgba blu */
+[data-theme="light"] [style*="border: 1px solid rgba(59,130,246,0.2)"] {
+  border-color: var(--border-default) !important;
+}
+
+/* Fix GlobalSearch modal */
+[data-theme="light"] [style*="background: #0f1629"] {
+  background: var(--bg-card) !important;
+}
+
+/* Fix testo link accent cliccabile */
+[data-theme="light"] [style*="color: #0ea5e9"] {
+  color: var(--accent) !important;
+}
+
+/* Fix badge background transparent su chiaro */
+[data-theme="light"] [style*="background: rgba(136,153,180"] {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+[data-theme="light"] [style*="color: #8899b4"] {
+  color: #64748b !important;
+}
+
+/* Fix kbd style in search */
+[data-theme="light"] kbd {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-muted) !important;
+}

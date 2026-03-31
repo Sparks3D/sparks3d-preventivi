@@ -8,6 +8,7 @@ import autoTable from "jspdf-autotable";
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
+import i18n from "../i18n";
 
 // ── Tipi ──
 
@@ -162,8 +163,8 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   // ═══ TITOLO DOCUMENTO ═══
 
   const titoloDoc = haRitenuta
-    ? "RICEVUTA PER PRESTAZIONE OCCASIONALE"
-    : "RICEVUTA PER PRESTAZIONE OCCASIONALE TRA PRIVATI";
+    ? i18n.t("ritenutaPdf.titoloRitenuta")
+    : i18n.t("ritenutaPdf.titoloPrivato");
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
@@ -172,8 +173,8 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   y += 5;
 
   const sottotitolo = haRitenuta
-    ? "con applicazione della ritenuta d'acconto"
-    : "senza ritenuta d'acconto";
+    ? i18n.t("ritenutaPdf.conRitenuta")
+    : i18n.t("ritenutaPdf.senzaRitenuta");
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100, 100, 120);
@@ -183,8 +184,8 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 60);
-  doc.text(`Ricevuta n. ${dati.numero}`, ml, y);
-  doc.text(`Data: ${dataFmt(dati.data)}`, pw - mr, y, { align: "right" });
+  doc.text(`${i18n.t("ritenutaPdf.ricevutaN")} ${dati.numero}`, ml, y);
+  doc.text(`${i18n.t("ritenutaPdf.data")} ${dataFmt(dati.data)}`, pw - mr, y, { align: "right" });
   y += 10;
 
   // ═══ COMMITTENTE ═══
@@ -197,7 +198,7 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(14, 165, 233);
-  doc.text("COMMITTENTE", ml + 5, y);
+  doc.text(i18n.t("ritenutaPdf.committente"), ml + 5, y);
   y += 5;
 
   doc.setFontSize(10);
@@ -229,7 +230,7 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(14, 165, 233);
-  doc.text("DESCRIZIONE DELLA PRESTAZIONE", ml, y);
+  doc.text(i18n.t("ritenutaPdf.descrizione"), ml, y);
   y += 6;
 
   doc.setFontSize(10);
@@ -243,7 +244,7 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   if (dati.preventivo_numero) {
     doc.setFontSize(8.5);
     doc.setTextColor(100, 100, 120);
-    doc.text(`Rif. preventivo: ${dati.preventivo_numero}`, ml + 2, y);
+    doc.text(`${i18n.t("ritenutaPdf.rifPreventivo")} ${dati.preventivo_numero}`, ml + 2, y);
     y += 5;
   }
 
@@ -253,21 +254,21 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
 
   const righeTabella: string[][] = [];
 
-  righeTabella.push(["Compenso lordo", eurFmt(lordo)]);
+  righeTabella.push([i18n.t("ritenutaPdf.compensoLordo"), eurFmt(lordo)]);
 
   if (haRitenuta) {
-    righeTabella.push([`Ritenuta d'acconto (${RITENUTA_PCT}%)`, `- ${eurFmt(ritenuta)}`]);
+    righeTabella.push([`${i18n.t("ritenutaPdf.ritenutaAcconto")} (${RITENUTA_PCT}%)`, `- ${eurFmt(ritenuta)}`]);
   }
 
   if (marcaBollo > 0) {
-    righeTabella.push(["Marca da bollo (art. 2 DPR 642/72)", eurFmt(marcaBollo)]);
+    righeTabella.push([i18n.t("ritenutaPdf.marcaDaBollo"), eurFmt(marcaBollo)]);
   }
 
-  righeTabella.push(["NETTO A PAGARE", eurFmt(netto + marcaBollo)]);
+  righeTabella.push([i18n.t("ritenutaPdf.nettoPagare"), eurFmt(netto + marcaBollo)]);
 
   autoTable(doc, {
     startY: y,
-    head: [["Voce", "Importo"]],
+    head: [[i18n.t("ritenutaPdf.voce"), i18n.t("ritenutaPdf.importo")]],
     body: righeTabella,
     margin: { left: ml, right: mr },
     theme: "plain",
@@ -303,7 +304,7 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(14, 165, 233);
-  doc.text("DICHIARAZIONI", ml, y);
+  doc.text(i18n.t("ritenutaPdf.dichiarazioni"), ml, y);
   y += 5;
 
   doc.setFontSize(7.5);
@@ -313,54 +314,25 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   const dichiarazioni: string[] = [];
 
   if (haRitenuta) {
-    dichiarazioni.push(
-      "Il/La sottoscritto/a dichiara che la presente prestazione è di natura occasionale " +
-      "ai sensi dell'art. 2222 e seguenti del Codice Civile e non è svolta in modo abituale " +
-      "e continuativo."
-    );
-    dichiarazioni.push(
-      "Il compenso è soggetto a ritenuta d'acconto del 20% ai sensi dell'art. 25 del " +
-      "D.P.R. 29 settembre 1973, n. 600."
-    );
-    dichiarazioni.push(
-      "Il reddito derivante dalla presente prestazione è classificato come reddito diverso " +
-      "ai sensi dell'art. 67, comma 1, lettera l) del T.U.I.R. (D.P.R. 917/1986)."
-    );
-    dichiarazioni.push(
-      "La presente prestazione non è soggetta ad IVA ai sensi dell'art. 5 del D.P.R. " +
-      "633/1972 in quanto priva del requisito di abitualità."
-    );
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichOccasionale"));
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichRitenuta"));
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichReddito"));
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichNoIva"));
   } else {
-    dichiarazioni.push(
-      "Il/La sottoscritto/a dichiara che la presente prestazione è di natura occasionale " +
-      "ai sensi dell'art. 2222 e seguenti del Codice Civile."
-    );
-    dichiarazioni.push(
-      "Trattandosi di prestazione occasionale tra privati, il committente non riveste la " +
-      "qualifica di sostituto d'imposta, pertanto non si applica la ritenuta d'acconto " +
-      "di cui all'art. 25 del D.P.R. 600/1973."
-    );
-    dichiarazioni.push(
-      "L'importo lordo corrisponde al netto a pagare."
-    );
-    dichiarazioni.push(
-      "La presente prestazione non è soggetta ad IVA ai sensi dell'art. 5 del D.P.R. " +
-      "633/1972 in quanto priva del requisito di abitualità."
-    );
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichOccasionale"));
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichPrivato"));
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichNetto"));
+    dichiarazioni.push(i18n.t("ritenutaPdf.dichNoIva"));
   }
 
   if (marcaBollo > 0) {
     dichiarazioni.push(
-      `Sull'originale della presente ricevuta è stata apposta marca da bollo da € ${MARCA_BOLLO_IMPORTO.toFixed(2)} ` +
-      "ai sensi dell'art. 2 del D.P.R. 26 ottobre 1972, n. 642, " +
-      `in quanto l'importo supera € ${MARCA_BOLLO_SOGLIA.toFixed(2)}.`
+      `${i18n.t("ritenutaPdf.marcaDaBolloApposta")} ${MARCA_BOLLO_IMPORTO.toFixed(2)} ` +
+      `${i18n.t("ritenutaPdf.marcaDaBolloAiSensi")} ${MARCA_BOLLO_SOGLIA.toFixed(2)}.`
     );
   }
 
-  dichiarazioni.push(
-    "Il/La sottoscritto/a dichiara altresì di non aver percepito nell'anno in corso " +
-    "compensi per prestazioni occasionali superiori a € 5.000,00 complessivi."
-  );
+  dichiarazioni.push(i18n.t("ritenutaPdf.dichSoglia"));
 
   for (const dich of dichiarazioni) {
     const righe = doc.splitTextToSize(`• ${dich}`, cw - 4);
@@ -381,7 +353,7 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(14, 165, 233);
-    doc.text("NOTE", ml, y);
+    doc.text(i18n.t("ritenutaPdf.noteLabel"), ml, y);
     y += 5;
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
@@ -403,12 +375,12 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100, 100, 120);
-  doc.text("Il Prestatore", ml + 15, y + 20);
+  doc.text(i18n.t("ritenutaPdf.prestatore"), ml + 15, y + 20);
   doc.setFontSize(7.5);
   doc.text(az.ragione_sociale || "", ml + 5, y + 24);
 
   doc.line(pw - mr - 65, y + 15, pw - mr, y + 15);
-  doc.text("Il Committente", pw - mr - 50, y + 20);
+  doc.text(i18n.t("ritenutaPdf.committenteLabel"), pw - mr - 50, y + 20);
   doc.setFontSize(7.5);
   doc.text(dati.cliente_nome, pw - mr - 60, y + 24);
 
@@ -417,7 +389,7 @@ async function generaPdfBlob(dati: DatiRitenuta): Promise<Blob> {
   doc.setFontSize(7);
   doc.setTextColor(150, 160, 175);
   doc.text(
-    `Documento generato da Sparks3D Preventivi — ${dataFmt(dati.data)}`,
+    `${i18n.t("ritenutaPdf.generatoCon")} ${dataFmt(dati.data)}`,
     pw / 2, ph - 10,
     { align: "center" }
   );

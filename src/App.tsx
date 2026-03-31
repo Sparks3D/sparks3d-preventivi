@@ -3,8 +3,10 @@
 // ========================================
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import "./styles/theme.css";
 import { SettingsProvider } from "./context/SettingsContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./components/layout/ToastProvider";
 import { Sidebar } from "./components/layout/Sidebar";
 import { GlobalSearch } from "./components/layout/GlobalSearch";
@@ -31,6 +33,7 @@ import { GuidaPage } from "./components/info/GuidaPage";
 import type { PageId } from "./types";
 
 export default function App() {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState<PageId>("dashboard");
   const [preventivoAttivoId, setPreventivoAttivoId] = useState<number | null>(null);
   const [clienteAttivoId, setClienteAttivoId] = useState<number | null>(null);
@@ -217,6 +220,7 @@ export default function App() {
   };
 
   return (
+    <ThemeProvider>
     <SettingsProvider>
     <ToastProvider>
     {/* PIN Lock Screen */}
@@ -225,15 +229,15 @@ export default function App() {
     )}
     {/* Loading while checking PIN */}
     {pinLocked === null && (
-      <div style={{ width: "100vw", height: "100vh", background: "#080b16" }} />
+      <div style={{ width: "100vw", height: "100vh", background: "var(--bg-deep)" }} />
     )}
     {/* Main App (visible only when unlocked) */}
     {pinLocked === false && (
     <div style={{
       display: "flex",
       height: "100vh",
-      background: "#080b16",
-      color: "#ffffff",
+      background: "var(--bg-deep)",
+      color: "var(--text-primary)",
       overflow: "hidden",
     }}>
       <Sidebar
@@ -244,14 +248,14 @@ export default function App() {
       <main style={{
         flex: 1,
         overflow: "auto",
-        background: "linear-gradient(160deg, #0d1224 0%, #0a0f1e 100%)",
+        background: "var(--bg-base)",
         position: "relative",
       }}>
         <div style={{
           position: "sticky", top: 0, zIndex: 100,
           padding: "12px 28px",
           display: "flex", justifyContent: "flex-end",
-          background: "linear-gradient(180deg, rgba(13,18,36,0.95) 0%, rgba(13,18,36,0) 100%)",
+          background: "linear-gradient(180deg, var(--bg-base) 0%, transparent 100%)",
           pointerEvents: "none",
         }}>
           <button
@@ -261,35 +265,35 @@ export default function App() {
               display: "flex", alignItems: "center", gap: 8,
               padding: "7px 14px",
               borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(255,255,255,0.03)",
-              color: "#556a89",
+              border: "1px solid var(--border-subtle)",
+              background: "var(--bg-card)",
+              color: "var(--text-muted)",
               fontSize: 13, fontWeight: 500,
               cursor: "pointer",
               transition: "all 0.2s",
               fontFamily: "inherit",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(59,130,246,0.3)";
-              e.currentTarget.style.background = "rgba(59,130,246,0.06)";
-              e.currentTarget.style.color = "#8899b4";
+              e.currentTarget.style.borderColor = "var(--border-active)";
+              e.currentTarget.style.background = "var(--accent-soft)";
+              e.currentTarget.style.color = "var(--text-secondary)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-              e.currentTarget.style.color = "#556a89";
+              e.currentTarget.style.borderColor = "var(--border-subtle)";
+              e.currentTarget.style.background = "var(--bg-card)";
+              e.currentTarget.style.color = "var(--text-muted)";
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            Cerca...
+            {t("common.search")}
             <span style={{
               padding: "1px 6px", borderRadius: 4,
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              fontSize: 10, fontWeight: 600, color: "#475569",
+              background: "var(--accent-soft)",
+              border: "1px solid var(--border-subtle)",
+              fontSize: 10, fontWeight: 600, color: "var(--text-muted)",
               marginLeft: 8,
             }}>
               Ctrl+K
@@ -312,5 +316,6 @@ export default function App() {
     )}
     </ToastProvider>
     </SettingsProvider>
+    </ThemeProvider>
   );
 }

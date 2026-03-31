@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Materiale { id:number; nome:string; profilo_slicer:string; slicer_origin:string; peso_specifico_gcm3:number; prezzo_kg:number; markup_percentuale:number; fallimento_percentuale:number; magazzino_kg:number; link_acquisto:string; }
@@ -13,6 +14,7 @@ const ORIGIN_COLORS: Record<string,{bg:string;fg:string}> = {
 };
 
 export function MaterialiPage({ onOpenForm, onImportSlicer }:Props) {
+  const { t } = useTranslation();
   const [items,setItems] = useState<Materiale[]>([]); const [search,setSearch] = useState("");
   const [selectedIds,setSelectedIds] = useState<Set<number>>(new Set());
   const load = useCallback(async()=>{ try{setItems(await invoke<Materiale[]>("get_materiali"));}catch(e){console.error(e);} },[]);
@@ -33,28 +35,28 @@ export function MaterialiPage({ onOpenForm, onImportSlicer }:Props) {
   return (
     <div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-        <h3 style={{fontSize:20,fontWeight:800,color:"var(--text-primary)"}}>Materiali</h3>
+        <h3 style={{fontSize:20,fontWeight:800,color:"var(--text-primary)"}}>{ t("materiali.title")}</h3>
         <div style={{display:"flex",gap:8}}>
           <button onClick={()=>onImportSlicer?.("bambu")} className="s3d-btn s3d-btn-primary" style={{background:"var(--orange)",boxShadow:"0 2px 12px rgba(249,115,22,0.3)"}}>
             <span style={{display:"flex",alignItems:"center",gap:6}}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Importa dallo Slicer
+              {t("materiali.importaSlicer")}
             </span>
           </button>
-          <button onClick={()=>onOpenForm()} className="s3d-btn s3d-btn-primary">Nuovo materiale</button>
+          <button onClick={()=>onOpenForm()} className="s3d-btn s3d-btn-primary">{t("materiali.nuovo")}</button>
         </div>
       </div>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
         <input type="checkbox" checked={selectedIds.size===filtered.length&&filtered.length>0} onChange={toggleSelectAll} style={{width:16,height:16,accentColor:"var(--accent)"}}/>
-        {selectedIds.size>0 && <button onClick={handleDeleteSelected} className="s3d-btn s3d-btn-danger">Elimina selezionati ({selectedIds.size})</button>}
-        <input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cerca materiale per nome" className="s3d-input" style={{flex:1}}/>
+        {selectedIds.size>0 && <button onClick={handleDeleteSelected} className="s3d-btn s3d-btn-danger">{t("common.deleteSelected")} ({selectedIds.size})</button>}
+        <input type="text" value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("materiali.searchPlaceholder")} className="s3d-input" style={{flex:1}}/>
       </div>
       <div className="s3d-card" style={{overflow:"hidden"}}>
         {filtered.length===0?(
-          <div style={{padding:"48px 0",textAlign:"center",color:"var(--text-muted)"}}>{items.length===0?'Nessun materiale inserito. Usa "Importa dallo Slicer" o "Nuovo materiale".':"Nessun risultato."}</div>
+          <div style={{padding:"48px 0",textAlign:"center",color:"var(--text-muted)"}}>{items.length===0?t("materiali.noMateriali"):t("common.noResults")}</div>
         ):(
           <table className="s3d-table"><thead><tr style={{background:"var(--bg-surface)",borderBottom:"1px solid var(--border-default)"}}>
-            <th style={{width:40}}></th><th>Nome materiale</th><th>Peso sp.</th><th>Prezzo/kg</th><th>Markup</th><th>Fallim.</th><th>Magazzino</th><th style={{textAlign:"right"}}>Azioni</th>
+            <th style={{width:40}}></th><th>{t("materiali.thNome")}</th><th>{t("materiali.thPesoSp")}</th><th>{t("materiali.thPrezzo")}</th><th>{t("materiali.thMarkup")}</th><th>{t("materiali.thFallimento")}</th><th>{t("materiali.thMagazzino")}</th><th style={{textAlign:"right"}}>{t("common.actions")}</th>
           </tr></thead><tbody>{filtered.map(m=>{
             const o = getOrigin(m.slicer_origin);
             return (
@@ -67,8 +69,8 @@ export function MaterialiPage({ onOpenForm, onImportSlicer }:Props) {
               <td style={{color:"var(--text-secondary)"}}>{m.fallimento_percentuale}%</td>
               <td><span style={{color:m.magazzino_kg<=1.5?"var(--red)":"inherit",fontWeight:m.magazzino_kg<=1.5?600:400}}>{m.magazzino_kg.toFixed(2)} kg</span></td>
               <td style={{textAlign:"right"}} onClick={e=>e.stopPropagation()}>
-                <button onClick={()=>onOpenForm(m.id)} style={{background:"none",border:"none",color:"var(--accent)",fontSize:12,fontWeight:600,cursor:"pointer",marginRight:12}}>Modifica</button>
-                <button onClick={()=>handleDelete(m.id)} style={{background:"none",border:"none",color:"var(--red)",fontSize:12,fontWeight:600,cursor:"pointer"}}>Elimina</button>
+                <button onClick={()=>onOpenForm(m.id)} style={{background:"none",border:"none",color:"var(--accent)",fontSize:12,fontWeight:600,cursor:"pointer",marginRight:12}}>{t("common.edit")}</button>
+                <button onClick={()=>handleDelete(m.id)} style={{background:"none",border:"none",color:"var(--red)",fontSize:12,fontWeight:600,cursor:"pointer"}}>{t("common.delete")}</button>
               </td>
             </tr>
           );})}</tbody></table>

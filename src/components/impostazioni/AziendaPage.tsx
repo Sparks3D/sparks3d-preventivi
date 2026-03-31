@@ -1,9 +1,20 @@
 // src/components/impostazioni/AziendaPage.tsx
 // Sparks3D Preventivi — Dati azienda / privato
+// v1.4.0: aggiunta validazione inline (CAP, email, P.IVA, CF, telefono, provincia)
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import {
+  validateEmail,
+  validateCAP,
+  validatePartitaIVA,
+  validateCodiceFiscale,
+  validateTelefono,
+  validateProvincia,
+  validateAziendaForm,
+} from "../../utils/validation";
 
 interface Azienda {
   id: number;
@@ -38,12 +49,6 @@ const EMPTY: Azienda = {
   nota_regime: "", prefisso_preventivo: "S3D", prossimo_numero: 1,
 };
 
-const REGIMI = [
-  { id: "ordinario", label: "Regime Ordinario", iva: 22.0, nota: "" },
-  { id: "forfettario", label: "Regime Forfettario", iva: 0.0, nota: "Operazione senza applicazione dell'IVA ai sensi dell'art. 1, commi 54-89, Legge n. 190/2014 – Regime Forfettario" },
-  { id: "minimo", label: "Regime dei Minimi", iva: 0.0, nota: "Operazione effettuata ai sensi dell'art. 27, commi 1 e 2, D.L. 98/2011 – Regime dei Minimi" },
-  { id: "privato", label: "Privato (no P.IVA)", iva: 0.0, nota: "Vendita tra privati – Non soggetta ad IVA" },
-];
 
 const PAESI = [
   "IT", "DE", "FR", "ES", "AT", "BE", "NL", "PT", "CH", "GB",
@@ -51,7 +56,26 @@ const PAESI = [
   "DK", "FI", "IE", "LT", "LV", "EE", "LU", "MT", "CY",
 ];
 
+const fieldErrorStyle: React.CSSProperties = {
+  fontSize: 11, color: "var(--red)", marginTop: 3,
+  display: "flex", alignItems: "center", gap: 4,
+};
+
 export function AziendaPage() {
+  const { t } = useTranslation();
+
+  // Le note regime sono testi legali italiani — devono restare in italiano nel DB/PDF
+  const NOTA_FORFETTARIO = "Operazione senza applicazione dell'IVA ai sensi dell'art. 1, commi 54-89, Legge n. 190/2014 – Regime Forfettario";
+  const NOTA_MINIMI = "Operazione effettuata ai sensi dell'art. 27, commi 1 e 2, D.L. 98/2011 – Regime dei Minimi";
+  const NOTA_PRIVATO = "Vendita tra privati – Non soggetta ad IVA";
+
+  const REGIMI = [
+    { id: "ordinario", label: t("azienda.ordinario"), iva: 22.0, nota: "" },
+    { id: "forfettario", label: t("azienda.forfettario"), iva: 0.0, nota: NOTA_FORFETTARIO },
+    { id: "minimo", label: t("azienda.minimi"), iva: 0.0, nota: NOTA_MINIMI },
+    { id: "privato", label: t("azienda.privato"), iva: 0.0, nota: NOTA_PRIVATO },
+  ];
+
   const [form, setForm] = useState<Azienda>(EMPTY);
   const [original, setOriginal] = useState<Azienda>(EMPTY);
   const [loading, setLoading] = useState(true);
@@ -59,6 +83,8 @@ export function AziendaPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
     try {
@@ -86,7 +112,49 @@ export function AziendaPage() {
   const updateField = (field: keyof Azienda, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setSaved(false);
+    // Valida in tempo reale solo se il campo è già stato toccato
+    if (touched[field] && typeof value === "string") {
+      validateSingleField(field, value);
+    }
   };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateSingleField(field, (form as any)[field]);
+  };
+
+  const validateSingleField = (field: string, value: string) => {
+    let err: string | null = null;
+    switch (field) {
+      case "email": err = validateEmail(value); break;
+      case "cap": err = validateCAP(value); break;
+      case "partita_iva": err = validatePartitaIVA(value); break;
+      case "codice_fiscale": err = validateCodiceFiscale(value); break;
+      case "telefono": err = validateTelefono(value); break;
+      case "provincia": err = validateProvincia(value); break;
+    }
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (err) next[field] = err;
+      else delete next[field];
+      return next;
+    });
+  };
+
+  // Helper per lo stile dell'input con errore
+  const inputErrorBorder = (field: string): React.CSSProperties =>
+    fieldErrors[field] ? { borderColor: "var(--red)", boxShadow: "0 0 0 1px rgba(244,63,94,0.3)" } : {};
+
+  // Helper per il messaggio di errore sotto il campo
+  const FieldError = ({ field }: { field: string }) =>
+    fieldErrors[field] ? (
+      <p style={fieldErrorStyle}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <circle cx="12" cy="12" r="10" /><path d="M12 8v4m0 4h.01" />
+        </svg>
+        {fieldErrors[field]}
+      </p>
+    ) : null;
 
   const handleRegimeChange = (regimeId: string) => {
     const regime = REGIMI.find((r) => r.id === regimeId);
@@ -133,6 +201,17 @@ export function AziendaPage() {
   };
 
   const handleSave = async () => {
+    // Validazione completa prima del salvataggio
+    const errors = validateAziendaForm(form);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      const allTouched: Record<string, boolean> = {};
+      for (const key of Object.keys(errors)) allTouched[key] = true;
+      setTouched((prev) => ({ ...prev, ...allTouched }));
+      setError(t("azienda.errCampi"));
+      return;
+    }
+
     setSaving(true);
     setError("");
     try {
@@ -153,16 +232,16 @@ export function AziendaPage() {
   const currentRegime = REGIMI.find((r) => r.id === form.regime_fiscale);
 
   if (loading) {
-    return <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>Caricamento dati azienda...</div>;
+    return <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>{t("azienda.loading")}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>Dati azienda</h3>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>{t("azienda.title")}</h3>
         <button onClick={handleSave} disabled={saving || !isModified}
           className="s3d-btn s3d-btn-primary">
-          {saving ? "⟳ Salvataggio..." : saved ? "✓ Salvato!" : "Salva modifiche"}
+          {saving ? `⟳ ${t("common.saving")}` : saved ? t("common.saved") : t("common.save")}
         </button>
       </div>
 
@@ -179,55 +258,63 @@ export function AziendaPage() {
           {/* Identità */}
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
-              Identità
+              {t("azienda.sezIdentita")}
             </h4>
             <div className="space-y-4">
               <div>
                 <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
-                  Ragione sociale / Nome e cognome
+                  {t("azienda.ragioneSociale")}
                 </label>
                 <input type="text" value={form.ragione_sociale}
                   onChange={(e) => updateField("ragione_sociale", e.target.value)}
-                  placeholder="Es. Sparks3D di Mario Rossi oppure Mario Rossi"
+                  placeholder={t("azienda.phRagioneSociale")}
                   className="s3d-input" />
-                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Comparirà nell'intestazione dei preventivi e documenti PDF</p>
+                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{t("azienda.ragioneSocialeHelp")}</p>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
-                    Partita IVA <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(facoltativo)</span>
+                    {t("azienda.piva")}
                   </label>
                   <input type="text" value={form.partita_iva}
                     onChange={(e) => updateField("partita_iva", e.target.value)}
+                    onBlur={() => handleBlur("partita_iva")}
                     placeholder="IT01234567890"
-                    className="s3d-input" />
+                    className="s3d-input" style={inputErrorBorder("partita_iva")} />
+                  <FieldError field="partita_iva" />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
-                    Codice Fiscale <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(facoltativo)</span>
+                    {t("azienda.cf")}
                   </label>
                   <input type="text" value={form.codice_fiscale}
                     onChange={(e) => updateField("codice_fiscale", e.target.value.toUpperCase())}
+                    onBlur={() => handleBlur("codice_fiscale")}
                     placeholder="RSSMRA90A01B157Y"
-                    className="s3d-input" />
+                    className="s3d-input" style={inputErrorBorder("codice_fiscale")} />
+                  <FieldError field="codice_fiscale" />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Email</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("azienda.email")}</label>
                   <input type="email" value={form.email}
                     onChange={(e) => updateField("email", e.target.value)}
-                    placeholder="info@esempio.it"
-                    className="s3d-input" />
+                    onBlur={() => handleBlur("email")}
+                    placeholder={t("azienda.phEmail")}
+                    className="s3d-input" style={inputErrorBorder("email")} />
+                  <FieldError field="email" />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Telefono</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("azienda.telefono")}</label>
                   <input type="tel" value={form.telefono}
                     onChange={(e) => updateField("telefono", e.target.value)}
-                    placeholder="+39 030 1234567"
-                    className="s3d-input" />
+                    onBlur={() => handleBlur("telefono")}
+                    placeholder={t("azienda.phTelefono")}
+                    className="s3d-input" style={inputErrorBorder("telefono")} />
+                  <FieldError field="telefono" />
                 </div>
               </div>
             </div>
@@ -236,40 +323,44 @@ export function AziendaPage() {
           {/* Indirizzo */}
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
-              Indirizzo (mittente spedizioni)
+              {t("azienda.sezIndirizzo")}
             </h4>
             <div className="space-y-4">
               <div>
-                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Indirizzo</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("azienda.indirizzo")}</label>
                 <input type="text" value={form.indirizzo}
                   onChange={(e) => updateField("indirizzo", e.target.value)}
-                  placeholder="Via Roma, 1"
+                  placeholder={t("azienda.phIndirizzo")}
                   className="s3d-input" />
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>CAP</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("common.cap")}</label>
                   <input type="text" value={form.cap}
                     onChange={(e) => updateField("cap", e.target.value)}
-                    placeholder="00000"
-                    className="s3d-input" />
+                    onBlur={() => handleBlur("cap")}
+                    placeholder="00000" maxLength={5}
+                    className="s3d-input" style={inputErrorBorder("cap")} />
+                  <FieldError field="cap" />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Città</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("common.city")}</label>
                   <input type="text" value={form.citta}
                     onChange={(e) => updateField("citta", e.target.value)}
-                    placeholder="Città"
+                    placeholder={t("common.city")}
                     className="s3d-input" />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Provincia</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("common.province")}</label>
                   <input type="text" value={form.provincia} maxLength={2}
                     onChange={(e) => updateField("provincia", e.target.value.toUpperCase())}
+                    onBlur={() => handleBlur("provincia")}
                     placeholder="XX"
-                    className="s3d-input" />
+                    className="s3d-input" style={inputErrorBorder("provincia")} />
+                  <FieldError field="provincia" />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Paese</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("common.country")}</label>
                   <select value={form.paese}
                     onChange={(e) => updateField("paese", e.target.value)}
                     className="s3d-input">
@@ -278,7 +369,7 @@ export function AziendaPage() {
                 </div>
               </div>
               <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                Questo indirizzo viene usato come mittente nel calcolo spedizioni PackLink.
+                {t("azienda.indHelp")}
               </p>
             </div>
           </div>
@@ -286,11 +377,11 @@ export function AziendaPage() {
           {/* Regime Fiscale */}
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
-              Regime fiscale e IVA
+              {t("azienda.sezRegime")}
             </h4>
             <div className="space-y-4">
               <div>
-                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>Regime</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>{t("azienda.regime")}</label>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {REGIMI.map((r) => (
                     <button key={r.id} onClick={() => handleRegimeChange(r.id)}
@@ -303,7 +394,7 @@ export function AziendaPage() {
                       }}>
                       <div style={{ fontWeight: 600 }}>{r.label}</div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
-                        IVA: {r.iva > 0 ? `${r.iva}%` : "Esente"}
+                        {t("azienda.iva")}: {r.iva > 0 ? `${r.iva}%` : t("azienda.esente")}
                       </div>
                     </button>
                   ))}
@@ -312,13 +403,13 @@ export function AziendaPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>IVA %</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("azienda.iva")}</label>
                   <input type="number" step="0.5" value={form.iva_percentuale}
                     onChange={(e) => updateField("iva_percentuale", parseFloat(e.target.value) || 0)}
                     className="s3d-input" />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Prefisso preventivo</label>
+                  <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("azienda.prefissoPreventivo")}</label>
                   <input type="text" value={form.prefisso_preventivo}
                     onChange={(e) => updateField("prefisso_preventivo", e.target.value.toUpperCase())}
                     placeholder="S3D"
@@ -329,18 +420,18 @@ export function AziendaPage() {
               {currentRegime?.nota && (
                 <div style={{ padding: 12, background: "rgba(249,115,22,0.08)", borderRadius: 10 }}>
                   <p className="text-xs text-amber-700 dark:text-amber-300">
-                    <strong>Nota in fattura/preventivo:</strong> {form.nota_regime}
+                    <strong>{t("azienda.notaFattura")}</strong> {form.nota_regime}
                   </p>
                 </div>
               )}
 
               <div>
                 <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>
-                  Nota personalizzata regime <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(opzionale)</span>
+                  {t("azienda.notaPersonalizzata")}
                 </label>
                 <textarea value={form.nota_regime}
                   onChange={(e) => updateField("nota_regime", e.target.value)}
-                  rows={2} placeholder="Verrà stampata nel PDF del preventivo..."
+                  rows={2} placeholder={t("azienda.phNotaPersonalizzata")}
                   className="s3d-input" style={{ resize: "none" }} />
               </div>
             </div>
@@ -353,7 +444,7 @@ export function AziendaPage() {
           {/* Logo */}
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
-              Logo
+              {t("azienda.sezLogo")}
             </h4>
             <div className="flex flex-col items-center gap-4">
               {logoPreview ? (
@@ -368,15 +459,15 @@ export function AziendaPage() {
               ) : (
                 <div style={{ width: 160, height: 160, border: "2px dashed var(--border-default)", borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
                   <span className="text-3xl mb-1">🖼️</span>
-                  <span className="text-xs">Nessun logo</span>
+                  <span className="text-xs">{t("azienda.nessunLogo")}</span>
                 </div>
               )}
               <button onClick={handleLogoSelect}
                 className="s3d-btn s3d-btn-ghost" style={{ width: "100%" }}>
-                {logoPreview ? "Cambia logo" : "Carica logo"}
+                {logoPreview ? t("azienda.cambiaLogo") : t("azienda.caricaLogo")}
               </button>
               <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center" }}>
-                PNG, JPG o SVG. Verrà usato nei PDF dei preventivi.
+                {t("azienda.logoHelp")}
               </p>
             </div>
           </div>
@@ -384,39 +475,39 @@ export function AziendaPage() {
           {/* Riepilogo */}
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
-              Riepilogo
+              {t("azienda.sezRiepilogo")}
             </h4>
             <div className="space-y-3 text-sm">
               <div>
-                <span style={{ color: "var(--text-muted)" }}>Ragione sociale</span>
+                <span style={{ color: "var(--text-muted)" }}>{t("azienda.ragSociale")}</span>
                 <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {form.ragione_sociale || "—"}
                 </p>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)" }}>Indirizzo</span>
+                <span style={{ color: "var(--text-muted)" }}>{t("azienda.indirizzo")}</span>
                 <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {form.indirizzo ? `${form.indirizzo}, ${form.cap} ${form.citta} (${form.provincia})` : "—"}
                 </p>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)" }}>Regime</span>
+                <span style={{ color: "var(--text-muted)" }}>{t("azienda.regime")}</span>
                 <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {currentRegime?.label || "—"} — IVA {form.iva_percentuale}%
                 </p>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)" }}>Prossimo preventivo</span>
+                <span style={{ color: "var(--text-muted)" }}>{t("azienda.prossimoPreventivo")}</span>
                 <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                   {form.prefisso_preventivo}-{form.prossimo_numero}
                 </p>
               </div>
               {(form.partita_iva || form.codice_fiscale) && (
                 <div>
-                  <span style={{ color: "var(--text-muted)" }}>Fiscale</span>
+                  <span style={{ color: "var(--text-muted)" }}>{t("azienda.fiscale")}</span>
                   <p style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 12 }}>
-                    {form.partita_iva && <span>P.IVA: {form.partita_iva}<br /></span>}
-                    {form.codice_fiscale && <span>C.F.: {form.codice_fiscale}</span>}
+                    {form.partita_iva && <span>{t("azienda.pivaLabel")}: {form.partita_iva}<br /></span>}
+                    {form.codice_fiscale && <span>{t("azienda.cfLabel")}: {form.codice_fiscale}</span>}
                   </p>
                 </div>
               )}
@@ -426,17 +517,17 @@ export function AziendaPage() {
           {/* Numerazione */}
           <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: 24 }}>
             <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 16 }}>
-              Numerazione preventivi
+              {t("azienda.sezNumerazione")}
             </h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
-                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Prossimo numero</label>
+                <label style={{ display: "block", fontSize: "var(--font-size-label)", fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("azienda.prossimoNumero")}</label>
                 <input type="number" min={1} value={form.prossimo_numero}
                   onChange={(e) => updateField("prossimo_numero", parseInt(e.target.value) || 1)}
                   className="s3d-input" />
               </div>
               <p style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                Il prossimo preventivo sarà: <strong style={{ color: "var(--text-secondary)" }}>{form.prefisso_preventivo}-{form.prossimo_numero}</strong>
+                {t("azienda.prossimoPreventivoPrev")} <strong style={{ color: "var(--text-secondary)" }}>{form.prefisso_preventivo}-{form.prossimo_numero}</strong>
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@
 // Sparks3D Preventivi — Modale "Calcola Spedizione" con PackLink Pro
 
 import { useState, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 interface ServizioCorrere {
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseCliente }: Props) {
+  const { t } = useTranslation();
   const [pacco, setPacco] = useState({ peso_kg: "", lunghezza_cm: "", larghezza_cm: "", altezza_cm: "" });
   const [servizi, setServizi] = useState<ServizioCorrere[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,7 +52,7 @@ export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseC
   const cercaTariffe = useCallback(async () => {
     const { peso_kg, lunghezza_cm, larghezza_cm, altezza_cm } = pacco;
     if (!peso_kg || !lunghezza_cm || !larghezza_cm || !altezza_cm) {
-      setErrore("Compila tutte le dimensioni del pacco."); return;
+      setErrore(t("corrieriModal.errDimensioni")); return;
     }
     setLoading(true); setErrore(null); setServizi([]); setSelezionato(null);
     try {
@@ -61,9 +63,9 @@ export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseC
         },
       });
       if (risposta.errore) setErrore(risposta.errore);
-      else if (risposta.servizi.length === 0) setErrore("Nessun servizio disponibile per questa tratta/dimensione.");
+      else if (risposta.servizi.length === 0) setErrore(t("corrieriModal.noServizi"));
       else setServizi(risposta.servizi);
-    } catch (err: any) { setErrore(`Errore: ${err}`); }
+    } catch (err: any) { setErrore(`${t("corrieriModal.errore")} ${err}`); }
     finally { setLoading(false); }
   }, [pacco, capCliente, paeseCliente]);
 
@@ -86,10 +88,10 @@ export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseC
   if (!isOpen) return null;
 
   const campi = [
-    { campo: "peso_kg", label: "Peso (kg)", ph: "0.5" },
-    { campo: "lunghezza_cm", label: "Lunghezza (cm)", ph: "30" },
-    { campo: "larghezza_cm", label: "Larghezza (cm)", ph: "20" },
-    { campo: "altezza_cm", label: "Altezza (cm)", ph: "15" },
+    { campo: "peso_kg", label: t("corrieriModal.peso"), ph: "0.5" },
+    { campo: "lunghezza_cm", label: t("corrieriModal.lunghezza"), ph: "30" },
+    { campo: "larghezza_cm", label: t("corrieriModal.larghezza"), ph: "20" },
+    { campo: "altezza_cm", label: t("corrieriModal.altezza"), ph: "15" },
   ];
 
   const sortBtn = (key: "prezzo" | "tempo", icon: string, label: string) => (
@@ -116,7 +118,7 @@ export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseC
       }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)" }}>
-          <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>📦 Calcola Spedizione</h3>
+          <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>{t("corrieriModal.title")}</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 18, cursor: "pointer" }}>✕</button>
         </div>
 
@@ -139,7 +141,7 @@ export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseC
           </div>
           <button onClick={cercaTariffe} disabled={loading} className="s3d-btn s3d-btn-primary"
             style={{ width: "100%", justifyContent: "center", opacity: loading ? 0.6 : 1 }}>
-            {loading ? "⟳ Ricerca in corso..." : "🔍 Cerca tariffe"}
+            {loading ? t("corrieriModal.ricerca") : t("corrieriModal.cercaTariffe")}
           </button>
         </div>
 
@@ -154,11 +156,11 @@ export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseC
         {servizi.length > 0 && (
           <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", borderBottom: "1px solid var(--border-subtle)" }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{servizi.length} servizi trovati</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{t("corrieriModal.serviziTrovati", { count: servizi.length })}</span>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Ordina:</span>
-                {sortBtn("prezzo", "💰", "Prezzo")}
-                {sortBtn("tempo", "⏱️", "Velocità")}
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{t("corrieriModal.ordina")}</span>
+                {sortBtn("prezzo", "💰", t("corrieriModal.prezzoLabel").replace("💰 ", ""))}
+                {sortBtn("tempo", "⏱️", t("corrieriModal.velocitaLabel").replace("⏱️ ", ""))}
               </div>
             </div>
             <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -203,11 +205,11 @@ export function CorrieriModal({ isOpen, onClose, onSeleziona, capCliente, paeseC
             <div style={{ fontSize: 13, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, marginRight: 12 }}>
               {selezionato
                 ? <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>✅ {selezionato.nome_corriere} — {selezionato.nome_servizio} — €{selezionato.prezzo_totale.toFixed(2)}</span>
-                : "👆 Seleziona un corriere dalla lista"}
+                : t("corrieriModal.selezionaCorrere")}
             </div>
             <button onClick={conferma} disabled={!selezionato} className="s3d-btn s3d-btn-primary"
               style={{ background: "var(--green)", boxShadow: "0 2px 12px rgba(34,197,94,0.3)", opacity: selezionato ? 1 : 0.4, whiteSpace: "nowrap" }}>
-              Usa questo corriere
+              {t("corrieriModal.usaCorrere")}
             </button>
           </div>
         )}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { PageId } from "../../types";
 import { AziendaPage } from "./AziendaPage";
 import { MaterialiPage } from "./MaterialiPage";
@@ -16,19 +17,20 @@ interface Props {
   onImportSlicer?: (tipo: "filament" | "machine" | "process", defaultSlicer: "bambu" | "orca" | "anycubic" | "prusa", returnTab: PageId) => void;
 }
 
-const tabs: { id: PageId; label: string }[] = [
-  { id: "impostazioni", label: "Intestazione" },
-  { id: "materiali", label: "Materiali" },
-  { id: "stampanti", label: "Stampanti" },
-  { id: "profili", label: "Profili stampa" },
-  { id: "servizi", label: "Servizi extra" },
-  { id: "corrieri", label: "Corrieri" },
-  { id: "pagamenti", label: "Pagamenti" },
-  { id: "interfaccia" as PageId, label: "Interfaccia" },
-  { id: "sicurezza" as PageId, label: "Sicurezza" },
-];
-
 export function ImpostazioniPage({ activeTab, onChangeTab, onOpenForm, onImportSlicer }: Props) {
+  const { t } = useTranslation();
+
+  const tabs: { id: PageId; label: string }[] = [
+    { id: "impostazioni", label: t("impostazioni.tabIntestazione") },
+    { id: "materiali", label: t("impostazioni.tabMateriali") },
+    { id: "stampanti", label: t("impostazioni.tabStampanti") },
+    { id: "profili", label: t("impostazioni.tabProfili") },
+    { id: "servizi", label: t("impostazioni.tabServizi") },
+    { id: "corrieri", label: t("impostazioni.tabCorrieri") },
+    { id: "pagamenti", label: t("impostazioni.tabPagamenti") },
+    { id: "interfaccia" as PageId, label: t("impostazioni.tabInterfaccia") },
+    { id: "sicurezza" as PageId, label: t("impostazioni.tabSicurezza") },
+  ];
   const renderContent = () => {
     switch (activeTab) {
       case "impostazioni": return <AziendaPage />;
@@ -61,18 +63,18 @@ export function ImpostazioniPage({ activeTab, onChangeTab, onOpenForm, onImportS
 
   return (
     <div className="animate-fade-in">
-      <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", marginBottom: 24 }}>Impostazioni</h2>
+      <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", marginBottom: 24 }}>{t("impostazioni.title")}</h2>
       <div style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--border-subtle)", marginBottom: 24 }}>
-        {tabs.map((t) => (
-          <button key={t.id} onClick={() => onChangeTab(t.id)}
+        {tabs.map((tab) => (
+          <button key={tab.id} onClick={() => onChangeTab(tab.id)}
             style={{
               padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
               background: "none", border: "none",
-              borderBottom: activeTab === t.id ? "2px solid var(--accent)" : "2px solid transparent",
-              color: activeTab === t.id ? "var(--accent)" : "var(--text-muted)",
+              borderBottom: activeTab === tab.id ? "2px solid var(--accent)" : "2px solid transparent",
+              color: activeTab === tab.id ? "var(--accent)" : "var(--text-muted)",
               transition: "all 0.2s",
             }}>
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>

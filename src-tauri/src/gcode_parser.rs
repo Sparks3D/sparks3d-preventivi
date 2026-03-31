@@ -15,9 +15,17 @@
 //   <metadata key="weight" value="74.15"/>
 //   <filament id="1" type="PETG" color="#424032" used_g="74.15" used_m="24.08"/>
 
+use base64::Engine;
 use serde::Serialize;
 use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
+
+#[derive(Debug, Serialize, Clone, Default)]
+pub struct PlateInfo {
+    pub plate_number: i64,
+    pub thumbnail_base64: Option<String>,
+    pub gcode_file: String,
+}
 
 #[derive(Debug, Serialize, Clone, Default)]
 pub struct SliceData {
@@ -32,6 +40,23 @@ pub struct SliceData {
     pub nome_file: String,
     pub slicer: String,
     pub materiali: Vec<SliceFilamentInfo>,
+    pub thumbnail_base64: Option<String>,
+    // Stampante e profilo estratti dal file
+    pub printer_model: String,
+    pub nozzle_diameter: f64,
+    pub layer_height: f64,
+    pub wall_loops: i64,
+    pub infill_percent: f64,
+    pub top_layers: i64,
+    pub bottom_layers: i64,
+    pub support_enabled: bool,
+    pub print_profile_name: String,
+    pub piatto: i64,
+    pub plates: Vec<PlateInfo>,
+    // Dimensioni modello (mm)
+    pub dim_x: f64,
+    pub dim_y: f64,
+    pub dim_z: f64,
 }
 
 #[derive(Debug, Serialize, Clone, Default)]
@@ -85,13 +110,37 @@ fn parse_gcode_lines<R: Read>(reader: BufReader<R>, data: &mut SliceData) {
     let mut fil_types: Vec<String> = Vec::new();
     let mut fil_colors: Vec<String> = Vec::new();
     let mut fil_densities: Vec<f64> = Vec::new();
+    let mut thumb_collecting = false;
+    let mut thumb_lines: Vec<String> = Vec::new();
 
     for line_result in reader.lines() {
         let line = match line_result { Ok(l) => l, Err(_) => continue };
         let trimmed = line.trim();
-        if !trimmed.starts_with(';') { continue; }
+        if !trimmed.starts_with(';') { if thumb_collecting { thumb_collecting = false; } continue; }
         let comment = trimmed[1..].trim();
         let comment_lower = comment.to_lowercase();
+
+        // ── Thumbnail embedded (Bambu Studio, PrusaSlicer) ──
+        if comment_lower.starts_with("thumbnail begin") {
+            thumb_collecting = true;
+            thumb_lines.clear();
+            continue;
+        }
+        if comment_lower.starts_with("thumbnail end") {
+            thumb_collecting = false;
+            if !thumb_lines.is_empty() {
+                let b64 = thumb_lines.join("");
+                // Verifica che sia base64 valido
+                if base64::engine::general_purpose::STANDARD.decode(&b64).is_ok() {
+                    data.thumbnail_base64 = Some(format!("data:image/png;base64,{}", b64));
+                }
+            }
+            continue;
+        }
+        if thumb_collecting {
+            thumb_lines.push(comment.to_string());
+            continue;
+        }
 
         // ── Tempo: "model printing time: 2h 59m 6s; total estimated time: 3h 5m 25s" ──
         if comment_lower.contains("total estimated time") {
@@ -196,6 +245,100 @@ fn parse_gcode_lines<R: Read>(reader: BufReader<R>, data: &mut SliceData) {
                 data.slicer = comment.to_string();
             }
         }
+
+        // ── Stampante: "printer_model = Bambu Lab X1 Carbon" ──
+        if comment_lower.starts_with("printer_model") {
+            if let Some(val) = extract_after(comment, "printer_model") {
+                if !is_template(&val) && data.printer_model.is_empty() { data.printer_model = val; }
+            }
+        }
+        // ── Nozzle: "nozzle_diameter = 0.4" ──
+        if comment_lower.starts_with("nozzle_diameter") {
+            if let Some(val) = extract_after(comment, "nozzle_diameter") {
+                if let Ok(v) = val.parse::<f64>() { if data.nozzle_diameter == 0.0 { data.nozzle_diameter = v; } }
+            }
+        }
+        // ── Layer height: "layer_height = 0.2" ──
+        if comment_lower.starts_with("layer_height") && !comment_lower.contains("initial") && !comment_lower.contains("first") {
+            if let Some(val) = extract_after(comment, "layer_height") {
+                if let Ok(v) = val.parse::<f64>() { if data.layer_height == 0.0 { data.layer_height = v; } }
+            }
+        }
+        // ── Pareti: "wall_loops = 2" (Bambu/Orca) o "perimeters = 2" (Prusa) ──
+        if comment_lower.starts_with("wall_loops") || comment_lower.starts_with("perimeters") {
+            let key = if comment_lower.starts_with("wall_loops") { "wall_loops" } else { "perimeters" };
+            if let Some(val) = extract_after(comment, key) {
+                if let Ok(v) = val.parse::<i64>() { if data.wall_loops == 0 { data.wall_loops = v; } }
+            }
+        }
+        // ── Infill: "sparse_infill_density = 15%" (Bambu/Orca) o "fill_density = 15%" (Prusa) ──
+        if comment_lower.starts_with("sparse_infill_density") || comment_lower.starts_with("fill_density") {
+            let key = if comment_lower.starts_with("sparse_infill") { "sparse_infill_density" } else { "fill_density" };
+            if let Some(val) = extract_after(comment, key) {
+                let clean = val.trim_end_matches('%').trim();
+                if let Ok(v) = clean.parse::<f64>() { if data.infill_percent == 0.0 { data.infill_percent = v; } }
+            }
+        }
+        // ── Top/Bottom layers ──
+        if comment_lower.starts_with("top_shell_layers") || comment_lower.starts_with("top_solid_layers") {
+            let key = if comment_lower.starts_with("top_shell") { "top_shell_layers" } else { "top_solid_layers" };
+            if let Some(val) = extract_after(comment, key) {
+                if let Ok(v) = val.parse::<i64>() { if data.top_layers == 0 { data.top_layers = v; } }
+            }
+        }
+        if comment_lower.starts_with("bottom_shell_layers") || comment_lower.starts_with("bottom_solid_layers") {
+            let key = if comment_lower.starts_with("bottom_shell") { "bottom_shell_layers" } else { "bottom_solid_layers" };
+            if let Some(val) = extract_after(comment, key) {
+                if let Ok(v) = val.parse::<i64>() { if data.bottom_layers == 0 { data.bottom_layers = v; } }
+            }
+        }
+        // ── Supporti: "enable_support = 1" (Bambu/Orca) o "support_material = 1" (Prusa) ──
+        if comment_lower.starts_with("enable_support") || comment_lower.starts_with("support_material") {
+            let key = if comment_lower.starts_with("enable_support") { "enable_support" } else { "support_material" };
+            if let Some(val) = extract_after(comment, key) {
+                if val.trim() == "1" || val.trim().to_lowercase() == "true" { data.support_enabled = true; }
+            }
+        }
+        // ── Nome profilo: "print_settings_id = 0.20mm Standard @BBL X1C" ──
+        if comment_lower.starts_with("print_settings_id") {
+            if let Some(val) = extract_after(comment, "print_settings_id") {
+                if !is_template(&val) && data.print_profile_name.is_empty() { data.print_profile_name = val; }
+            }
+        }
+
+        // ── Dimensioni modello (bounding box) ──
+        // Bambu/Orca: "; model bounding box: min={0,0,0} max={50.3,40.2,30.1}"
+        if comment_lower.contains("model bounding box") || comment_lower.contains("bounding_box") {
+            if let Some(max_part) = comment.split("max").nth(1) {
+                let nums: Vec<f64> = max_part
+                    .replace(['{', '}', '(', ')', '[', ']', '='], " ")
+                    .split(',')
+                    .filter_map(|s| s.trim().parse().ok())
+                    .collect();
+                if let Some(min_part) = comment.split("min").nth(1) {
+                    let mins: Vec<f64> = min_part
+                        .split("max").next().unwrap_or("")
+                        .replace(['{', '}', '(', ')', '[', ']', '='], " ")
+                        .split(',')
+                        .filter_map(|s| s.trim().parse().ok())
+                        .collect();
+                    if nums.len() >= 3 && mins.len() >= 3 {
+                        let dx = (nums[0] - mins[0]).abs();
+                        let dy = (nums[1] - mins[1]).abs();
+                        let dz = (nums[2] - mins[2]).abs();
+                        if dx > 0.0 && data.dim_x == 0.0 { data.dim_x = dx; }
+                        if dy > 0.0 && data.dim_y == 0.0 { data.dim_y = dy; }
+                        if dz > 0.0 && data.dim_z == 0.0 { data.dim_z = dz; }
+                    }
+                }
+            }
+        }
+        // Fallback: "max_print_height = 30.5" per almeno l'altezza
+        if comment_lower.starts_with("max_print_height") || comment_lower.starts_with("object_height") {
+            if let Some(val) = extract_after(comment, if comment_lower.starts_with("max_print") { "max_print_height" } else { "object_height" }) {
+                if let Ok(v) = val.parse::<f64>() { if data.dim_z == 0.0 { data.dim_z = v; } }
+            }
+        }
     }
 
     // ── Costruisci info materiali dal GCode ──
@@ -234,6 +377,83 @@ fn parse_3mf_file(path: &Path) -> Result<SliceData, String> {
         .filter_map(|i| archive.by_index(i).ok().map(|f| f.name().to_string()))
         .collect();
 
+    // 0) Estrai immagini da ZIP — thumbnail e immagini piatto
+    // Bambu Studio: Thumbnail/thumbnail.png, Metadata/plate_1.png, Metadata/plate_2.png
+    // OrcaSlicer: Thumbnail/thumbnail_*.png
+    // PrusaSlicer: Metadata/thumbnail.png
+    {
+        // Helper: leggi PNG dallo zip e converti in base64 data URI
+        let read_png = |archive: &mut zip::ZipArchive<std::fs::File>, name: &str| -> Option<String> {
+            let mut entry = archive.by_name(name).ok()?;
+            let mut buf = Vec::new();
+            entry.read_to_end(&mut buf).ok()?;
+            if buf.is_empty() { return None; }
+            Some(format!("data:image/png;base64,{}", base64::engine::general_purpose::STANDARD.encode(&buf)))
+        };
+
+        // Raccogli la migliore immagine per ogni piatto (una sola per piatto, la più grande)
+        let mut best_per_plate: std::collections::HashMap<i64, (usize, String)> = std::collections::HashMap::new(); // num → (size, name)
+        for name in &file_names {
+            let lower = name.to_lowercase();
+            if lower.ends_with(".png") && (lower.contains("plate_") || lower.contains("plate ")) {
+                let num = lower.split("plate_").nth(1)
+                    .or_else(|| lower.split("plate ").nth(1))
+                    .and_then(|s| s.split(|c: char| !c.is_ascii_digit()).next())
+                    .and_then(|s| s.parse::<i64>().ok())
+                    .unwrap_or(1);
+                let size = archive.by_name(name).map(|e| e.size() as usize).unwrap_or(0);
+                if best_per_plate.get(&num).map_or(true, |(s, _)| size > *s) {
+                    best_per_plate.insert(num, (size, name.clone()));
+                }
+            }
+        }
+        let mut plate_nums: Vec<i64> = best_per_plate.keys().cloned().collect();
+        plate_nums.sort();
+
+        if !plate_nums.is_empty() {
+            for &num in &plate_nums {
+                if let Some((_, ref fname)) = best_per_plate.get(&num) {
+                    let b64 = read_png(&mut archive, fname);
+                    let gcode = file_names.iter()
+                        .find(|f| {
+                            let fl = f.to_lowercase();
+                            (fl.ends_with(".gcode") || fl.ends_with(".gco")) && fl.contains(&format!("plate_{}", num))
+                        })
+                        .cloned()
+                        .unwrap_or_default();
+                    data.plates.push(PlateInfo { plate_number: num, thumbnail_base64: b64, gcode_file: gcode });
+                }
+            }
+        }
+
+        // Costruisci thumbnail principale dal primo piatto
+        if !data.plates.is_empty() {
+            // Usa l'immagine del primo piatto come thumbnail principale
+            data.thumbnail_base64 = data.plates.first().and_then(|p| p.thumbnail_base64.clone());
+            data.piatto = data.plates.first().map(|p| p.plate_number).unwrap_or(1);
+        }
+
+        // Se non ci sono immagini piatto, cerca thumbnail dedicato
+        if data.thumbnail_base64.is_none() {
+            // Cerca thumbnail classici (Thumbnail/*.png)
+            let mut best: Option<(usize, String)> = None;
+            for name in &file_names {
+                let lower = name.to_lowercase();
+                if lower.ends_with(".png") && lower.contains("thumbnail") {
+                    if let Ok(entry) = archive.by_name(name) {
+                        let size = entry.size() as usize;
+                        if best.as_ref().map_or(true, |(s, _)| size > *s) {
+                            best = Some((size, name.clone()));
+                        }
+                    }
+                }
+            }
+            if let Some((_, ref name)) = best {
+                data.thumbnail_base64 = read_png(&mut archive, name);
+            }
+        }
+    }
+
     // 1) Prima: slice_info.config (ha i dati più affidabili con XML strutturato)
     for name in &file_names {
         if name.to_lowercase().contains("slice_info") {
@@ -257,6 +477,15 @@ fn parse_3mf_file(path: &Path) -> Result<SliceData, String> {
             .or_else(|| gcode_names.first())
             .cloned().unwrap();
 
+        // Estrai numero piatto dal nome file (es. "plate_2.gcode" → 2)
+        let target_lower = target.to_lowercase();
+        if let Some(pos) = target_lower.find("plate_") {
+            let after = &target_lower[pos + 6..];
+            if let Some(num_str) = after.split(|c: char| !c.is_ascii_digit()).next() {
+                data.piatto = num_str.parse().unwrap_or(1);
+            }
+        }
+
         if let Ok(entry) = archive.by_name(&target) {
             let reader = BufReader::new(entry);
             // Parsa solo i commenti del GCode per dati mancanti
@@ -273,6 +502,20 @@ fn parse_3mf_file(path: &Path) -> Result<SliceData, String> {
             if data.filamento_tipo.is_empty() { data.filamento_tipo = gcode_data.filamento_tipo; }
             if data.filamento_densita == 0.0 { data.filamento_densita = gcode_data.filamento_densita; }
             if data.slicer.is_empty() { data.slicer = gcode_data.slicer; }
+            // Fallback dal GCode embedded per dati mancanti
+            if data.thumbnail_base64.is_none() { data.thumbnail_base64 = gcode_data.thumbnail_base64; }
+            if data.printer_model.is_empty() { data.printer_model = gcode_data.printer_model; }
+            if data.nozzle_diameter == 0.0 { data.nozzle_diameter = gcode_data.nozzle_diameter; }
+            if data.layer_height == 0.0 { data.layer_height = gcode_data.layer_height; }
+            if data.wall_loops == 0 { data.wall_loops = gcode_data.wall_loops; }
+            if data.infill_percent == 0.0 { data.infill_percent = gcode_data.infill_percent; }
+            if data.top_layers == 0 { data.top_layers = gcode_data.top_layers; }
+            if data.bottom_layers == 0 { data.bottom_layers = gcode_data.bottom_layers; }
+            if !data.support_enabled { data.support_enabled = gcode_data.support_enabled; }
+            if data.print_profile_name.is_empty() { data.print_profile_name = gcode_data.print_profile_name; }
+            if data.dim_x == 0.0 { data.dim_x = gcode_data.dim_x; }
+            if data.dim_y == 0.0 { data.dim_y = gcode_data.dim_y; }
+            if data.dim_z == 0.0 { data.dim_z = gcode_data.dim_z; }
             // Aggiorna colori nei materiali dal GCode (slice_info non ha sempre il colore)
             if !gcode_data.materiali.is_empty() {
                 for gm in &gcode_data.materiali {

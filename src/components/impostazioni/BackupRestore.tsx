@@ -3,6 +3,7 @@
 // =================================================
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { save, open } from "@tauri-apps/plugin-dialog";
 
@@ -57,6 +58,7 @@ const fmtMb = (mb: number) =>
   mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(2)} MB`;
 
 export function BackupRestore() {
+  const { t } = useTranslation();
   const [info, setInfo] = useState<BackupInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -101,7 +103,7 @@ export function BackupRestore() {
       const data = await invoke<BackupInfo>("get_backup_info");
       setInfo(data);
     } catch (err) {
-      console.error("Errore caricamento info backup:", err);
+      console.error(t("backup.errLoadInfo"), err);
     } finally {
       setLoading(false);
     }
@@ -139,10 +141,10 @@ export function BackupRestore() {
           testo: `✅ ${result.message}`,
         });
       } else {
-        setRisultato({ tipo: "err", testo: "Errore durante il backup." });
+        setRisultato({ tipo: "err", testo: t("backup.errBackup") });
       }
     } catch (err) {
-      setRisultato({ tipo: "err", testo: `❌ Errore: ${err}` });
+      setRisultato({ tipo: "err", testo: `${t("backup.errore")} ${err}` });
     } finally {
       setOperazione("idle");
     }
@@ -171,11 +173,11 @@ export function BackupRestore() {
 
     // Costruisci i passi in base alle opzioni selezionate
     const steps: { label: string; status: "pending" | "active" | "done" | "error" }[] = [
-      { label: "Apertura file backup", status: "pending" },
-      ...(restDb ? [{ label: "Ripristino database", status: "pending" as const }] : []),
-      ...(restLogos ? [{ label: "Ripristino logo", status: "pending" as const }] : []),
-      ...(restDocs ? [{ label: "Ripristino documenti PDF", status: "pending" as const }] : []),
-      { label: "Completamento", status: "pending" },
+      { label: t("backup.stepDb").replace("database", "backup"), status: "pending" },
+      ...(restDb ? [{ label: t("backup.stepDb"), status: "pending" as const }] : []),
+      ...(restLogos ? [{ label: t("backup.stepLogo"), status: "pending" as const }] : []),
+      ...(restDocs ? [{ label: t("backup.stepDocs"), status: "pending" as const }] : []),
+      { label: t("backup.stepCompletamento"), status: "pending" },
     ];
     setRestoreSteps(steps);
     setRestorePhase("loading");
@@ -234,13 +236,13 @@ export function BackupRestore() {
   // ── Esportazione dati ──
 
   const EXPORT_TIPI = [
-    { value: "tutto", label: "Tutto (tutti i fogli)", icon: "📦" },
-    { value: "preventivi", label: "Preventivi", icon: "📄" },
-    { value: "clienti", label: "Clienti", icon: "👥" },
-    { value: "materiali", label: "Materiali", icon: "🧱" },
-    { value: "stampanti", label: "Stampanti", icon: "🖨️" },
-    { value: "profili", label: "Profili stampa", icon: "⚙️" },
-    { value: "statistiche", label: "Statistiche / KPI", icon: "📊" },
+    { value: "tutto", label: t("backup.exportTutto"), icon: "📦" },
+    { value: "preventivi", label: t("backup.exportPreventivi"), icon: "📄" },
+    { value: "clienti", label: t("backup.exportClienti"), icon: "👥" },
+    { value: "materiali", label: t("backup.exportMateriali"), icon: "🧱" },
+    { value: "stampanti", label: t("backup.exportStampanti"), icon: "🖨️" },
+    { value: "profili", label: t("backup.exportProfili"), icon: "⚙️" },
+    { value: "statistiche", label: t("backup.exportStatistiche"), icon: "📊" },
   ];
 
   const avviaExport = async () => {
@@ -274,10 +276,10 @@ export function BackupRestore() {
       if (result.success) {
         setRisultato({ tipo: "ok", testo: `✅ ${result.messaggio}` });
       } else {
-        setRisultato({ tipo: "err", testo: "Errore durante l'esportazione." });
+        setRisultato({ tipo: "err", testo: t("backup.errExport") });
       }
     } catch (err) {
-      setRisultato({ tipo: "err", testo: `❌ Errore: ${err}` });
+      setRisultato({ tipo: "err", testo: `${t("backup.errore")} ${err}` });
     } finally {
       setExporting(false);
     }
@@ -300,18 +302,18 @@ export function BackupRestore() {
 
       if (result.success) {
         const dettagli: string[] = [];
-        if (result.preventivi_rimossi > 0) dettagli.push(`${result.preventivi_rimossi} preventivi`);
-        if (result.clienti_rimossi > 0) dettagli.push(`${result.clienti_rimossi} clienti`);
-        if (result.materiali_rimossi > 0) dettagli.push(`${result.materiali_rimossi} materiali`);
-        if (result.stampanti_rimosse > 0) dettagli.push(`${result.stampanti_rimosse} stampanti`);
-        if (result.profili_rimossi > 0) dettagli.push(`${result.profili_rimossi} profili`);
-        const det = dettagli.length > 0 ? `\nRimossi: ${dettagli.join(", ")}` : "";
-        setRisultato({ tipo: "ok", testo: `✅ ${result.messaggio}${det}\n\nRicaricamento in corso...` });
+        if (result.preventivi_rimossi > 0) dettagli.push(t("backup.countPreventivi", { count: result.preventivi_rimossi }));
+        if (result.clienti_rimossi > 0) dettagli.push(t("backup.countClienti", { count: result.clienti_rimossi }));
+        if (result.materiali_rimossi > 0) dettagli.push(t("backup.countMateriali", { count: result.materiali_rimossi }));
+        if (result.stampanti_rimosse > 0) dettagli.push(t("backup.countStampanti", { count: result.stampanti_rimosse }));
+        if (result.profili_rimossi > 0) dettagli.push(t("backup.countProfili", { count: result.profili_rimossi }));
+        const det = dettagli.length > 0 ? `\n${t("backup.rimossi")} ${dettagli.join(", ")}` : "";
+        setRisultato({ tipo: "ok", testo: `✅ ${result.messaggio}${det}\n\n${t("backup.ricaricamento")}` });
         // Ricarica l'app dopo 2 secondi per svuotare tutti i dati in memoria
         setTimeout(() => window.location.reload(), 2000);
       }
     } catch (err) {
-      setRisultato({ tipo: "err", testo: `❌ Errore reset: ${err}` });
+      setRisultato({ tipo: "err", testo: `${t("backup.errReset")} ${err}` });
     } finally {
       setResetting(false);
       caricaInfo();
@@ -338,7 +340,7 @@ export function BackupRestore() {
     cardTitle: {
       fontSize: 17,
       fontWeight: 700,
-      color: "#e2e8f0",
+      color: "var(--text-primary)",
       marginBottom: 6,
       display: "flex",
       alignItems: "center",
@@ -347,7 +349,7 @@ export function BackupRestore() {
 
     cardDesc: {
       fontSize: 13,
-      color: "#64748b",
+      color: "var(--text-muted)",
       marginBottom: 20,
     },
 
@@ -367,7 +369,7 @@ export function BackupRestore() {
 
     infoLabel: {
       fontSize: 11,
-      color: "#64748b",
+      color: "var(--text-muted)",
       textTransform: "uppercase" as const,
       letterSpacing: 0.8,
       marginBottom: 4,
@@ -376,12 +378,12 @@ export function BackupRestore() {
     infoValue: {
       fontSize: 18,
       fontWeight: 700,
-      color: "#e2e8f0",
+      color: "var(--text-primary)",
     },
 
     infoSub: {
       fontSize: 12,
-      color: "#475569",
+      color: "var(--text-muted)",
       marginTop: 2,
     },
 
@@ -415,13 +417,13 @@ export function BackupRestore() {
 
     checkLabel: {
       fontSize: 14,
-      color: "#cbd5e1",
+      color: "var(--text-secondary)",
       fontWeight: 500,
     },
 
     checkSub: {
       fontSize: 12,
-      color: "#475569",
+      color: "var(--text-muted)",
     },
 
     btnPrimary: {
@@ -484,7 +486,7 @@ export function BackupRestore() {
     },
 
     modalBox: {
-      background: "#0f1629",
+      background: "var(--bg-card)",
       border: "1px solid rgba(255,255,255,0.08)",
       borderRadius: 18,
       padding: 28,
@@ -497,7 +499,7 @@ export function BackupRestore() {
       border: "1px solid rgba(255,255,255,0.1)",
       borderRadius: 10,
       padding: "10px 20px",
-      color: "#94a3b8",
+      color: "var(--text-muted)",
       fontSize: 14,
       fontWeight: 600,
       cursor: "pointer",
@@ -508,7 +510,7 @@ export function BackupRestore() {
       border: "1px solid rgba(245,158,11,0.3)",
       borderRadius: 10,
       padding: "10px 20px",
-      color: "#fbbf24",
+      color: "var(--yellow)",
       fontSize: 14,
       fontWeight: 600,
       cursor: "pointer",
@@ -539,8 +541,8 @@ export function BackupRestore() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>
-        ⏳ Analisi dati in corso...
+      <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+        {t("backup.analisiDati")}
       </div>
     );
   }
@@ -550,60 +552,60 @@ export function BackupRestore() {
 
       {/* ═══ INFO DATI ═══ */}
       <div style={S.card}>
-        <div style={S.cardTitle}>📊 Stato dati</div>
-        <div style={S.cardDesc}>Riepilogo di tutti i dati salvati dall'applicazione.</div>
+        <div style={S.cardTitle}>{t("backup.statoDati")}</div>
+        <div style={S.cardDesc}>{t("backup.statoDatiDesc")}</div>
 
         <div style={S.infoGrid}>
           <div style={S.infoItem}>
-            <div style={S.infoLabel}>Database</div>
+            <div style={S.infoLabel}>{t("backup.infoDb")}</div>
             <div style={S.infoValue}>{info ? fmtMb(info.db_size_mb) : "—"}</div>
-            <div style={S.infoSub}>Preventivi, clienti, impostazioni</div>
+            <div style={S.infoSub}>{t("backup.infoDbSub")}</div>
           </div>
           <div style={S.infoItem}>
-            <div style={S.infoLabel}>Loghi</div>
+            <div style={S.infoLabel}>{t("backup.infoLoghi")}</div>
             <div style={S.infoValue}>{info?.logos_count ?? 0}</div>
             <div style={S.infoSub}>{info ? fmtMb(info.logos_size_mb) : "—"}</div>
           </div>
           <div style={S.infoItem}>
-            <div style={S.infoLabel}>PDF Preventivi</div>
+            <div style={S.infoLabel}>{t("backup.infoPdfPreventivi")}</div>
             <div style={S.infoValue}>{info?.documenti_preventivi_count ?? 0}</div>
-            <div style={S.infoSub}>In Documenti/Sparks3D/</div>
+            <div style={S.infoSub}>{t("backup.infoInPath")}</div>
           </div>
           <div style={S.infoItem}>
-            <div style={S.infoLabel}>PDF Ritenute</div>
+            <div style={S.infoLabel}>{t("backup.infoPdfRitenute")}</div>
             <div style={S.infoValue}>{info?.documenti_ritenute_count ?? 0}</div>
-            <div style={S.infoSub}>In Documenti/Sparks3D/</div>
+            <div style={S.infoSub}>{t("backup.infoInPath")}</div>
           </div>
           <div style={S.infoItem}>
-            <div style={S.infoLabel}>Dimensione totale</div>
-            <div style={{ ...S.infoValue, color: "#38bdf8" }}>{info ? fmtMb(info.totale_size_mb) : "—"}</div>
+            <div style={S.infoLabel}>{t("backup.infoDimTotale")}</div>
+            <div style={{ ...S.infoValue, color: "var(--text-accent)" }}>{info ? fmtMb(info.totale_size_mb) : "—"}</div>
           </div>
         </div>
       </div>
 
       {/* ═══ BACKUP ═══ */}
       <div style={S.card}>
-        <div style={S.cardTitle}>💾 Crea Backup</div>
+        <div style={S.cardTitle}>{t("backup.creaBackupTitle")}</div>
         <div style={S.cardDesc}>
-          Esporta tutti i dati in un file .zip. Utile prima di reinstallare il sistema o il programma.
+          {t("backup.creaBackupDesc")}
         </div>
 
         <Check
           checked={inclDb}
           onChange={setInclDb}
-          label="Database (preventivi, clienti, materiali, stampanti, impostazioni...)"
+          label={t("backup.backupDbLabel")}
           sub={info ? fmtMb(info.db_size_mb) : ""}
         />
         <Check
           checked={inclLogos}
           onChange={setInclLogos}
-          label={`Logo azienda (${info?.logos_count ?? 0} file)`}
+          label={t("backup.backupLogoLabel", { count: info?.logos_count ?? 0 })}
           sub={info ? fmtMb(info.logos_size_mb) : ""}
         />
         <Check
           checked={inclDocs}
           onChange={setInclDocs}
-          label={`Documenti PDF (${(info?.documenti_preventivi_count ?? 0) + (info?.documenti_ritenute_count ?? 0)} file)`}
+          label={t("backup.backupDocsLabel", { count: (info?.documenti_preventivi_count ?? 0) + (info?.documenti_ritenute_count ?? 0) })}
           sub={info ? fmtMb(info.documenti_size_mb) : ""}
         />
 
@@ -616,7 +618,7 @@ export function BackupRestore() {
             disabled={!inclDb && !inclLogos && !inclDocs || operazione !== "idle"}
             onClick={avviaBackup}
           >
-            {operazione === "backup" ? "⏳ Backup in corso..." : "💾 Crea Backup .zip"}
+            {operazione === "backup" ? t("backup.backupInCorso") : t("backup.creaBackupBtn")}
           </button>
         </div>
       </div>
@@ -631,7 +633,7 @@ export function BackupRestore() {
           zIndex: 9999,
         }}>
           <div style={{
-            background: "#0f1629",
+            background: "var(--bg-card)",
             border: `1px solid ${
               restorePhase === "done"
                 ? "rgba(34,197,94,0.35)"
@@ -649,12 +651,12 @@ export function BackupRestore() {
               <span style={{ fontSize: 22 }}>
                 {restorePhase === "done" ? "✅" : restorePhase === "error" ? "❌" : "📥"}
               </span>
-              <span style={{ fontSize: 17, fontWeight: 700, color: "#e2e8f0" }}>
+              <span style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
                 {restorePhase === "done"
-                  ? "Ripristino completato"
+                  ? t("backup.restoreCompleted")
                   : restorePhase === "error"
-                  ? "Errore durante il ripristino"
-                  : "Ripristino in corso..."}
+                  ? t("backup.restoreError")
+                  : t("backup.restoreInProgress")}
               </span>
             </div>
 
@@ -678,7 +680,7 @@ export function BackupRestore() {
                       "rgba(255,255,255,0.08)"}`,
                     transition: "all 0.3s",
                   }}>
-                    {step.status === "done" && <span style={{ color: "#4ade80" }}>✓</span>}
+                    {step.status === "done" && <span style={{ color: "var(--green)" }}>✓</span>}
                     {step.status === "active" && (
                       <span style={{
                         display: "inline-block", width: 10, height: 10, borderRadius: "50%",
@@ -686,7 +688,7 @@ export function BackupRestore() {
                         animation: "pulse 1s infinite",
                       }} />
                     )}
-                    {step.status === "error" && <span style={{ color: "#f87171" }}>✕</span>}
+                    {step.status === "error" && <span style={{ color: "var(--red)" }}>✕</span>}
                     {step.status === "pending" && (
                       <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "inline-block" }} />
                     )}
@@ -702,7 +704,7 @@ export function BackupRestore() {
                   }}>
                     {step.label}
                     {step.status === "active" && (
-                      <span style={{ color: "#475569", marginLeft: 6, fontWeight: 400 }}>...</span>
+                      <span style={{ color: "var(--text-muted)", marginLeft: 6, fontWeight: 400 }}>...</span>
                     )}
                   </span>
                 </div>
@@ -712,7 +714,7 @@ export function BackupRestore() {
             {/* Errore */}
             {restorePhase === "error" && restoreError && (
               <div style={{
-                fontSize: 13, color: "#f87171", padding: "10px 14px", borderRadius: 8,
+                fontSize: 13, color: "var(--red)", padding: "10px 14px", borderRadius: 8,
                 background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.2)",
                 marginBottom: 16,
               }}>
@@ -723,11 +725,11 @@ export function BackupRestore() {
             {/* Avviso riavvio */}
             {restorePhase === "done" && restDb && (
               <div style={{
-                fontSize: 13, color: "#f97316", padding: "10px 14px", borderRadius: 8,
+                fontSize: 13, color: "var(--orange)", padding: "10px 14px", borderRadius: 8,
                 background: "rgba(249,115,22,0.07)", border: "1px solid rgba(249,115,22,0.2)",
                 marginBottom: 16, lineHeight: 1.6,
               }}>
-                ⚠️ Il database ripristinato verrà caricato al prossimo avvio.
+                {t("backup.dbRipristinatoMsg")}
               </div>
             )}
 
@@ -751,7 +753,7 @@ export function BackupRestore() {
                   }
                 }}
               >
-                🔄 Riavvia applicazione
+                {t("backup.riavviaApp")}
               </button>
             )}
 
@@ -761,7 +763,7 @@ export function BackupRestore() {
                 style={S.btnCancel}
                 onClick={() => { setRestorePhase("idle"); setRestoreSteps([]); }}
               >
-                Chiudi
+                {t("common.close")}
               </button>
             )}
           </div>
@@ -777,26 +779,26 @@ export function BackupRestore() {
 
       {/* ═══ RIPRISTINO ═══ */}
       <div style={S.card}>
-        <div style={S.cardTitle}>📥 Ripristina da Backup</div>
+        <div style={S.cardTitle}>{t("backup.ripristinaTitle")}</div>
         <div style={S.cardDesc}>
-          Seleziona un file .zip di backup per ripristinare i dati. I file esistenti verranno sovrascritti.
+          {t("backup.ripristinaDesc")}
         </div>
 
         <Check
           checked={restDb}
           onChange={setRestDb}
-          label="Database (sovrascrive il database attuale)"
-          sub="⚠️ Riavvio necessario dopo il ripristino"
+          label={t("backup.restoreDbLabel")}
+          sub={t("backup.riavvioNecessario")}
         />
         <Check
           checked={restLogos}
           onChange={setRestLogos}
-          label="Logo azienda"
+          label={t("backup.restoreLogoLabel")}
         />
         <Check
           checked={restDocs}
           onChange={setRestDocs}
-          label="Documenti PDF (preventivi + ritenute)"
+          label={t("backup.restoreDocsLabel")}
         />
 
         <div style={{ marginTop: 16 }}>
@@ -808,22 +810,22 @@ export function BackupRestore() {
             disabled={!restDb && !restLogos && !restDocs || operazione !== "idle"}
             onClick={selezionaFileRestore}
           >
-            {operazione === "restore" ? "⏳ Ripristino in corso..." : "📥 Seleziona file backup..."}
+            {operazione === "restore" ? t("backup.ripristinoInCorso") : t("backup.selezionaFile")}
           </button>
         </div>
       </div>
 
       {/* ═══ ESPORTA DATI ═══ */}
       <div style={S.card}>
-        <div style={S.cardTitle}>📤 Esporta Dati</div>
+        <div style={S.cardTitle}>{t("backup.esportaTitle")}</div>
         <div style={S.cardDesc}>
-          Esporta i dati in formato CSV (universale) o Excel (.xlsx con formattazione).
+          {t("backup.esportaDesc")}
         </div>
 
         {/* Selezione tipo dati */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase" as const, letterSpacing: 0.8, marginBottom: 8 }}>
-            Dati da esportare
+          <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.8, marginBottom: 8 }}>
+            {t("backup.datiDaEsportare")}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
             {EXPORT_TIPI.map((t) => (
@@ -854,13 +856,13 @@ export function BackupRestore() {
 
         {/* Selezione formato */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, color: "#64748b", textTransform: "uppercase" as const, letterSpacing: 0.8, marginBottom: 8 }}>
-            Formato
+          <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.8, marginBottom: 8 }}>
+            {t("backup.formato")}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {[
-              { value: "xlsx", label: "Excel (.xlsx)", desc: "Con formattazione e fogli multipli", icon: "📊" },
-              { value: "csv", label: "CSV (.csv)", desc: "Universale, leggero", icon: "📝" },
+              { value: "xlsx", label: t("backup.formatXlsx"), desc: t("backup.formatXlsxDesc"), icon: "📊" },
+              { value: "csv", label: t("backup.formatCsv"), desc: t("backup.formatCsvDesc"), icon: "📝" },
             ].map((f) => (
               <button
                 key={f.value}
@@ -881,7 +883,7 @@ export function BackupRestore() {
                   <span style={{ fontSize: 16 }}>{f.icon}</span>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>{f.label}</span>
                 </div>
-                <div style={{ fontSize: 11, color: "#64748b" }}>{f.desc}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{f.desc}</div>
               </button>
             ))}
           </div>
@@ -890,12 +892,12 @@ export function BackupRestore() {
         {/* Info export "tutto" */}
         {exportTipo === "tutto" && exportFormato === "xlsx" && (
           <div style={{
-            fontSize: 12, color: "#60a5fa", marginBottom: 16,
+            fontSize: 12, color: "var(--accent)", marginBottom: 16,
             padding: "10px 14px", borderRadius: 8,
             background: "rgba(59,130,246,0.06)",
             border: "1px solid rgba(59,130,246,0.12)",
           }}>
-            Il file Excel conterrà un foglio per ogni tipo di dato: Preventivi, Clienti, Materiali, Stampanti, Profili e Statistiche.
+            {t("backup.infoExcelFogli")}
           </div>
         )}
         {exportTipo === "tutto" && exportFormato === "csv" && (
@@ -905,7 +907,7 @@ export function BackupRestore() {
             background: "rgba(245,158,11,0.06)",
             border: "1px solid rgba(245,158,11,0.12)",
           }}>
-            Verranno creati 6 file CSV separati nella stessa cartella del file selezionato.
+            {t("backup.infoCsvMulti")}
           </div>
         )}
 
@@ -919,43 +921,42 @@ export function BackupRestore() {
           disabled={exporting}
           onClick={avviaExport}
         >
-          {exporting ? "⏳ Esportazione in corso..." : `📤 Esporta ${exportFormato.toUpperCase()}`}
+          {exporting ? t("backup.esportazioneInCorso") : t("backup.esportaBtn", { formato: exportFormato.toUpperCase() })}
         </button>
       </div>
 
       {/* ═══ RESET DATI ═══ */}
       <div style={{ ...S.card, borderColor: "rgba(244,63,94,0.15)" }}>
         <div style={S.cardTitle}>
-          <span style={{ color: "#f87171" }}>🗑️ Reset dati</span>
+          <span style={{ color: "var(--red)" }}>{t("backup.resetTitle")}</span>
         </div>
         <div style={S.cardDesc}>
-          Cancella i dati selezionati dal database. Utile per ripulire i dati di test prima della distribuzione.
-          Si consiglia di creare un backup prima di procedere.
+          {t("backup.resetDesc")}
         </div>
 
         <Check
           checked={resetPreventivi}
           onChange={setResetPreventivi}
-          label="Preventivi e ritenute"
-          sub="Elimina tutti i preventivi, le righe, i servizi associati e le ritenute"
+          label={t("backup.resetPreventiviLabel")}
+          sub={t("backup.resetPreventiviSub")}
         />
         <Check
           checked={resetClienti}
           onChange={setResetClienti}
-          label="Clienti"
-          sub="Elimina tutta l'anagrafica clienti"
+          label={t("backup.resetClientiLabel")}
+          sub={t("backup.resetClientiSub")}
         />
         <Check
           checked={resetCatalogo}
           onChange={setResetCatalogo}
-          label="Catalogo (materiali, stampanti, profili, servizi, corrieri, pagamenti)"
-          sub="Elimina tutte le configurazioni tecniche"
+          label={t("backup.resetCatalogoLabel")}
+          sub={t("backup.resetCatalogoSub")}
         />
         <Check
           checked={resetImpostazioni}
           onChange={setResetImpostazioni}
-          label="Dati azienda e impostazioni"
-          sub="Riporta l'intestazione e le impostazioni ai valori iniziali, elimina il logo"
+          label={t("backup.resetAziendaLabel")}
+          sub={t("backup.resetAziendaSub")}
         />
 
         <div style={{ marginTop: 16 }}>
@@ -965,7 +966,7 @@ export function BackupRestore() {
               border: "1px solid rgba(244,63,94,0.3)",
               borderRadius: 12,
               padding: "14px 28px",
-              color: "#f87171",
+              color: "var(--red)",
               fontSize: 15,
               fontWeight: 700,
               cursor: (!resetPreventivi && !resetClienti && !resetCatalogo && !resetImpostazioni) || resetting ? "not-allowed" : "pointer",
@@ -978,7 +979,7 @@ export function BackupRestore() {
             disabled={(!resetPreventivi && !resetClienti && !resetCatalogo && !resetImpostazioni) || resetting}
             onClick={() => setConfermaReset(1)}
           >
-            {resetting ? "⏳ Reset in corso..." : "🗑️ Cancella dati selezionati"}
+            {resetting ? t("backup.resetInCorso") : t("backup.resetBtn")}
           </button>
         </div>
       </div>
@@ -994,45 +995,44 @@ export function BackupRestore() {
       {confermaRestore && (
         <div style={S.modal} onClick={() => setConfermaRestore(false)}>
           <div style={S.modalBox} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#fbbf24", marginBottom: 12 }}>
-              ⚠️ Conferma ripristino
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--yellow)", marginBottom: 12 }}>
+              {t("backup.confermaRipristino")}
             </div>
-            <div style={{ fontSize: 14, color: "#94a3b8", marginBottom: 8 }}>
-              Stai per ripristinare i dati dal file:
+            <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>
+              {t("backup.ripristinoDaFile")}
             </div>
             <div style={{
-              fontSize: 13, color: "#38bdf8", fontFamily: "monospace",
+              fontSize: 13, color: "var(--text-accent)", fontFamily: "monospace",
               padding: "8px 12px", borderRadius: 8,
               background: "rgba(59,130,246,0.08)",
               marginBottom: 16, wordBreak: "break-all",
             }}>
               {restorePath}
             </div>
-            <div style={{ fontSize: 13, color: "#f97316", marginBottom: 8 }}>
-              Elementi che verranno ripristinati:
+            <div style={{ fontSize: 13, color: "var(--orange)", marginBottom: 8 }}>
+              {t("backup.elementiRipristino")}
             </div>
-            <ul style={{ fontSize: 13, color: "#94a3b8", paddingLeft: 20, marginBottom: 16 }}>
-              {restDb && <li>Database — <span style={{ color: "#f97316" }}>sovrascrive i dati attuali!</span></li>}
-              {restLogos && <li>Logo azienda</li>}
-              {restDocs && <li>Documenti PDF (preventivi + ritenute)</li>}
+            <ul style={{ fontSize: 13, color: "var(--text-muted)", paddingLeft: 20, marginBottom: 16 }}>
+              {restDb && <li><span style={{ color: "var(--orange)" }}>{t("backup.dbSovrascrive")}</span></li>}
+              {restLogos && <li>{t("backup.restoreLogoLabel")}</li>}
+              {restDocs && <li>{t("backup.restoreDocsLabel")}</li>}
             </ul>
             {restDb && (
               <div style={{
-                fontSize: 12, color: "#f87171", marginBottom: 20,
+                fontSize: 12, color: "var(--red)", marginBottom: 20,
                 padding: "10px 14px", borderRadius: 8,
                 background: "rgba(239,68,68,0.08)",
                 border: "1px solid rgba(239,68,68,0.15)",
               }}>
-                ⚠️ Il database attuale verrà sovrascritto. Questa operazione non è reversibile.
-                Dopo il ripristino sarà necessario riavviare l'applicazione.
+                {t("backup.dbIrreversibile")}
               </div>
             )}
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
               <button style={S.btnCancel} onClick={() => setConfermaRestore(false)}>
-                Annulla
+                {t("common.cancel")}
               </button>
               <button style={S.btnDanger} onClick={avviaRestore}>
-                📥 Ripristina
+                {t("backup.ripristina")}
               </button>
             </div>
           </div>
@@ -1047,31 +1047,31 @@ export function BackupRestore() {
               textAlign: "center", padding: "8px 0 16px",
             }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#f87171", marginBottom: 8 }}>
-                ATTENZIONE
+              <div style={{ fontSize: 20, fontWeight: 800, color: "var(--red)", marginBottom: 8 }}>
+                {t("backup.attenzione")}
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#fbbf24", marginBottom: 16 }}>
-                Stai per eliminare tutti i dati del programma, sei sicuro?
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--yellow)", marginBottom: 16 }}>
+                {t("backup.resetConfirmMsg")}
               </div>
             </div>
-            <ul style={{ fontSize: 13, color: "#94a3b8", paddingLeft: 20, marginBottom: 16 }}>
-              {resetPreventivi && <li>Tutti i <span style={{ color: "#f87171" }}>preventivi, righe e ritenute</span></li>}
-              {resetClienti && <li>Tutta l'<span style={{ color: "#f87171" }}>anagrafica clienti</span></li>}
-              {resetCatalogo && <li>Tutto il <span style={{ color: "#f87171" }}>catalogo</span> (materiali, stampanti, profili, servizi, corrieri, pagamenti)</li>}
-              {resetImpostazioni && <li><span style={{ color: "#f87171" }}>Dati azienda e impostazioni</span> (riportati ai valori iniziali)</li>}
+            <ul style={{ fontSize: 13, color: "var(--text-muted)", paddingLeft: 20, marginBottom: 16 }}>
+              {resetPreventivi && <li><span style={{ color: "var(--red)" }}>{t("backup.resetListPreventivi")}</span></li>}
+              {resetClienti && <li><span style={{ color: "var(--red)" }}>{t("backup.resetListClienti")}</span></li>}
+              {resetCatalogo && <li><span style={{ color: "var(--red)" }}>{t("backup.resetListCatalogo")}</span></li>}
+              {resetImpostazioni && <li><span style={{ color: "var(--red)" }}>{t("backup.resetListImpostazioni")}</span></li>}
             </ul>
             <div style={{
-              fontSize: 13, color: "#f87171", marginBottom: 20,
+              fontSize: 13, color: "var(--red)", marginBottom: 20,
               padding: "12px 16px", borderRadius: 10,
               background: "rgba(239,68,68,0.08)",
               border: "1px solid rgba(239,68,68,0.15)",
               lineHeight: 1.5,
             }}>
-              ⚠️ Questa operazione non è reversibile. Assicurati di aver creato un backup prima di procedere.
+              {t("backup.resetIrreversibile")}
             </div>
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
               <button style={S.btnCancel} onClick={() => setConfermaReset(0)}>
-                Annulla
+                {t("common.cancel")}
               </button>
               <button
                 style={{
@@ -1079,14 +1079,14 @@ export function BackupRestore() {
                   border: "1px solid rgba(244,63,94,0.3)",
                   borderRadius: 10,
                   padding: "10px 20px",
-                  color: "#f87171",
+                  color: "var(--red)",
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: "pointer",
                 }}
                 onClick={() => setConfermaReset(2)}
               >
-                Sì, prosegui
+                {t("backup.siProsegui")}
               </button>
             </div>
           </div>
@@ -1101,33 +1101,33 @@ export function BackupRestore() {
               textAlign: "center", padding: "8px 0 16px",
             }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>🗑️</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#f87171", marginBottom: 12 }}>
-                CONFERMA DEFINITIVA
+              <div style={{ fontSize: 20, fontWeight: 800, color: "var(--red)", marginBottom: 12 }}>
+                {t("backup.confermaDefinitiva")}
               </div>
               <div style={{
-                fontSize: 14, color: "#94a3b8", lineHeight: 1.6,
+                fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6,
                 maxWidth: 380, margin: "0 auto",
               }}>
-                Tutti i preventivi, le ricevute, le fatture, i dati importati e quelli personali verranno eliminati.
+                {t("backup.resetFinalMsg")}
                 <br /><br />
-                <span style={{ color: "#fbbf24", fontWeight: 700 }}>
-                  Senza un backup precedente non sarai in grado di ripristinarli!
+                <span style={{ color: "var(--yellow)", fontWeight: 700 }}>
+                  {t("backup.senzaBackup")}
                 </span>
               </div>
             </div>
             <div style={{
-              fontSize: 13, color: "#f87171", marginBottom: 20, marginTop: 16,
+              fontSize: 13, color: "var(--red)", marginBottom: 20, marginTop: 16,
               padding: "12px 16px", borderRadius: 10,
               background: "rgba(239,68,68,0.1)",
               border: "1px solid rgba(239,68,68,0.2)",
               textAlign: "center",
               fontWeight: 600,
             }}>
-              Conferma per proseguire con la cancellazione
+              {t("backup.confermaPerProseguire")}
             </div>
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
               <button style={S.btnCancel} onClick={() => setConfermaReset(0)}>
-                Annulla
+                {t("common.cancel")}
               </button>
               <button
                 style={{
@@ -1143,7 +1143,7 @@ export function BackupRestore() {
                 }}
                 onClick={avviaReset}
               >
-                🗑️ Elimina tutto definitivamente
+                {t("backup.eliminaTutto")}
               </button>
             </div>
           </div>

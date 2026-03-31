@@ -91,6 +91,8 @@ pub struct RichiestaSpedizione {
     pub pacco: PaccoDimensioni,
     pub cap_destinatario: String,
     pub paese_destinatario: String,
+    #[serde(default)]
+    pub api_key: String,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -151,31 +153,47 @@ pub async fn get_tariffe_corrieri(
     richiesta: RichiestaSpedizione,
 ) -> Result<RispostaSpedizione, String> {
 
-    // 1) Leggo API key + dati mittente dal DB
-    let (api_key, from_zip, from_country) = {
-        let db = state.db.lock().map_err(|e| e.to_string())?;
-
-        let api_key_raw = db.query_row(
-            "SELECT valore FROM impostazioni WHERE chiave='packlink_api_key'",
-            [], |row| row.get::<_, String>(0),
-        ).unwrap_or_default();
+    // 1) API key: richiesta → keyring → DB
+    let api_key = {
+        let raw = if !richiesta.api_key.is_empty() {
+            richiesta.api_key.clone()
+        } else {
+            // Prova keyring
+            let from_keyring = keyring::Entry::new("sparks3d-preventivi", "packlink-api-key")
+                .ok()
+                .and_then(|e| e.get_password().ok())
+                .unwrap_or_default();
+            if !from_keyring.is_empty() {
+                from_keyring
+            } else {
+                // Fallback: leggi dal DB
+                let db = state.db.lock().map_err(|e| e.to_string())?;
+                db.query_row(
+                    "SELECT valore FROM impostazioni WHERE chiave = 'packlink-api-key'",
+                    [], |row| row.get::<_, String>(0),
+                ).unwrap_or_default()
+            }
+        };
 
         // Pulizia: rimuovi "Bearer ", "< >", spazi
-        let api_key = api_key_raw
-            .trim()
+        raw.trim()
             .trim_start_matches("Bearer ")
             .trim_start_matches("bearer ")
             .trim_start_matches('<')
             .trim_end_matches('>')
             .trim()
-            .to_string();
+            .to_string()
+    };
 
+    // Dati mittente dal DB
+    let (from_zip, from_country) = {
+        let db = state.db.lock().map_err(|e| e.to_string())?;
         let (cap, paese) = db.query_row(
             "SELECT cap, COALESCE(paese, 'IT') FROM azienda WHERE id=1",
             [], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
         ).unwrap_or_else(|_| ("".to_string(), "IT".to_string()));
 
-        (api_key, cap.trim().to_string(), paese.trim().to_string())
+        (cap.trim().to_string(), paese.trim().to_string())
     };
 
     if api_key.is_empty() {
@@ -224,16 +242,18 @@ pub async fn get_tariffe_corrieri(
         richiesta.pacco.altezza_cm,
     );
 
-    // 3) Headers: API key nuda (senza Bearer) + Accept JSON
+    // 3) Headers
     let mut headers = HeaderMap::new();
-    headers.insert(
-        AUTHORIZATION,
-        api_key.parse().map_err(|e| format!("API key non valida: {e}"))?,
-    );
+    // PackLink Pro API: chiave direttamente nell'header Authorization
+    let auth_value = reqwest::header::HeaderValue::from_str(&api_key)
+        .map_err(|e| format!("API key contiene caratteri non validi: {e}"))?;
+    headers.insert(AUTHORIZATION, auth_value);
     headers.insert(
         reqwest::header::ACCEPT,
         "application/json".parse().unwrap(),
     );
+    // Log per debug (primi 8 char + lunghezza)
+    eprintln!("[PackLink] API key len={}, prefix={}...", api_key.len(), &api_key[..api_key.len().min(8)]);
 
     // 4) Chiamata HTTP GET
     let client = reqwest::Client::new();

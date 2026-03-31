@@ -7,6 +7,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { invoke } from "@tauri-apps/api/core";
+import i18n from "../i18n";
 
 // ── Tipi ──
 
@@ -40,7 +41,7 @@ interface RigaCompleta {
   costo_materiale_totale: number; costo_energia: number;
   costo_ammortamento: number; costo_fallimento: number;
   totale_costo: number; totale_cliente: number; profit: number;
-  post_processing: number;
+  post_processing: number; thumbnail_path: string; thumbnails_json: string;
   materiali: { materiale_nome: string; peso_grammi: number; colore_hex: string }[];
 }
 
@@ -96,8 +97,13 @@ const COL = {
 // GENERA PDF
 // ══════════════════════════════════════════
 
+export interface PdfOptions {
+  showThumbnails?: boolean;
+}
+
 export async function generatePreventivosPdf(
   preventivo: PreventivoCompleto,
+  options?: PdfOptions,
 ): Promise<Uint8Array> {
   // Carica dati azienda
   const az = await invoke<Azienda>("get_azienda");
@@ -216,7 +222,7 @@ export async function generatePreventivosPdf(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.setTextColor(...COL.primary);
-  doc.text("PREVENTIVO", ml + 5, y + 7);
+  doc.text(i18n.t("pdf.preventivo"), ml + 5, y + 7);
 
   doc.setFontSize(11);
   doc.setTextColor(...COL.text);
@@ -231,7 +237,7 @@ export async function generatePreventivosPdf(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(...COL.textMuted);
-  doc.text("DESTINATARIO", ml, y);
+  doc.text(i18n.t("pdf.destinatario"), ml, y);
   y += 5;
 
   if (cliente) {
@@ -265,7 +271,7 @@ export async function generatePreventivosPdf(
     doc.setFont("helvetica", "italic");
     doc.setFontSize(9);
     doc.setTextColor(...COL.textMuted);
-    doc.text("Nessun cliente selezionato", ml, y);
+    doc.text(i18n.t("pdf.nessunoClienteSelezionato"), ml, y);
     y += 5;
   }
 
@@ -279,16 +285,38 @@ export async function generatePreventivosPdf(
   // TABELLA RIGHE
   // ═══════════════════════════════════════
 
-  if (pv.righe.length > 0) {
-    const tableHead = [["#", "Modello 3D", "Qtà", "Tempo", "Peso", "Costo", "Prezzo"]];
+  // Pre-carica thumbnails per il PDF (solo se abilitati)
+  const thumbMap: Record<number, string[]> = {};
+  if (options?.showThumbnails !== false) {
+    for (const r of pv.righe) {
+      const paths: string[] = r.thumbnails_json ? JSON.parse(r.thumbnails_json || "[]") : [];
+      if (paths.length > 0) {
+        thumbMap[r.id] = [];
+        for (const p of paths) {
+          try { thumbMap[r.id].push(await invoke<string>("load_logo_preview", { logoPath: p })); } catch {}
+        }
+      } else if (r.thumbnail_path) {
+        try { thumbMap[r.id] = [await invoke<string>("load_logo_preview", { logoPath: r.thumbnail_path })]; } catch {}
+      }
+    }
+  }
 
+  if (pv.righe.length > 0) {
+    const tableHead = [[i18n.t("pdf.thHash"), i18n.t("pdf.thModello"), i18n.t("pdf.thQta"), i18n.t("pdf.thTempo"), i18n.t("pdf.thPeso"), i18n.t("pdf.thCosto"), i18n.t("pdf.thPrezzo")]];
+
+    // Mappa indice riga tabella → riga_id (per disegnare thumbnail)
+    const rowToRigaId: Record<number, number> = {};
     const tableBody: any[][] = [];
+    let tableRowIdx = 0;
     pv.righe.forEach((r, idx) => {
       // Rimuovi estensione file dal nome
       const nomeRaw = r.titolo_visualizzato || r.nome_file || "—";
       const nome = nomeRaw.replace(/\.(gcode|3mf|gco|g|stl|obj|step|stp)$/i, "");
 
-      // Riga principale
+      const thumbs = thumbMap[r.id] || [];
+      rowToRigaId[tableRowIdx] = r.id;
+
+      // Riga principale (senza padding per thumbnail — le immagini vanno in sotto-riga)
       tableBody.push([
         { content: `${idx + 1}`, styles: { halign: "center" } },
         { content: nome, styles: { fontStyle: "bold" } },
@@ -298,6 +326,7 @@ export async function generatePreventivosPdf(
         { content: fe(r.totale_costo), styles: { halign: "right" } },
         { content: fe(r.totale_cliente), styles: { halign: "right", fontStyle: "bold" } },
       ]);
+      tableRowIdx++;
 
       // Sotto-riga: solo materiale usato (senza breakdown costi)
       const matStr = r.materiali.map(m => m.materiale_nome).join(", ");
@@ -305,8 +334,20 @@ export async function generatePreventivosPdf(
       if (matStr) {
         tableBody.push([
           { content: "", styles: {} },
-          { content: `Materiale: ${matStr}`, colSpan: 6, styles: { fontSize: 7, textColor: COL.textMuted, cellPadding: { top: 0, bottom: 2, left: 2, right: 0 } } },
+          { content: `${i18n.t("pdf.materiale")} ${matStr}`, colSpan: 6, styles: { fontSize: 7, textColor: COL.textMuted, cellPadding: { top: 0, bottom: 2, left: 2, right: 0 } } },
         ]);
+        tableRowIdx++;
+      }
+
+      // Sotto-riga per thumbnails (sotto il nome del modello)
+      if (thumbs.length > 0) {
+        const thumbH = 16; // altezza immagine in mm
+        rowToRigaId[tableRowIdx] = -r.id; // id negativo = riga thumbnail
+        tableBody.push([
+          { content: "", styles: {} },
+          { content: "", colSpan: 6, styles: { minCellHeight: thumbH + 2, cellPadding: { top: 1, bottom: 1, left: 2, right: 0 } } },
+        ]);
+        tableRowIdx++;
       }
     });
 
@@ -342,6 +383,25 @@ export async function generatePreventivosPdf(
         5: { cellWidth: 24 },
         6: { cellWidth: 26 },
       },
+      didDrawCell: (data: any) => {
+        // Disegna thumbnails nella sotto-riga dedicata (id negativo)
+        if (data.section === "body" && data.column.index === 1) {
+          const mappedId = rowToRigaId[data.row.index];
+          if (mappedId && mappedId < 0) {
+            // Sotto-riga thumbnail: id negativo = -rigaId
+            const realId = -mappedId;
+            const imgs = thumbMap[realId];
+            if (imgs && imgs.length > 0) {
+              const imgSize = 14;
+              imgs.forEach((img, i) => {
+                try {
+                  doc.addImage(img, "PNG", data.cell.x + 2 + i * (imgSize + 2), data.cell.y + 1, imgSize, imgSize);
+                } catch { /* thumbnail non valido */ }
+              });
+            }
+          }
+        }
+      },
     });
 
     y = (doc as any).lastAutoTable.finalY + 6;
@@ -357,19 +417,19 @@ export async function generatePreventivosPdf(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(...COL.textMuted);
-    doc.text("SERVIZI EXTRA / LAVORAZIONI", ml, y);
+    doc.text(i18n.t("pdf.serviziExtra"), ml, y);
     y += 5;
 
-    const serviziHead = [["Servizio", "Costo", "Al cliente"]];
+    const serviziHead = [[i18n.t("pdf.servizio"), i18n.t("pdf.thCosto"), i18n.t("pdf.alCliente")]];
     const serviziBody: any[][] = pv.servizi.map(s => [
       { content: s.nome, styles: { fontStyle: "bold" } },
       { content: fe(s.costo_effettivo), styles: { halign: "right" } },
-      { content: s.addebito_cliente > 0 ? fe(s.addebito_cliente) : "Incluso", styles: { halign: "right", fontStyle: "bold", textColor: s.addebito_cliente > 0 ? COL.text : COL.green } },
+      { content: s.addebito_cliente > 0 ? fe(s.addebito_cliente) : i18n.t("pdf.incluso"), styles: { halign: "right", fontStyle: "bold", textColor: s.addebito_cliente > 0 ? COL.text : COL.green } },
     ]);
 
     // Riga totale servizi
     serviziBody.push([
-      { content: "Totale servizi", styles: { fontStyle: "bold" } },
+      { content: i18n.t("pdf.totaleServizi"), styles: { fontStyle: "bold" } },
       { content: "", styles: {} },
       { content: fe(pv.totale_servizi), styles: { halign: "right", fontStyle: "bold" } },
     ]);
@@ -398,18 +458,18 @@ export async function generatePreventivosPdf(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(...COL.textMuted);
-    doc.text("SPEDIZIONE", ml, y);
+    doc.text(i18n.t("pdf.spedizione"), ml, y);
     y += 5;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(...COL.text);
     if (corriereNome) {
-      doc.text(`Corriere: ${corriereNome}`, ml, y);
+      doc.text(`${i18n.t("pdf.corriere")} ${corriereNome}`, ml, y);
       y += 4.5;
     }
     doc.setFont("helvetica", "bold");
-    doc.text(`Costo spedizione: ${fe(pv.totale_spedizione)}`, ml, y);
+    doc.text(`${i18n.t("pdf.costoSpedizione")} ${fe(pv.totale_spedizione)}`, ml, y);
     y += 6;
 
     doc.setDrawColor(...COL.line);
@@ -419,107 +479,99 @@ export async function generatePreventivosPdf(
   }
 
   // ═══════════════════════════════════════
-  // SEZIONE TOTALI
+  // SEZIONE TOTALI + PAGAMENTO (layout a due colonne)
+  // Colonna sinistra: pagamento/spedizione/acconto
+  // Colonna destra: breakdown totali
   // ═══════════════════════════════════════
 
-  // Check page break
   if (y > ph - 80) { doc.addPage(); y = mt; }
 
-  const tx = ml + cw - 80;
-  const vx = ml + cw;
+  const sectionStartY = y;
+  const leftColW = cw * 0.52; // colonna sinistra
+  const rightColX = ml + cw - 80; // colonna destra
+  const rightColEnd = ml + cw;
+
+  // ── COLONNA DESTRA: Totali ──
+  let ry = sectionStartY;
 
   doc.setDrawColor(...COL.lineAccent);
   doc.setLineWidth(0.5);
-  doc.line(tx, y, vx, y);
-  y += 6;
+  doc.line(rightColX, ry, rightColEnd, ry);
+  ry += 6;
 
-  // Helper per riga totale
   const totRow = (label: string, value: string, bold = false) => {
     doc.setFont("helvetica", bold ? "bold" : "normal");
     doc.setFontSize(bold ? 10 : 9);
     doc.setTextColor(...COL.text);
-    doc.text(label, tx, y);
-    doc.text(value, vx, y, { align: "right" });
-    y += 5;
+    doc.text(label, rightColX, ry);
+    doc.text(value, rightColEnd, ry, { align: "right" });
+    ry += 5;
   };
 
-  totRow("Subtotale righe:", fe(pv.totale_cliente));
-  if (pv.avvio_macchina > 0) totRow("Avvio macchina:", fe(pv.avvio_macchina));
-  if (pv.totale_servizi > 0) totRow("Totale servizi:", fe(pv.totale_servizi));
-  if (pv.totale_spedizione > 0) totRow("Spedizione:", fe(pv.totale_spedizione));
+  totRow(i18n.t("pdf.subtotaleRighe"), fe(pv.totale_cliente));
+  if (pv.avvio_macchina > 0) totRow(i18n.t("pdf.avvioMacchina"), fe(pv.avvio_macchina));
+  if (pv.totale_servizi > 0) totRow(i18n.t("pdf.totaleServizi") + ":", fe(pv.totale_servizi));
+  if (pv.totale_spedizione > 0) totRow(i18n.t("pdf.spedizioneLabel"), fe(pv.totale_spedizione));
 
-  // Calcola commissione pagamento se addebita al cliente
   let commissionePagamento = 0;
   if (metodoPagamento && metodoPagamento.addebita_al_cliente) {
     commissionePagamento = pv.totale_finale * (metodoPagamento.commissione_percentuale / 100) + metodoPagamento.commissione_fissa;
     if (commissionePagamento > 0) {
-      totRow("Commissione pagamento:", fe(commissionePagamento));
+      totRow(i18n.t("pdf.commissionePagamento"), fe(commissionePagamento));
     }
   }
 
   const totaleConCommissione = pv.totale_finale + commissionePagamento;
 
-  y += 2;
-
+  ry += 2;
   // TOTALE FINALE (evidenziato)
   doc.setFillColor(...COL.primaryLight);
-  doc.rect(tx - 3, y - 5, 83, 14, "F");
-
+  doc.rect(rightColX - 3, ry - 5, 83, 14, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(...COL.primary);
-  doc.text("TOTALE:", tx, y + 3);
-  doc.text(fe(totaleConCommissione), vx, y + 3, { align: "right" });
-  y += 16;
+  doc.text(i18n.t("pdf.totale"), rightColX, ry + 3);
+  doc.text(fe(totaleConCommissione), rightColEnd, ry + 3, { align: "right" });
+  ry += 16;
 
   // IVA
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...COL.textLight);
-
   if (az.regime_fiscale === "forfettario") {
     doc.setFont("helvetica", "italic");
-    doc.text("Operazione senza IVA — Regime forfettario", tx, y);
-    y += 5;
+    doc.text(i18n.t("pdf.noIvaForfettario"), rightColX, ry);
+    ry += 5;
   } else if (az.regime_fiscale === "occasionale") {
     doc.setFont("helvetica", "italic");
-    doc.text("Prestazione occasionale — Esente IVA", tx, y);
-    y += 5;
+    doc.text(i18n.t("pdf.noIvaOccasionale"), rightColX, ry);
+    ry += 5;
   } else {
     const iva = totaleConCommissione * (az.iva_percentuale / 100);
     const totIva = totaleConCommissione + iva;
-    doc.text(`Imponibile: ${fe(totaleConCommissione)}`, tx, y); y += 4;
-    doc.text(`IVA ${az.iva_percentuale.toFixed(0)}%: ${fe(iva)}`, tx, y); y += 4;
+    doc.text(`${i18n.t("pdf.imponibile")} ${fe(totaleConCommissione)}`, rightColX, ry); ry += 4;
+    doc.text(`IVA ${az.iva_percentuale.toFixed(0)}%: ${fe(iva)}`, rightColX, ry); ry += 4;
     doc.setFont("helvetica", "bold");
-    doc.text(`Totale IVA incl.: ${fe(totIva)}`, tx, y); y += 6;
+    doc.text(`${i18n.t("pdf.totaleIva")} ${fe(totIva)}`, rightColX, ry); ry += 6;
   }
 
-  // ═══════════════════════════════════════
-  // PAGAMENTO / ACCONTO
-  // ═══════════════════════════════════════
+  // ── COLONNA SINISTRA: Pagamento / Spedizione / Acconto ──
+  let ly = sectionStartY;
+  const leftMaxW = leftColW - 8;
 
-  if (y > ph - 40) { doc.addPage(); y = mt; }
-
-  y += 4;
-  doc.setDrawColor(...COL.line);
-  doc.setLineWidth(0.3);
-  doc.line(ml, y, ml + cw, y);
-  y += 6;
-
-  // TODO: caricare nome metodo pagamento dal DB se necessario
   if (metodoPagamento) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(...COL.text);
-    doc.text(`Metodo di pagamento: ${metodoPagamento.nome}`, ml, y);
-    y += 5;
+    doc.text(`${i18n.t("pdf.metodoPagamento")} ${metodoPagamento.nome}`, ml, ly);
+    ly += 5;
     if (metodoPagamento.descrizione_pdf) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
       doc.setTextColor(...COL.textLight);
-      const descLines = doc.splitTextToSize(metodoPagamento.descrizione_pdf, cw - 4);
-      doc.text(descLines, ml + 2, y);
-      y += descLines.length * 3.5 + 2;
+      const descLines = doc.splitTextToSize(metodoPagamento.descrizione_pdf, leftMaxW);
+      doc.text(descLines, ml + 2, ly);
+      ly += descLines.length * 3.5 + 2;
     }
   }
 
@@ -530,12 +582,15 @@ export async function generatePreventivosPdf(
     let accDesc = "";
     if (pv.acconto_tipo === "percentuale") {
       const imp = totaleConCommissione * (pv.acconto_valore / 100);
-      accDesc = `Acconto richiesto: ${pv.acconto_valore.toFixed(0)}% = ${fe(imp)}`;
+      accDesc = `${i18n.t("pdf.accontoRichiesto")} ${pv.acconto_valore.toFixed(0)}% = ${fe(imp)}`;
     } else if (pv.acconto_tipo === "fisso") {
-      accDesc = `Acconto richiesto: ${fe(pv.acconto_valore)}`;
+      accDesc = `${i18n.t("pdf.accontoRichiesto")} ${fe(pv.acconto_valore)}`;
     }
-    if (accDesc) { doc.text(accDesc, ml, y); y += 6; }
+    if (accDesc) { doc.text(accDesc, ml, ly); ly += 6; }
   }
+
+  // y avanza al massimo tra le due colonne
+  y = Math.max(ry, ly) + 4;
 
   // ═══════════════════════════════════════
   // NOTE
@@ -548,7 +603,7 @@ export async function generatePreventivosPdf(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(...COL.text);
-    doc.text("Note:", ml, y);
+    doc.text(i18n.t("pdf.noteLabel"), ml, y);
     y += 5;
 
     doc.setFont("helvetica", "normal");
@@ -575,7 +630,7 @@ export async function generatePreventivosPdf(
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.setTextColor(...COL.textLight);
-    doc.text("Condizioni e note legali:", ml, y);
+    doc.text(i18n.t("pdf.condizioni"), ml, y);
     y += 4;
 
     doc.setFont("helvetica", "italic");
@@ -602,8 +657,8 @@ export async function generatePreventivosPdf(
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(...COL.textMuted);
-    doc.text(`${pv.numero} — ${az.ragione_sociale} — Generato con Sparks3D Preventivi`, ml, fy + 4);
-    doc.text(`Pagina ${i} di ${totalPages}`, ml + cw, fy + 4, { align: "right" });
+    doc.text(`${pv.numero} — ${az.ragione_sociale} — ${i18n.t("pdf.generatoCon")}`, ml, fy + 4);
+    doc.text(i18n.t("pdf.pagina", { num: i, total: totalPages }), ml + cw, fy + 4, { align: "right" });
   }
 
   return doc.output("arraybuffer") as unknown as Uint8Array;
@@ -611,7 +666,7 @@ export async function generatePreventivosPdf(
 
 // ── Export diretto (salva + apri) ──
 
-export async function exportPdfPreventivo(preventivo: PreventivoCompleto): Promise<void> {
+export async function exportPdfPreventivo(preventivo: PreventivoCompleto, options?: PdfOptions): Promise<void> {
   const { save } = await import("@tauri-apps/plugin-dialog");
   const { writeFile } = await import("@tauri-apps/plugin-fs");
 
@@ -621,7 +676,7 @@ export async function exportPdfPreventivo(preventivo: PreventivoCompleto): Promi
   });
   if (!path) return;
 
-  const pdfBytes = await generatePreventivosPdf(preventivo);
+  const pdfBytes = await generatePreventivosPdf(preventivo, options);
   await writeFile(path, new Uint8Array(pdfBytes));
 
   // Apri il PDF con il viewer di sistema

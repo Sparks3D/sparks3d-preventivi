@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sparks3D Preventivi</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  /* Plus Jakarta Sans — font locali (no dipendenza esterna) */
+  @font-face { font-family: 'Plus Jakarta Sans'; font-weight: 400; font-style: normal; font-display: swap; src: url('fonts/plus-jakarta-sans-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Plus Jakarta Sans'; font-weight: 500; font-style: normal; font-display: swap; src: url('fonts/plus-jakarta-sans-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Plus Jakarta Sans'; font-weight: 600; font-style: normal; font-display: swap; src: url('fonts/plus-jakarta-sans-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Plus Jakarta Sans'; font-weight: 700; font-style: normal; font-display: swap; src: url('fonts/plus-jakarta-sans-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-style: normal; font-display: swap; src: url('fonts/plus-jakarta-sans-latin-800-normal.woff2') format('woff2'); }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -304,6 +309,11 @@
     border-radius: 50%;
   }
 
+  .dot-green  { background-color: #34d399; }
+  .dot-blue   { background-color: #60a5fa; }
+  .dot-amber  { background-color: #f59e0b; }
+  .dot-purple { background-color: #a78bfa; }
+
   /* ── Corner accents ── */
   .corner {
     position: absolute;
@@ -342,25 +352,25 @@
     <div class="app-name">Sparks3D</div>
     <div class="app-subtitle">Preventivi</div>
     <div class="version-badge">
-      <span class="version-tag" id="version-tag">PRO</span>
+      <span class="version-tag" id="version-tag"></span>
     </div>
 
     <!-- Features -->
     <div class="features">
       <div class="feature-item">
-        <div class="feature-dot" style="background: #34d399;"></div>
+        <div class="feature-dot dot-green"></div>
         Preventivi 3D
       </div>
       <div class="feature-item">
-        <div class="feature-dot" style="background: #60a5fa;"></div>
+        <div class="feature-dot dot-blue"></div>
         Multi-AMS
       </div>
       <div class="feature-item">
-        <div class="feature-dot" style="background: #f59e0b;"></div>
+        <div class="feature-dot dot-amber"></div>
         PackLink
       </div>
       <div class="feature-item">
-        <div class="feature-dot" style="background: #a78bfa;"></div>
+        <div class="feature-dot dot-purple"></div>
         PDF Export
       </div>
     </div>
@@ -418,7 +428,7 @@
 
     // Chiamata dal backend Rust per impostare la versione
     function setVersion(v) {
-      document.getElementById('version-tag').textContent = 'v' + v + ' PRO';
+      document.getElementById('version-tag').textContent = 'v' + v;
     }
 
     // Segnala al backend che lo splash è pronto

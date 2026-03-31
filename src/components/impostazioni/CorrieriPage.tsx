@@ -3,6 +3,7 @@
 // ================================================================
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 // ── Tipi (match con packlink.rs) ──
@@ -42,16 +43,9 @@ interface RispostaSpedizione {
 
 // ── Costanti ──
 
-const COUNTRIES = [
-  { code: "IT", label: "Italia" }, { code: "DE", label: "Germania" },
-  { code: "FR", label: "Francia" }, { code: "ES", label: "Spagna" },
-  { code: "AT", label: "Austria" }, { code: "BE", label: "Belgio" },
-  { code: "NL", label: "Paesi Bassi" }, { code: "PT", label: "Portogallo" },
-  { code: "CH", label: "Svizzera" }, { code: "GB", label: "Regno Unito" },
-  { code: "PL", label: "Polonia" }, { code: "SE", label: "Svezia" },
-  { code: "DK", label: "Danimarca" }, { code: "CZ", label: "Rep. Ceca" },
-  { code: "RO", label: "Romania" }, { code: "GR", label: "Grecia" },
-  { code: "HR", label: "Croazia" }, { code: "US", label: "USA" },
+const COUNTRY_CODES = [
+  "IT", "DE", "FR", "ES", "AT", "BE", "NL", "PT", "CH", "GB",
+  "PL", "SE", "DK", "CZ", "RO", "GR", "HR", "US",
 ];
 
 // Nome della chiave nel Windows Credential Manager
@@ -63,6 +57,7 @@ const eur = (n: number) =>
 // ── Componente ──
 
 export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:any)=>void }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Corriere[]>([]);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
@@ -143,6 +138,7 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
           },
           cap_destinatario: plForm.cap,
           paese_destinatario: plForm.paese,
+          api_key: apiKey,
         },
       });
       setPlResult(result);
@@ -162,7 +158,7 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
       tempo_consegna: tempo,
       packlink_service_id: s.id,
       note: [
-        s.consegna_punto_ritiro ? "Punto di ritiro" : "Consegna a domicilio",
+        s.consegna_punto_ritiro ? t("corrieriModal.puntoRitiro") : t("corrieriModal.domicilio"),
         s.data_consegna_stimata ? `Consegna: ${s.data_consegna_stimata}` : "",
       ].filter(Boolean).join(" • "),
     });
@@ -174,7 +170,7 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
     <div>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>Corrieri</h3>
+        <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>{t("corrieri.title")}</h3>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => setShowPl(!showPl)}
             style={{
@@ -184,11 +180,11 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
               color: showPl ? "var(--red)" : "#fff",
               boxShadow: showPl ? "none" : "0 2px 12px rgba(249,115,22,0.3)",
             }}>
-            {showPl ? "✕ Chiudi PackLink" : "🔍 Cerca tariffe PackLink"}
+            {showPl ? t("corrieri.chiudiPacklink") : t("corrieri.cercaPacklink")}
           </button>
           <button onClick={openNew}
             className="s3d-btn s3d-btn-primary">
-            Nuovo corriere
+            {t("corrieri.nuovo")}
           </button>
         </div>
       </div>
@@ -204,16 +200,16 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
       {/* ── PackLink Panel ── */}
       {showPl && (
         <div className="s3d-card-glow p-5 mb-5">
-          <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 16 }}>🔗 PACKLINK PRO</h4>
+          <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 16 }}>{t("corrieri.packlinkPro")}</h4>
 
           {/* API Key */}
           <div style={{ marginBottom: 16, padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.6 }}>API Key PackLink Pro</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("corrieri.apiKeyLabel")}</label>
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 type="password"
                 className="s3d-input flex-1"
-                placeholder="Incolla la API key (senza Bearer, senza < >)..."
+                placeholder={t("corrieri.apiKeyPlaceholder")}
                 value={apiKey}
                 onChange={e => { setApiKey(e.target.value); setApiKeySaved(false); }}
               />
@@ -223,63 +219,63 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
                 onClick={saveApiKey}
                 disabled={!apiKey.trim()}
               >
-                {apiKeySaved ? "✅ Salvata" : "💾 Salva"}
+                {apiKeySaved ? t("corrieri.apiKeySalvata") : t("corrieri.apiKeySalva")}
               </button>
             </div>
             {!apiKey.trim() && (
               <p className="text-xs mt-2" style={{ color: "#f97316" }}>
-                ⚠️ Inserisci la API key per cercare le tariffe. La trovi nel tuo account PackLink Pro → Impostazioni → API.
+                {t("corrieri.apiKeyHelp")}
               </p>
             )}
             {apiKey.trim() && (
               <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
-                🔒 La chiave è salvata nel Windows Credential Manager, non nel database.
+                {t("corrieri.apiKeySafe")}
               </p>
             )}
           </div>
 
           {/* Ricerca tariffe */}
-          <h5 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.6 }}>Ricerca tariffe</h5>
+          <h5 style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.6 }}>{t("corrieri.ricercaTariffe")}</h5>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Paese destinazione</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("corrieri.paeseDestinazione")}</label>
               <select className="s3d-select" value={plForm.paese}
                 onChange={e => setPlForm({ ...plForm, paese: e.target.value })}>
-                {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.label} ({c.code})</option>)}
+                {COUNTRY_CODES.map(code => <option key={code} value={code}>{t(`paesi.${code}`)} ({code})</option>)}
               </select>
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>CAP destinazione</label>
-              <input className="s3d-input" placeholder="es. 20100" value={plForm.cap}
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("corrieri.capDestinazione")}</label>
+              <input className="s3d-input" placeholder={t("preventivi.phCap")} value={plForm.cap}
                 onChange={e => setPlForm({ ...plForm, cap: e.target.value })} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Peso (kg)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("corrieri.peso")}</label>
               <input className="s3d-input" type="number" min="0.1" step="0.1" value={plForm.peso}
                 onChange={e => setPlForm({ ...plForm, peso: +e.target.value })} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Larghezza (cm)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("corrieri.larghezza")}</label>
               <input className="s3d-input" type="number" min="1" value={plForm.larghezza}
                 onChange={e => setPlForm({ ...plForm, larghezza: +e.target.value })} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Altezza (cm)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("corrieri.altezza")}</label>
               <input className="s3d-input" type="number" min="1" value={plForm.altezza}
                 onChange={e => setPlForm({ ...plForm, altezza: +e.target.value })} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>Lunghezza (cm)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{t("corrieri.lunghezza")}</label>
               <input className="s3d-input" type="number" min="1" value={plForm.lunghezza}
                 onChange={e => setPlForm({ ...plForm, lunghezza: +e.target.value })} />
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="s3d-btn s3d-btn-primary" onClick={searchPl} disabled={plLoading || !plForm.cap.trim() || !apiKey.trim()}>
-              {plLoading ? "⏳ Ricerca…" : "🚀 Cerca tariffe"}
+              {plLoading ? t("corrieri.ricerca") : t("corrieri.cercaTariffe")}
             </button>
             {plResult && !plResult.errore && (
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{plResult.servizi.length} tariffe trovate</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{t("corrieri.tariffeTrovate", { count: plResult.servizi.length })}</span>
             )}
           </div>
 
@@ -290,13 +286,13 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
                 <thead>
                   <tr>
                     <th style={{ width: 36 }}></th>
-                    <th>Corriere</th>
-                    <th>Servizio</th>
-                    <th>Prezzo</th>
-                    <th>IVA</th>
-                    <th>Tempo</th>
-                    <th>Tipo</th>
-                    <th style={{ textAlign: "right" }}>Azione</th>
+                    <th>{t("corrieri.thCorriere")}</th>
+                    <th>{t("corrieri.thServizio")}</th>
+                    <th>{t("corrieri.thPrezzo")}</th>
+                    <th>{t("corrieri.thIva")}</th>
+                    <th>{t("corrieri.thTempo")}</th>
+                    <th>{t("corrieri.thTipo")}</th>
+                    <th style={{ textAlign: "right" }}>{t("common.actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -334,7 +330,7 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
                       <td style={{ textAlign: "right" }}>
                         <button onClick={() => importFromPl(r)}
                           className="s3d-btn s3d-btn-ghost text-xs" style={{ padding: "4px 10px" }}>
-                          💾 Salva
+                          {t("corrieri.salva")}
                         </button>
                       </td>
                     </tr>
@@ -344,7 +340,7 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
             </div>
           )}
           {plResult && plResult.servizi.length === 0 && !plResult.errore && (
-            <div style={{ marginTop: 16, padding: 16, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>Nessuna tariffa disponibile per questa tratta</div>
+            <div style={{ marginTop: 16, padding: 16, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>{t("corrieri.nessunaTariffa")}</div>
           )}
         </div>
       )}
@@ -357,11 +353,11 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
         {selectedIds.size > 0 && (
           <button onClick={handleDeleteSelected}
             className="s3d-btn s3d-btn-danger">
-            Elimina selezionati ({selectedIds.size})
+            {t("common.deleteSelected")} ({selectedIds.size})
           </button>
         )}
         <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cerca corriere"
+          placeholder={t("corrieri.searchPlaceholder")}
           className="flex-1 s3d-input" />
       </div>
 
@@ -370,20 +366,20 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
         {filtered.length === 0 ? (
           <div style={{ padding: 32, textAlign: "center", color: "var(--text-muted)" }}>
             {items.length === 0
-              ? 'Nessun corriere. Usa "Cerca tariffe PackLink" o "Nuovo corriere".'
-              : "Nessun risultato."}
+              ? t("corrieri.noCorrieri")
+              : t("common.noResults")}
           </div>
         ) : (
           <table className="s3d-table">
             <thead><tr>
               <th style={{ width: 40 }}></th>
-              <th>Corriere</th>
-              <th>Servizio</th>
-              <th>Costo</th>
-              <th>Tempo</th>
-              <th>PackLink ID</th>
-              <th>Note</th>
-              <th style={{ textAlign: "right" }}>Azioni</th>
+              <th>{t("corrieri.thCorriere")}</th>
+              <th>{t("common.service")}</th>
+              <th>{t("corrieri.thCosto")}</th>
+              <th>{t("corrieri.thTempo")}</th>
+              <th>{t("corrieri.thPacklinkId")}</th>
+              <th>{t("corrieri.thNote")}</th>
+              <th style={{ textAlign: "right" }}>{t("common.actions")}</th>
             </tr></thead>
             <tbody>
               {filtered.map((c) => (
@@ -407,8 +403,8 @@ export function CorrieriPage({ onOpenForm }: { onOpenForm:(id?:number,prefill?:a
                     {c.note || "—"}
                   </td>
                   <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => openEdit(c)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>Modifica</button>
-                    <button onClick={() => handleDelete(c.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Elimina</button>
+                    <button onClick={() => openEdit(c)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>{t("common.edit")}</button>
+                    <button onClick={() => handleDelete(c.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{t("common.delete")}</button>
                   </td>
                 </tr>
               ))}

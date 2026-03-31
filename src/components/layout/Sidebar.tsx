@@ -1,21 +1,18 @@
 // src/components/layout/Sidebar.tsx
-// Sparks3D Preventivi — Premium Dark Sidebar
-// ============================================
+// Sparks3D Preventivi — Sidebar con supporto tema chiaro/scuro
+// ==============================================================
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import type { PageId } from "../../types";
+import { useTheme } from "../../context/ThemeContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface SidebarProps {
   currentPage: PageId;
   onNavigate: (page: PageId, preventivoId?: number) => void;
   preventivoAttivo: number | null;
-}
-
-interface NavItem {
-  id: PageId;
-  label: string;
-  icon: (active: boolean) => JSX.Element;
 }
 
 interface SlicerStatus {
@@ -90,16 +87,18 @@ const icons = {
   ),
 };
 
-const mainNav: NavItem[] = [
-  { id: "dashboard",    label: "Dashboard",          icon: icons.dashboard },
-  { id: "preventivi",   label: "Preventivi",         icon: icons.preventivi },
-  { id: "ritenuta",     label: "Ritenute / Ricevute", icon: icons.ritenuta },
-  { id: "clienti",      label: "Clienti",            icon: icons.clienti },
-  { id: "backup" as PageId, label: "Backup / Ripristino", icon: icons.backup },
-  { id: "impostazioni", label: "Impostazioni",       icon: icons.impostazioni },
+const mainNavItems: { id: PageId; labelKey: string; icon: (active: boolean) => JSX.Element }[] = [
+  { id: "dashboard",    labelKey: "sidebar.dashboard",    icon: icons.dashboard },
+  { id: "preventivi",   labelKey: "sidebar.preventivi",   icon: icons.preventivi },
+  { id: "ritenuta",     labelKey: "sidebar.ritenute",     icon: icons.ritenuta },
+  { id: "clienti",      labelKey: "sidebar.clienti",      icon: icons.clienti },
+  { id: "backup" as PageId, labelKey: "sidebar.backup",   icon: icons.backup },
+  { id: "impostazioni", labelKey: "sidebar.impostazioni", icon: icons.impostazioni },
 ];
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+  const { t } = useTranslation();
+  const { isDark } = useTheme();
   const [slicerStatuses, setSlicerStatuses] = useState<SlicerStatus[]>([]);
   const [slicerChecking, setSlicerChecking] = useState(true);
   const [appVersion, setAppVersion] = useState("");
@@ -145,7 +144,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     } catch (err) {
       console.warn("Errore apertura slicer:", err);
       const label = slicerStatuses.find(s => s.codice === codice)?.nome || "Slicer";
-      alert(`Impossibile aprire ${label}. Verifica l'installazione.`);
+      alert(t("sidebar.cannotOpenSlicer", { label }));
     } finally {
       setTimeout(() => setOpeningSlicer(null), 2000);
     }
@@ -155,8 +154,12 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     <aside
       style={{
         width: 260,
-        background: "linear-gradient(180deg, #0c1629 0%, #091120 100%)",
-        borderRight: "1px solid rgba(56, 119, 214, 0.12)",
+        background: isDark
+          ? "linear-gradient(180deg, #0c1629 0%, #091120 100%)"
+          : "linear-gradient(180deg, #f8f9fb 0%, #f0f2f5 100%)",
+        borderRight: isDark
+          ? "1px solid rgba(56, 119, 214, 0.12)"
+          : "1px solid rgba(0, 0, 0, 0.08)",
         display: "flex",
         flexDirection: "column",
         height: "100vh",
@@ -164,7 +167,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
       }}
     >
       {/* ── Logo ── */}
-      <div style={{ padding: "20px 18px 16px", borderBottom: "1px solid rgba(56, 119, 214, 0.1)" }}>
+      <div style={{ padding: "20px 18px 16px", borderBottom: isDark ? "1px solid rgba(56, 119, 214, 0.1)" : "1px solid rgba(0, 0, 0, 0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <img
             src="/app-icon.png"
@@ -176,18 +179,11 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             }}
           />
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: "#e8edf5", letterSpacing: -0.2 }}>
-              Sparks3D
+            <div style={{ fontWeight: 700, fontSize: 14, color: isDark ? "#e8edf5" : "#1a1a2e", letterSpacing: -0.2 }}>
+              {t("common.appName")}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-              <span style={{ fontSize: 11, color: "#556a89" }}>{appVersion ? `v${appVersion}` : ""}</span>
-              <span style={{
-                fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
-                padding: "1px 7px", borderRadius: 4,
-                background: "rgba(59, 130, 246, 0.15)", color: "#60a5fa",
-              }}>
-                PRO
-              </span>
+              <span style={{ fontSize: 11, color: isDark ? "#556a89" : "#8895a7" }}>{appVersion ? `v${appVersion}` : ""}</span>
             </div>
           </div>
         </div>
@@ -200,7 +196,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
                 <div style={{ position: "absolute", inset: -2, borderRadius: "50%", background: "#f59e0b", opacity: 0.3, animation: "slicerPing 2s cubic-bezier(0,0,0.2,1) infinite" }} />
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", boxShadow: "0 0 6px rgba(245,158,11,0.5)" }} />
               </div>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "#d4a853" }}>Verifica slicer...</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "#d4a853" }}>{t("sidebar.slicerChecking")}</span>
             </div>
           ) : (
             slicerStatuses.map((slicer) => {
@@ -223,7 +219,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 12, fontWeight: 500, color: slicer.installato ? colors.text : "#d4868a" }}>{slicer.nome}</span>
-                    <span style={{ fontSize: 10, color: "#556a89", marginLeft: 6 }}>{slicer.installato ? "Installato" : "Non trovato"}</span>
+                    <span style={{ fontSize: 10, color: "#556a89", marginLeft: 6 }}>{slicer.installato ? t("sidebar.installed") : t("sidebar.notFound")}</span>
                   </div>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={slicer.installato ? colors.main : "#f87171"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     {slicer.installato ? (<><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></>) : (<><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>)}
@@ -239,15 +235,15 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
       <div style={{ padding: "16px 18px 4px" }}>
         <span style={{
           fontSize: 10, fontWeight: 700, textTransform: "uppercase",
-          letterSpacing: 1.2, color: "#3d5170",
+          letterSpacing: 1.2, color: isDark ? "#3d5170" : "#9ca3af",
         }}>
-          Menu
+          {t("sidebar.menu")}
         </span>
       </div>
 
       {/* ── Navigazione ── */}
       <nav style={{ flex: 1, padding: "6px 10px", display: "flex", flexDirection: "column", gap: 2 }}>
-        {mainNav.map((item) => {
+        {mainNavItems.map((item) => {
           const active = isActive(item.id);
           return (
             <button
@@ -259,15 +255,21 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
                 borderRadius: 10, border: "none",
                 cursor: "pointer", transition: "all 0.2s",
                 background: active
-                  ? "linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%)"
+                  ? isDark
+                    ? "linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%)"
+                    : "linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%)"
                   : "transparent",
-                boxShadow: active ? "inset 0 0 0 1px rgba(59, 130, 246, 0.2)" : "none",
+                boxShadow: active
+                  ? isDark
+                    ? "inset 0 0 0 1px rgba(59, 130, 246, 0.2)"
+                    : "inset 0 0 0 1px rgba(14, 165, 233, 0.15)"
+                  : "none",
                 position: "relative",
                 textAlign: "left",
               }}
               onMouseEnter={(e) => {
                 if (!active) {
-                  e.currentTarget.style.background = "rgba(59, 130, 246, 0.06)";
+                  e.currentTarget.style.background = isDark ? "rgba(59, 130, 246, 0.06)" : "rgba(14, 165, 233, 0.05)";
                 }
               }}
               onMouseLeave={(e) => {
@@ -290,25 +292,28 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
               <span style={{
                 fontSize: 13, fontWeight: active ? 600 : 500,
-                color: active ? "#e8edf5" : "#7a8daa",
+                color: active ? (isDark ? "#e8edf5" : "#0c4a6e") : (isDark ? "#7a8daa" : "#64748b"),
                 transition: "color 0.2s",
               }}>
-                {item.label}
+                {t(item.labelKey)}
               </span>
             </button>
           );
         })}
       </nav>
 
+      {/* ── Theme Toggle ── */}
+      <ThemeToggle />
+
       {/* ── Info links (sopra il footer) ── */}
       <div style={{ padding: "4px 10px 0", display: "flex", flexDirection: "column", gap: 2 }}>
         {([
-          { id: "guida" as PageId, label: "Guida utente", icon: (
+          { id: "guida" as PageId, label: t("sidebar.guida"), icon: (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
             </svg>
           )},
-          { id: "licenza" as PageId, label: "Licenza e info", icon: (
+          { id: "licenza" as PageId, label: t("sidebar.licenza"), icon: (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
@@ -324,13 +329,17 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
                 width: "100%", padding: "7px 14px",
                 borderRadius: 8, border: "none",
                 cursor: "pointer", transition: "all 0.2s",
-                background: active ? "rgba(59, 130, 246, 0.08)" : "transparent",
-                color: active ? "#60a5fa" : "#4a5e7a",
+                background: active
+                  ? isDark ? "rgba(59, 130, 246, 0.08)" : "rgba(14, 165, 233, 0.08)"
+                  : "transparent",
+                color: active
+                  ? isDark ? "#60a5fa" : "#0284c7"
+                  : isDark ? "#4a5e7a" : "#94a3b8",
                 fontSize: 12, fontWeight: 500,
                 textAlign: "left",
               }}
-              onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#8899b4"; }}
-              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "#4a5e7a"; }}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = isDark ? "#8899b4" : "#475569"; }}
+              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = isDark ? "#4a5e7a" : "#94a3b8"; }}
             >
               {item.icon}
               {item.label}
@@ -341,14 +350,14 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
       {/* ── Footer ── */}
       <div style={{
-        padding: "10px 18px", borderTop: "1px solid rgba(56, 119, 214, 0.08)",
+        padding: "10px 18px", borderTop: isDark ? "1px solid rgba(56, 119, 214, 0.08)" : "1px solid rgba(0, 0, 0, 0.06)",
         display: "flex", flexDirection: "column", gap: 4,
       }}>
-        <span style={{ fontSize: 10, color: "#9ca3af", lineHeight: 1.4 }}>
-          CC BY-NC-ND 4.0 — Sparks3D.it
+        <span style={{ fontSize: 10, color: isDark ? "#9ca3af" : "#6b7280", lineHeight: 1.4 }}>
+          {t("sidebar.footer")}
         </span>
-        <span style={{ fontSize: 9, color: "#6b7280" }}>
-          2025/2026 — Alcuni diritti riservati
+        <span style={{ fontSize: 9, color: isDark ? "#6b7280" : "#9ca3af" }}>
+          {t("sidebar.footerRights")}
         </span>
       </div>
 

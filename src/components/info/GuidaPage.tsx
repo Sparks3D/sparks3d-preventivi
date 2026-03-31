@@ -3,6 +3,7 @@
 // =====================================================
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface Section {
   id: string;
@@ -12,251 +13,252 @@ interface Section {
 }
 
 export function GuidaPage() {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState("panoramica");
 
   const sections: Section[] = [
     {
-      id: "panoramica", title: "Panoramica", icon: "📋",
+      id: "panoramica", title: t("guida.panoramica"), icon: "📋",
       content: (
         <div style={proseStyle}>
-          <p>Sparks3D Preventivi è un software desktop per la creazione e gestione di preventivi per servizi di stampa 3D FDM. Permette di calcolare automaticamente i costi di stampa basandosi su materiali, tempo macchina, energia e margini personalizzabili.</p>
-          <h4 style={h4Style}>Funzionalità principali</h4>
+          <p>{t("guida.panoramica_desc")}</p>
+          <h4 style={h4Style}>{t("guida.panoramica_features_title")}</h4>
           <ul style={ulStyle}>
-            <li>Gestione completa preventivi con calcolo costi automatico</li>
-            <li>Supporto multi-materiale AMS (Automatic Material System)</li>
-            <li>Import automatico di file GCode e 3MF per tempi e pesi</li>
-            <li>Import profili stampa da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong></li>
-            <li>Rilevamento automatico slicer installati nella sidebar</li>
-            <li>PIN di avvio opzionale per protezione accesso</li>
-            <li>Tariffe corrieri live tramite PackLink Pro</li>
-            <li>Export PDF professionale con logo e dati azienda</li>
-            <li>Dashboard statistiche con KPI, grafici e navigazione interattiva</li>
-            <li>Gestione ritenute d'acconto e ricevute con archivio integrato</li>
-            <li>Backup completo e ripristino dati con riavvio guidato</li>
-            <li>Esportazione dati in CSV e Excel</li>
-            <li>Ricerca globale rapida (Ctrl+K)</li>
-            <li>Tema personalizzabile: dimensione font e colore accent</li>
-            <li>Tutte le operazioni di creazione e modifica su pagine dedicate a schermo intero</li>
+            <li>{t("guida.panoramica_features_1")}</li>
+            <li>{t("guida.panoramica_features_2")}</li>
+            <li>{t("guida.panoramica_features_3")}</li>
+            <li>{t("guida.panoramica_features_4_pre")}<strong>{t("guida.panoramica_features_4_bambu")}</strong>, <strong>{t("guida.panoramica_features_4_orca")}</strong>, <strong>{t("guida.panoramica_features_4_anycubic")}</strong>{t("guida.and")}<strong>{t("guida.panoramica_features_4_prusa")}</strong></li>
+            <li>{t("guida.panoramica_features_5")}</li>
+            <li>{t("guida.panoramica_features_6")}</li>
+            <li>{t("guida.panoramica_features_7")}</li>
+            <li>{t("guida.panoramica_features_8")}</li>
+            <li>{t("guida.panoramica_features_9")}</li>
+            <li>{t("guida.panoramica_features_10")}</li>
+            <li>{t("guida.panoramica_features_11")}</li>
+            <li>{t("guida.panoramica_features_12")}</li>
+            <li>{t("guida.panoramica_features_13")}</li>
+            <li>{t("guida.panoramica_features_14")}</li>
+            <li>{t("guida.panoramica_features_15")}</li>
           </ul>
         </div>
       ),
     },
     {
-      id: "dashboard", title: "Dashboard", icon: "📊",
+      id: "dashboard", title: t("guida.dashboard"), icon: "📊",
       content: (
         <div style={proseStyle}>
-          <p>La Dashboard è la pagina principale dell'applicazione. Mostra una panoramica completa dell'attività con indicatori chiave di performance (KPI).</p>
-          <h4 style={h4Style}>KPI visualizzati</h4>
+          <p>{t("guida.dashboard_desc")}</p>
+          <h4 style={h4Style}>{t("guida.dashboard_kpi_title")}</h4>
           <ul style={ulStyle}>
-            <li><strong>Totale preventivi</strong> — numero totale di preventivi creati</li>
-            <li><strong>Fatturato totale</strong> — somma dei totali dei preventivi <strong>completati</strong></li>
-            <li><strong>Profitto totale</strong> — guadagno netto dei preventivi <strong>completati</strong></li>
-            <li><strong>Materiale utilizzato</strong> — peso totale in kg di filamento consumato</li>
-            <li><strong>Tempo stampa totale</strong> — ore complessive di stampa</li>
-            <li><strong>Confermati</strong> — preventivi accettati, in produzione o completati</li>
-            <li><strong>Tasso di conversione</strong> — percentuale di preventivi confermati sul totale</li>
+            <li><strong>{t("guida.dashboard_kpi_1_label")}</strong> — {t("guida.dashboard_kpi_1_desc")}</li>
+            <li><strong>{t("guida.dashboard_kpi_2_label")}</strong> — {t("guida.dashboard_kpi_2_desc")}<strong>{t("guida.dashboard_kpi_2_status")}</strong></li>
+            <li><strong>{t("guida.dashboard_kpi_3_label")}</strong> — {t("guida.dashboard_kpi_3_desc")}<strong>{t("guida.dashboard_kpi_3_status")}</strong></li>
+            <li><strong>{t("guida.dashboard_kpi_4_label")}</strong> — {t("guida.dashboard_kpi_4_desc")}</li>
+            <li><strong>{t("guida.dashboard_kpi_5_label")}</strong> — {t("guida.dashboard_kpi_5_desc")}</li>
+            <li><strong>{t("guida.dashboard_kpi_6_label")}</strong> — {t("guida.dashboard_kpi_6_desc")}</li>
+            <li><strong>{t("guida.dashboard_kpi_7_label")}</strong> — {t("guida.dashboard_kpi_7_desc")}</li>
           </ul>
-          <h4 style={h4Style}>Sezioni interattive</h4>
+          <h4 style={h4Style}>{t("guida.dashboard_interactive_title")}</h4>
           <ul style={ulStyle}>
-            <li><strong>Trend mensile</strong> — grafico fatturato e profitto degli ultimi 6 mesi</li>
-            <li><strong>Stato preventivi</strong> — breakdown per stato con barra progresso. Cliccando su uno stato si naviga alla lista preventivi filtrata</li>
-            <li><strong>Ultimi preventivi</strong> — gli ultimi 10 preventivi creati. Il numero preventivo è cliccabile per aprirlo direttamente, il badge stato è cliccabile per filtrare</li>
-            <li><strong>Top clienti</strong> — i 5 clienti con più fatturato, con nome e totale</li>
-            <li><strong>Materiali più usati</strong> — classifica materiali per peso utilizzato</li>
+            <li><strong>{t("guida.dashboard_interactive_1_label")}</strong> — {t("guida.dashboard_interactive_1_desc")}</li>
+            <li><strong>{t("guida.dashboard_interactive_2_label")}</strong> — {t("guida.dashboard_interactive_2_desc")}</li>
+            <li><strong>{t("guida.dashboard_interactive_3_label")}</strong> — {t("guida.dashboard_interactive_3_desc")}</li>
+            <li><strong>{t("guida.dashboard_interactive_4_label")}</strong> — {t("guida.dashboard_interactive_4_desc")}</li>
+            <li><strong>{t("guida.dashboard_interactive_5_label")}</strong> — {t("guida.dashboard_interactive_5_desc")}</li>
           </ul>
         </div>
       ),
     },
     {
-      id: "preventivi", title: "Preventivi", icon: "📄",
+      id: "preventivi", title: t("guida.preventiviSection"), icon: "📄",
       content: (
         <div style={proseStyle}>
-          <p>Il modulo preventivi è il cuore del software. Permette di creare, modificare ed esportare preventivi professionali per servizi di stampa 3D.</p>
-          <h4 style={h4Style}>Creare un preventivo</h4>
+          <p>{t("guida.preventivi_desc")}</p>
+          <h4 style={h4Style}>{t("guida.preventivi_create_title")}</h4>
           <ol style={olStyle}>
-            <li>Dalla pagina <strong>Preventivi</strong>, clicca <strong>"Nuovo preventivo"</strong></li>
-            <li>Si apre una pagina dedicata con tutti i campi del preventivo</li>
-            <li>Seleziona il cliente dal menu a tendina (opzionale)</li>
-            <li>Aggiungi le righe di stampa cliccando <strong>"Aggiungi riga"</strong></li>
-            <li>Per ogni riga, specifica materiale, stampante, profilo, tempo e peso</li>
-            <li>Il sistema calcola automaticamente costi, prezzo e margine</li>
-            <li>Clicca <strong>"Salva"</strong> per salvare il preventivo</li>
+            <li>{t("guida.preventivi_create_1_pre")}<strong>{t("guida.preventivi_create_1_page")}</strong>{t("guida.preventivi_create_1_post")}<strong>{t("guida.preventivi_create_1_btn")}</strong></li>
+            <li>{t("guida.preventivi_create_2")}</li>
+            <li>{t("guida.preventivi_create_3")}</li>
+            <li>{t("guida.preventivi_create_4_pre")}<strong>{t("guida.preventivi_create_4_btn")}</strong></li>
+            <li>{t("guida.preventivi_create_5")}</li>
+            <li>{t("guida.preventivi_create_6")}</li>
+            <li>{t("guida.preventivi_create_7_pre")}<strong>{t("guida.preventivi_create_7_btn")}</strong>{t("guida.preventivi_create_7_post")}</li>
           </ol>
-          <h4 style={h4Style}>Import da GCode / 3MF</h4>
-          <p>Nella modale di aggiunta riga, puoi importare direttamente un file GCode o 3MF. Il parser estrae automaticamente tempo di stampa, peso del filamento, e tipo di materiale. Per file 3MF multi-colore, vengono importati automaticamente tutti gli slot AMS.</p>
-          <h4 style={h4Style}>Multi-materiale AMS</h4>
-          <p>Ogni riga del preventivo supporta più materiali tramite gli slot AMS. Puoi aggiungere slot con il pulsante <strong>"+ Slot AMS"</strong> nella modale riga, assegnando materiale, peso e colore a ciascuno.</p>
-          <h4 style={h4Style}>Workflow stati</h4>
+          <h4 style={h4Style}>{t("guida.preventivi_gcode_title")}</h4>
+          <p>{t("guida.preventivi_gcode_desc")}</p>
+          <h4 style={h4Style}>{t("guida.preventivi_ams_title")}</h4>
+          <p>{t("guida.preventivi_ams_desc_pre")}<strong>{t("guida.preventivi_ams_desc_btn")}</strong>{t("guida.preventivi_ams_desc_post")}</p>
+          <h4 style={h4Style}>{t("guida.preventivi_workflow_title")}</h4>
           <ul style={ulStyle}>
-            <li><strong>Bozza</strong> → <strong>Inviato</strong> (genera PDF e salva in Documenti)</li>
-            <li><strong>Inviato</strong> → <strong>Accettato</strong> o <strong>Rifiutato</strong></li>
-            <li><strong>Accettato</strong> → <strong>In produzione</strong></li>
-            <li><strong>In produzione</strong> → <strong>Completato</strong></li>
+            <li><strong>{t("guida.preventivi_workflow_1_from")}</strong> → <strong>{t("guida.preventivi_workflow_1_to")}</strong>{t("guida.preventivi_workflow_1_note")}</li>
+            <li><strong>{t("guida.preventivi_workflow_2_from")}</strong> → <strong>{t("guida.preventivi_workflow_2_to_a")}</strong>{t("guida.or")}<strong>{t("guida.preventivi_workflow_2_to_b")}</strong></li>
+            <li><strong>{t("guida.preventivi_workflow_3_from")}</strong> → <strong>{t("guida.preventivi_workflow_3_to")}</strong></li>
+            <li><strong>{t("guida.preventivi_workflow_4_from")}</strong> → <strong>{t("guida.preventivi_workflow_4_to")}</strong></li>
           </ul>
-          <h4 style={h4Style}>Eliminazione con conferma</h4>
-          <p>L'eliminazione di un preventivo o di una riga di stampa richiede sempre una conferma esplicita tramite un dialogo modale. Premendo "Annulla" il dato viene preservato.</p>
-          <h4 style={h4Style}>Export PDF</h4>
-          <p>Clicca <strong>"Esporta PDF"</strong> per generare un documento professionale con logo azienda, dati cliente, tabella righe con breakdown costi, totali, IVA, acconto e condizioni.</p>
+          <h4 style={h4Style}>{t("guida.preventivi_delete_title")}</h4>
+          <p>{t("guida.preventivi_delete_desc")}</p>
+          <h4 style={h4Style}>{t("guida.preventivi_pdf_title")}</h4>
+          <p>{t("guida.preventivi_pdf_desc_pre")}<strong>{t("guida.preventivi_pdf_desc_btn")}</strong>{t("guida.preventivi_pdf_desc_post")}</p>
         </div>
       ),
     },
     {
-      id: "clienti", title: "Clienti", icon: "👥",
+      id: "clienti", title: t("guida.clientiSection"), icon: "👥",
       content: (
         <div style={proseStyle}>
-          <p>La sezione Clienti gestisce l'anagrafica completa dei tuoi clienti.</p>
-          <h4 style={h4Style}>Creare un cliente</h4>
+          <p>{t("guida.clienti_desc")}</p>
+          <h4 style={h4Style}>{t("guida.clienti_create_title")}</h4>
           <ol style={olStyle}>
-            <li>Dalla pagina <strong>Clienti</strong>, clicca <strong>"Nuovo cliente"</strong></li>
-            <li>Si apre una pagina dedicata con sezioni organizzate</li>
-            <li>Compila i dati anagrafici, contatti, indirizzo e dati fiscali</li>
-            <li>Clicca <strong>"Crea cliente"</strong> per salvare</li>
+            <li>{t("guida.clienti_create_1_pre")}<strong>{t("guida.clienti_create_1_page")}</strong>{t("guida.clienti_create_1_post")}<strong>{t("guida.clienti_create_1_btn")}</strong></li>
+            <li>{t("guida.clienti_create_2")}</li>
+            <li>{t("guida.clienti_create_3")}</li>
+            <li>{t("guida.clienti_create_4_pre")}<strong>{t("guida.clienti_create_4_btn")}</strong>{t("guida.clienti_create_4_post")}</li>
           </ol>
-          <h4 style={h4Style}>Modificare un cliente</h4>
-          <p>Clicca su una riga della tabella clienti oppure sul pulsante "Modifica" per aprire la pagina di modifica con tutti i campi precompilati.</p>
-          <h4 style={h4Style}>Campi disponibili</h4>
+          <h4 style={h4Style}>{t("guida.clienti_edit_title")}</h4>
+          <p>{t("guida.clienti_edit_desc")}</p>
+          <h4 style={h4Style}>{t("guida.clienti_fields_title")}</h4>
           <ul style={ulStyle}>
-            <li><strong>Dati anagrafici</strong> — Nome, Cognome, Denominazione azienda</li>
-            <li><strong>Contatti</strong> — Email, Telefono</li>
-            <li><strong>Indirizzo</strong> — Via, CAP, Città, Provincia</li>
-            <li><strong>Dati fiscali</strong> — Partita IVA, Codice Fiscale</li>
-            <li><strong>Note</strong> — Note libere sul cliente</li>
+            <li><strong>{t("guida.clienti_fields_1_label")}</strong> — {t("guida.clienti_fields_1_desc")}</li>
+            <li><strong>{t("guida.clienti_fields_2_label")}</strong> — {t("guida.clienti_fields_2_desc")}</li>
+            <li><strong>{t("guida.clienti_fields_3_label")}</strong> — {t("guida.clienti_fields_3_desc")}</li>
+            <li><strong>{t("guida.clienti_fields_4_label")}</strong> — {t("guida.clienti_fields_4_desc")}</li>
+            <li><strong>{t("guida.clienti_fields_5_label")}</strong> — {t("guida.clienti_fields_5_desc")}</li>
           </ul>
-          <h4 style={h4Style}>Eliminazione</h4>
-          <p>L'eliminazione singola o multipla (tramite checkbox) richiede sempre una conferma esplicita. I clienti possono essere associati ai preventivi tramite il menu a tendina nel form preventivo. Il CAP del cliente viene usato automaticamente per il calcolo delle tariffe di spedizione PackLink.</p>
+          <h4 style={h4Style}>{t("guida.clienti_delete_title")}</h4>
+          <p>{t("guida.clienti_delete_desc")}</p>
         </div>
       ),
     },
     {
-      id: "impostazioni", title: "Impostazioni", icon: "⚙️",
+      id: "impostazioni", title: t("guida.impostazioniSection"), icon: "⚙️",
       content: (
         <div style={proseStyle}>
-          <p>Le impostazioni sono organizzate in tab. Ogni sezione di creazione e modifica apre una <strong>pagina dedicata a schermo intero</strong> con pulsante "← Torna indietro" e feedback visivo al salvataggio.</p>
-          <h4 style={h4Style}>Intestazione (Dati Azienda)</h4>
-          <p>Configura ragione sociale, indirizzo, P.IVA, CF, email, telefono, logo e regime fiscale. Questi dati appaiono nell'intestazione dei PDF esportati.</p>
-          <h4 style={h4Style}>Materiali</h4>
-          <p>Gestisci il catalogo materiali con nome, peso specifico, prezzo al kg, percentuale di markup, percentuale di fallimento stimata e giacenza in magazzino. Puoi importare i profili direttamente da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> o <strong>Prusa Slicer</strong> tramite il pulsante "Importa dallo Slicer". Cliccando su un materiale nella lista si apre la pagina di modifica.</p>
-          <h4 style={h4Style}>Stampanti</h4>
-          <p>Configura le stampanti con nome, consumo energetico (kWh) e costo ammortamento orario. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong>. Questi valori vengono usati per calcolare il costo energia e ammortamento di ogni riga preventivo.</p>
-          <h4 style={h4Style}>Profili stampa</h4>
-          <p>Gestisci i profili con layer height, numero pareti, infill, top/bottom layers e tipo di supporti. Importabili da <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong>.</p>
-          <h4 style={h4Style}>Servizi extra</h4>
-          <p>Definisci servizi aggiuntivi (post-processing, verniciatura, assemblaggio, ecc.) con importo predefinito e markup. Sono disponibili preset rapidi per i servizi più comuni. Per ogni servizio puoi scegliere se addebitare al cliente, mostrare nel PDF senza costo, o tenerlo come costo interno.</p>
-          <h4 style={h4Style}>Corrieri / PackLink Pro</h4>
-          <p>Configura la tua API key PackLink Pro per ottenere tariffe di spedizione live. Inserisci le dimensioni del pacco e il CAP di destinazione per confrontare i prezzi dei corrieri disponibili. Puoi salvare i corrieri trovati direttamente nel tuo catalogo.</p>
-          <h4 style={h4Style}>Metodi di pagamento</h4>
-          <p>Configura i metodi accettati (bonifico, PayPal, contanti, Satispay, ecc.) con commissioni percentuali e fisse e testo da mostrare nel PDF. Sono disponibili preset rapidi con le commissioni reali (es. PayPal 3,40% + €0,35). Una simulazione commissione mostra l'impatto su preventivi di diverse fasce.</p>
-          <h4 style={h4Style}>Interfaccia</h4>
-          <p>Personalizza l'aspetto dell'intera applicazione:</p>
+          <p>{t("guida.impostazioni_desc_pre")}<strong>{t("guida.impostazioni_desc_bold")}</strong>{t("guida.impostazioni_desc_post")}</p>
+          <h4 style={h4Style}>{t("guida.impostazioni_intestazione_title")}</h4>
+          <p>{t("guida.impostazioni_intestazione_desc")}</p>
+          <h4 style={h4Style}>{t("guida.impostazioni_materiali_title")}</h4>
+          <p dangerouslySetInnerHTML={{ __html: t("guida.impostazioni_materiali_desc") }} />
+          <h4 style={h4Style}>{t("guida.impostazioni_stampanti_title")}</h4>
+          <p dangerouslySetInnerHTML={{ __html: t("guida.impostazioni_stampanti_desc") }} />
+          <h4 style={h4Style}>{t("guida.impostazioni_profili_title")}</h4>
+          <p dangerouslySetInnerHTML={{ __html: t("guida.impostazioni_profili_desc") }} />
+          <h4 style={h4Style}>{t("guida.impostazioni_servizi_title")}</h4>
+          <p>{t("guida.impostazioni_servizi_desc")}</p>
+          <h4 style={h4Style}>{t("guida.impostazioni_corrieri_title")}</h4>
+          <p>{t("guida.impostazioni_corrieri_desc")}</p>
+          <h4 style={h4Style}>{t("guida.impostazioni_pagamento_title")}</h4>
+          <p>{t("guida.impostazioni_pagamento_desc")}</p>
+          <h4 style={h4Style}>{t("guida.impostazioni_interfaccia_title")}</h4>
+          <p>{t("guida.impostazioni_interfaccia_desc")}</p>
           <ul style={ulStyle}>
-            <li><strong>Dimensione font</strong> — Piccolo (12px), Medio (16px), Grande (20px)</li>
-            <li><strong>Colore accent</strong> — 10 temi cromatici (Cyan, Blue, Indigo, Purple, Pink, Rose, Orange, Amber, Green, Teal)</li>
+            <li><strong>{t("guida.impostazioni_interfaccia_1_label")}</strong> — {t("guida.impostazioni_interfaccia_1_desc")}</li>
+            <li><strong>{t("guida.impostazioni_interfaccia_2_label")}</strong> — {t("guida.impostazioni_interfaccia_2_desc")}</li>
           </ul>
-          <p>Le modifiche vengono salvate automaticamente e applicate in tempo reale a tutti i bottoni, input, badge, tabelle e tab dell'applicazione.</p>
-          <h4 style={h4Style}>Sicurezza</h4>
-          <p>Configura il <strong>PIN di avvio</strong> opzionale a 6 cifre per proteggere l'accesso all'applicazione. Da questa tab puoi impostare, modificare o rimuovere il PIN. Per maggiori dettagli vedi la sezione <strong>Sicurezza</strong> di questa guida.</p>
+          <p>{t("guida.impostazioni_interfaccia_post")}</p>
+          <h4 style={h4Style}>{t("guida.impostazioni_sicurezza_title")}</h4>
+          <p>{t("guida.impostazioni_sicurezza_desc_pre")}<strong>{t("guida.impostazioni_sicurezza_desc_bold")}</strong>{t("guida.impostazioni_sicurezza_desc_post")}<strong>{t("guida.impostazioni_sicurezza_desc_link")}</strong>{t("guida.impostazioni_sicurezza_desc_end")}</p>
         </div>
       ),
     },
     {
-      id: "ritenute", title: "Ritenute / Ricevute", icon: "📝",
+      id: "ritenute", title: t("guida.ritenuteSection"), icon: "📝",
       content: (
         <div style={proseStyle}>
-          <p>Il modulo Ritenute / Ricevute gestisce la generazione di ricevute per prestazioni occasionali con calcolo automatico della ritenuta d'acconto.</p>
-          <h4 style={h4Style}>Archivio</h4>
-          <p>La pagina principale <strong>Ritenute / Ricevute</strong> nella sidebar mostra l'archivio completo di tutte le ritenute generate, con filtri per anno e ricerca testuale. In alto sono visibili i KPI riassuntivi: totale lordo, ritenute versate, netto incassato e numero documenti.</p>
-          <h4 style={h4Style}>Creare una nuova ritenuta</h4>
+          <p>{t("guida.ritenute_desc")}</p>
+          <h4 style={h4Style}>{t("guida.ritenute_archivio_title")}</h4>
+          <p>{t("guida.ritenute_archivio_desc_pre")}<strong>{t("guida.ritenute_archivio_desc_bold")}</strong>{t("guida.ritenute_archivio_desc_post")}</p>
+          <h4 style={h4Style}>{t("guida.ritenute_create_title")}</h4>
           <ol style={olStyle}>
-            <li>Dalla pagina archivio, clicca <strong>"+ Nuova Ritenuta / Ricevuta"</strong></li>
-            <li>Si apre una pagina dedicata con il pulsante "← Torna a Ritenute / Ricevute"</li>
-            <li>Seleziona il cliente e opzionalmente il preventivo collegato</li>
-            <li>Inserisci l'importo lordo — la ritenuta (20%) viene calcolata automaticamente per i clienti con P.IVA</li>
-            <li>Clicca <strong>"Genera PDF"</strong> per creare e salvare il documento</li>
+            <li>{t("guida.ritenute_create_1_pre")}<strong>{t("guida.ritenute_create_1_btn")}</strong></li>
+            <li>{t("guida.ritenute_create_2")}</li>
+            <li>{t("guida.ritenute_create_3")}</li>
+            <li>{t("guida.ritenute_create_4")}</li>
+            <li>{t("guida.ritenute_create_5_pre")}<strong>{t("guida.ritenute_create_5_btn")}</strong>{t("guida.ritenute_create_5_post")}</li>
           </ol>
-          <h4 style={h4Style}>Azioni dall'archivio</h4>
+          <h4 style={h4Style}>{t("guida.ritenute_actions_title")}</h4>
           <ul style={ulStyle}>
-            <li><strong>Apri PDF</strong> — apre il documento generato</li>
-            <li><strong>Mostra in cartella</strong> — apre la cartella Documenti/Sparks3D/Ritenute/ in Esplora file</li>
-            <li><strong>Elimina</strong> — rimuove la ritenuta dall'archivio e il file PDF associato</li>
+            <li><strong>{t("guida.ritenute_actions_1_label")}</strong> — {t("guida.ritenute_actions_1_desc")}</li>
+            <li><strong>{t("guida.ritenute_actions_2_label")}</strong> — {t("guida.ritenute_actions_2_desc")}</li>
+            <li><strong>{t("guida.ritenute_actions_3_label")}</strong> — {t("guida.ritenute_actions_3_desc")}</li>
           </ul>
         </div>
       ),
     },
     {
-      id: "slicer", title: "Slicer integrati", icon: "🧊",
+      id: "slicer", title: t("guida.slicerSection"), icon: "🧊",
       content: (
         <div style={proseStyle}>
-          <p>Sparks3D Preventivi si integra con <strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong> e <strong>Prusa Slicer</strong> per importare automaticamente profili di stampa e materiali.</p>
-          <h4 style={h4Style}>Slicer supportati</h4>
+          <p>{t("guida.slicer_desc_pre")}<strong>Bambu Studio</strong>, <strong>Orca Slicer</strong>, <strong>Anycubic Slicer Next</strong>{t("guida.and")}<strong>Prusa Slicer</strong>{t("guida.slicer_desc_post")}</p>
+          <h4 style={h4Style}>{t("guida.slicer_supported_title")}</h4>
           <ul style={ulStyle}>
-            <li><strong>🟢 Bambu Studio</strong> — Profili JSON letti da <code style={codeStyle}>%APPDATA%\BambuStudio</code></li>
-            <li><strong>🐋 Orca Slicer</strong> — Profili JSON letti da <code style={codeStyle}>%APPDATA%\OrcaSlicer</code></li>
-            <li><strong>🔷 Anycubic Slicer Next</strong> — Profili JSON letti da <code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code></li>
-            <li><strong>🟠 Prusa Slicer</strong> — Profili INI letti da <code style={codeStyle}>%APPDATA%\PrusaSlicer</code></li>
+            <li><strong>{t("guida.slicer_supported_1_label")}</strong> — {t("guida.slicer_supported_1_desc")}<code style={codeStyle}>%APPDATA%\BambuStudio</code></li>
+            <li><strong>{t("guida.slicer_supported_2_label")}</strong> — {t("guida.slicer_supported_2_desc")}<code style={codeStyle}>%APPDATA%\OrcaSlicer</code></li>
+            <li><strong>{t("guida.slicer_supported_3_label")}</strong> — {t("guida.slicer_supported_3_desc")}<code style={codeStyle}>%APPDATA%\AnycubicSlicerNext</code></li>
+            <li><strong>{t("guida.slicer_supported_4_label")}</strong> — {t("guida.slicer_supported_4_desc")}<code style={codeStyle}>%APPDATA%\PrusaSlicer</code></li>
           </ul>
-          <h4 style={h4Style}>Rilevamento automatico</h4>
-          <p>All'avvio, l'applicazione verifica quali slicer sono installati. La sidebar mostra un indicatore per ciascuno: punto colorato = installato, punto rosso = non trovato.</p>
-          <h4 style={h4Style}>Apertura rapida</h4>
-          <p>Cliccando su un indicatore slicer nella sidebar, il programma si apre direttamente. Se l'eseguibile non viene trovato, appare un avviso.</p>
-          <h4 style={h4Style}>Import profili</h4>
-          <p>Nelle sezioni Impostazioni → Materiali, Stampanti e Profili stampa trovi il pulsante <strong>"Importa dallo Slicer"</strong> che apre la pagina di importazione. Da lì puoi scegliere lo slicer sorgente tramite le tab in alto (Bambu Studio, Orca Slicer, Anycubic Slicer Next, Prusa Slicer).</p>
-          <p>La pagina di importazione mostra tutti i profili trovati in formato tabella con dettagli tecnici (tipo, densità, costo per i filamenti; layer height, pareti, infill per i processi; modello e nozzle per le macchine). Puoi filtrare per "Solo profili utente" per escludere quelli preinstallati. Cliccando "Importa →" si apre il form di creazione precompilato con i dati letti dal profilo slicer.</p>
-          <h4 style={h4Style}>Prusa Slicer — formato INI</h4>
-          <p>A differenza degli altri slicer che usano profili JSON, Prusa Slicer salva i profili in formato <strong>.ini</strong> (testo con coppie chiave=valore). Sparks3D Preventivi converte automaticamente i campi Prusa nel formato interno dell'applicazione:</p>
+          <h4 style={h4Style}>{t("guida.slicer_detection_title")}</h4>
+          <p>{t("guida.slicer_detection_desc")}</p>
+          <h4 style={h4Style}>{t("guida.slicer_open_title")}</h4>
+          <p>{t("guida.slicer_open_desc")}</p>
+          <h4 style={h4Style}>{t("guida.slicer_import_title")}</h4>
+          <p>{t("guida.slicer_import_desc_pre")}<strong>{t("guida.slicer_import_desc_btn")}</strong>{t("guida.slicer_import_desc_post")}</p>
+          <p>{t("guida.slicer_import_details")}</p>
+          <h4 style={h4Style}>{t("guida.slicer_prusa_title")}</h4>
+          <p dangerouslySetInnerHTML={{ __html: t("guida.slicer_prusa_desc") }} />
           <ul style={ulStyle}>
-            <li><code style={codeStyle}>perimeters</code> → Numero pareti</li>
-            <li><code style={codeStyle}>fill_density</code> → Infill (con rimozione del suffisso %)</li>
-            <li><code style={codeStyle}>top_solid_layers</code> / <code style={codeStyle}>bottom_solid_layers</code> → Top/Bottom layers</li>
-            <li><code style={codeStyle}>support_material</code> → Supporti abilitati</li>
-            <li><code style={codeStyle}>temperature</code> → Temperatura nozzle</li>
+            <li><code style={codeStyle}>{t("guida.slicer_prusa_map_1_code")}</code> → {t("guida.slicer_prusa_map_1_desc")}</li>
+            <li><code style={codeStyle}>{t("guida.slicer_prusa_map_2_code")}</code> → {t("guida.slicer_prusa_map_2_desc")}</li>
+            <li><code style={codeStyle}>{t("guida.slicer_prusa_map_3a_code")}</code> / <code style={codeStyle}>{t("guida.slicer_prusa_map_3b_code")}</code> → {t("guida.slicer_prusa_map_3_desc")}</li>
+            <li><code style={codeStyle}>{t("guida.slicer_prusa_map_4_code")}</code> → {t("guida.slicer_prusa_map_4_desc")}</li>
+            <li><code style={codeStyle}>{t("guida.slicer_prusa_map_5_code")}</code> → {t("guida.slicer_prusa_map_5_desc")}</li>
           </ul>
-          <p>Le cartelle dei profili Prusa hanno nomi diversi: <code style={codeStyle}>print/</code> invece di <code style={codeStyle}>process/</code> e <code style={codeStyle}>printer/</code> invece di <code style={codeStyle}>machine/</code>. La mappatura è gestita automaticamente.</p>
-          <h4 style={h4Style}>Compatibilità Anycubic Slicer Next</h4>
-          <p>Anycubic Slicer Next è sviluppato sulla base di Orca Slicer, quindi utilizza lo stesso formato di profili JSON. Tutti i profili filamento, macchina e processo creati in Anycubic Slicer Next sono pienamente compatibili con l'importazione automatica.</p>
-          <h4 style={h4Style}>Parser GCode / 3MF</h4>
-          <p>Quando aggiungi una riga al preventivo, puoi importare un file .gcode o .3mf. Il parser estrae automaticamente:</p>
+          <p dangerouslySetInnerHTML={{ __html: t("guida.slicer_prusa_folders") }} />
+          <h4 style={h4Style}>{t("guida.slicer_anycubic_title")}</h4>
+          <p>{t("guida.slicer_anycubic_desc")}</p>
+          <h4 style={h4Style}>{t("guida.slicer_parser_title")}</h4>
+          <p>{t("guida.slicer_parser_desc")}</p>
           <ul style={ulStyle}>
-            <li>Tempo di stampa stimato</li>
-            <li>Peso del filamento per ogni materiale/colore</li>
-            <li>Tipo di filamento utilizzato</li>
-            <li>Configurazione multi-materiale AMS (da file 3MF)</li>
+            <li>{t("guida.slicer_parser_1")}</li>
+            <li>{t("guida.slicer_parser_2")}</li>
+            <li>{t("guida.slicer_parser_3")}</li>
+            <li>{t("guida.slicer_parser_4")}</li>
           </ul>
-          <p>Funziona con file generati da Bambu Studio, Orca Slicer, Anycubic Slicer Next, Prusa Slicer e altri slicer compatibili.</p>
+          <p>{t("guida.slicer_parser_compat")}</p>
         </div>
       ),
     },
     {
-      id: "backup", title: "Backup e Dati", icon: "💾",
+      id: "backup", title: t("guida.backupSection"), icon: "💾",
       content: (
         <div style={proseStyle}>
-          <h4 style={h4Style}>Backup</h4>
-          <p>Crea un backup completo in formato .zip che include database, loghi e documenti PDF. Puoi scegliere quali elementi includere. Si consiglia di fare un backup regolarmente.</p>
-          <h4 style={h4Style}>Ripristino</h4>
-          <p>Seleziona un file .zip di backup per ripristinare i dati. Puoi scegliere se ripristinare database, loghi e/o documenti PDF separatamente.</p>
-          <p>Quando il ripristino include il database, l'applicazione mostra un avviso che richiede la chiusura e la riapertura del programma per caricare i dati ripristinati. Un pulsante dedicato permette di chiudere l'applicazione direttamente.</p>
-          <h4 style={h4Style}>Esportazione dati</h4>
-          <p>Esporta i dati in formato CSV o Excel (.xlsx). Puoi esportare preventivi, clienti, materiali, stampanti, profili e statistiche singolarmente o tutti insieme. Il file Excel include fogli multipli con formattazione.</p>
-          <h4 style={h4Style}>Reset dati</h4>
-          <p>Cancella selettivamente i dati dal database. Utile per ripulire i dati di test. Richiede doppia conferma per prevenire cancellazioni accidentali. Si consiglia di creare un backup prima di procedere.</p>
+          <h4 style={h4Style}>{t("guida.backup_title_backup")}</h4>
+          <p>{t("guida.backup_desc")}</p>
+          <h4 style={h4Style}>{t("guida.backup_title_restore")}</h4>
+          <p>{t("guida.backup_restore_desc")}</p>
+          <p>{t("guida.backup_restore_restart")}</p>
+          <h4 style={h4Style}>{t("guida.backup_title_export")}</h4>
+          <p>{t("guida.backup_export_desc")}</p>
+          <h4 style={h4Style}>{t("guida.backup_title_reset")}</h4>
+          <p>{t("guida.backup_reset_desc")}</p>
         </div>
       ),
     },
     {
-      id: "scorciatoie", title: "Scorciatoie tastiera", icon: "⌨️",
+      id: "scorciatoie", title: t("guida.shortcutsSection"), icon: "⌨️",
       content: (
         <div style={proseStyle}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
-              { keys: "Ctrl + K", desc: "Apri la ricerca globale" },
-              { keys: "Esc", desc: "Chiudi modale / ricerca" },
-              { keys: "↑ ↓", desc: "Naviga tra i risultati di ricerca" },
-              { keys: "Enter", desc: "Apri il risultato selezionato" },
-              { keys: "F11", desc: "Schermo intero" },
-              { keys: "F12", desc: "Apri strumenti sviluppatore" },
+              { keys: "Ctrl + K", desc: t("guida.shortcuts_1") },
+              { keys: "Esc", desc: t("guida.shortcuts_2") },
+              { keys: "↑ ↓", desc: t("guida.shortcuts_3") },
+              { keys: "Enter", desc: t("guida.shortcuts_4") },
+              { keys: "F11", desc: t("guida.shortcuts_5") },
+              { keys: "F12", desc: t("guida.shortcuts_6") },
             ].map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 16, padding: "8px 0" }}>
                 <kbd style={kbdStyle}>{s.keys}</kbd>
-                <span style={{ fontSize: 13, color: "#94a3b8" }}>{s.desc}</span>
+                <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{s.desc}</span>
               </div>
             ))}
           </div>
@@ -264,113 +266,154 @@ export function GuidaPage() {
       ),
     },
     {
-      id: "sicurezza", title: "Sicurezza", icon: "🔐",
+      id: "sicurezza", title: t("guida.sicurezzaSection"), icon: "🔐",
       content: (
         <div style={proseStyle}>
-          <p>Sparks3D Preventivi adotta misure di sicurezza progettate per proteggere i tuoi dati aziendali e dei clienti su PC singoli e condivisi.</p>
+          <p>{t("guida.sicurezza_desc")}</p>
 
-          <h4 style={h4Style}>🔑 PIN di avvio</h4>
-          <p>A partire dalla v1.3.0 puoi impostare un <strong>PIN numerico di 6 cifre</strong> per proteggere l'accesso all'applicazione. Il PIN viene richiesto ogni volta che avvii Sparks3D Preventivi, prima di mostrare l'interfaccia principale.</p>
+          <h4 style={h4Style}>{t("guida.sicurezza_pin_title")}</h4>
+          <p>{t("guida.sicurezza_pin_desc_pre")}<strong>{t("guida.sicurezza_pin_desc_bold")}</strong>{t("guida.sicurezza_pin_desc_post")}</p>
           <ul style={ulStyle}>
-            <li><strong>Impostazione:</strong> Vai in <strong>Impostazioni → Sicurezza</strong> e clicca "Imposta PIN". Inserisci il PIN desiderato e confermalo</li>
-            <li><strong>Modifica:</strong> Dalla stessa pagina, clicca "Modifica PIN". Verrà richiesto il PIN attuale prima di impostare quello nuovo</li>
-            <li><strong>Rimozione:</strong> Clicca "Rimuovi PIN" e conferma con il PIN attuale. L'app tornerà ad aprirsi senza protezione</li>
-            <li><strong>Protezione brute-force:</strong> dopo 3 tentativi errati consecutivi, l'accesso viene bloccato per 60 secondi</li>
-            <li><strong>Archiviazione sicura:</strong> il PIN non viene mai salvato in chiaro. Viene memorizzato come hash crittografico SHA-256 — anche leggendo il database non è possibile risalire al PIN originale</li>
+            <li><strong>{t("guida.sicurezza_pin_1_label")}</strong>{t("guida.sicurezza_pin_1_desc_pre")}<strong>{t("guida.sicurezza_pin_1_desc_bold")}</strong>{t("guida.sicurezza_pin_1_desc_post")}</li>
+            <li><strong>{t("guida.sicurezza_pin_2_label")}</strong>{t("guida.sicurezza_pin_2_desc")}</li>
+            <li><strong>{t("guida.sicurezza_pin_3_label")}</strong>{t("guida.sicurezza_pin_3_desc")}</li>
+            <li><strong>{t("guida.sicurezza_pin_4_label")}</strong>{t("guida.sicurezza_pin_4_desc")}</li>
+            <li><strong>{t("guida.sicurezza_pin_5_label")}</strong>{t("guida.sicurezza_pin_5_desc")}</li>
           </ul>
           <p style={{ marginTop: 8, color: "#f97316" }}>
-            ⚠️ <strong>Attenzione:</strong> se dimentichi il PIN non esiste una procedura di recupero automatica. In caso di emergenza puoi ripristinare un backup precedente.
+            {t("guida.sicurezza_pin_warning_pre")}<strong>{t("guida.sicurezza_pin_warning_label")}</strong>{t("guida.sicurezza_pin_warning_desc")}
           </p>
 
-          <h4 style={h4Style}>🔒 Database cifrato (SQLCipher AES-256)</h4>
-          <p>A partire dalla v1.2.0, il database SQLite è cifrato con <strong>SQLCipher AES-256</strong>. Tutti i dati sensibili — clienti, preventivi, prezzi, partite IVA — sono protetti e non leggibili da nessun software esterno senza la chiave dell'applicazione. Se hai una versione precedente installata, la migrazione avviene automaticamente e silenziosamente al primo avvio.</p>
+          <h4 style={h4Style}>{t("guida.sicurezza_db_title")}</h4>
+          <p>{t("guida.sicurezza_db_desc_pre")}<strong>{t("guida.sicurezza_db_desc_bold")}</strong>{t("guida.sicurezza_db_desc_post")}</p>
 
-          <h4 style={h4Style}>🔑 API key PackLink nel Windows Credential Manager</h4>
-          <p>La chiave API di PackLink Pro non viene salvata nel database ma nel <strong>Windows Credential Manager</strong>, lo stesso sistema protetto che Windows usa per le password di rete e dei browser. Puoi verificarla in: <strong>Pannello di controllo → Gestione credenziali → Credenziali Windows → sparks3d-preventivi</strong>.</p>
+          <h4 style={h4Style}>{t("guida.sicurezza_api_title")}</h4>
+          <p>{t("guida.sicurezza_api_desc_pre")}<strong>{t("guida.sicurezza_api_desc_bold")}</strong>{t("guida.sicurezza_api_desc_post")}<strong>{t("guida.sicurezza_api_desc_path")}</strong>{t("guida.sicurezza_api_desc_end")}</p>
           <p style={{ marginTop: 8, color: "#f97316" }}>
-            ⚠️ <strong>Nota backup:</strong> la API key non è inclusa nel file di backup perché è salvata nel Credential Manager per sicurezza. Dopo un ripristino su un PC diverso dovrai reinserirla in <em>Corrieri → PackLink Pro</em>.
+            {t("guida.sicurezza_api_warning_pre")}<strong>{t("guida.sicurezza_api_warning_label")}</strong>{t("guida.sicurezza_api_warning_desc")}<em>{t("guida.sicurezza_api_warning_path")}</em>{t("guida.sicurezza_api_warning_end")}
           </p>
 
-          <h4 style={h4Style}>✅ Verifica integrità del backup</h4>
-          <p>Ogni backup creato dalla v1.2.0 include un hash <strong>SHA-256</strong> del database. Al ripristino, l'app verifica che il file non sia stato manomesso o corrotto prima di applicarlo. Se l'hash non corrisponde, il ripristino viene annullato automaticamente e tutti i file temporanei vengono eliminati.</p>
+          <h4 style={h4Style}>{t("guida.sicurezza_integrity_title")}</h4>
+          <p>{t("guida.sicurezza_integrity_desc_pre")}<strong>{t("guida.sicurezza_integrity_desc_bold")}</strong>{t("guida.sicurezza_integrity_desc_post")}</p>
 
-          <h4 style={h4Style}>🛡️ Aggiornamenti firmati</h4>
-          <p>Il sistema di aggiornamento automatico verifica la <strong>firma crittografica</strong> di ogni pacchetto prima dell'installazione. Questo garantisce che gli aggiornamenti provengano esclusivamente da Sparks3D e non siano stati modificati durante il download. La verifica è obbligatoria e non può essere disabilitata.</p>
+          <h4 style={h4Style}>{t("guida.sicurezza_updates_title")}</h4>
+          <p>{t("guida.sicurezza_updates_desc_pre")}<strong>{t("guida.sicurezza_updates_desc_bold")}</strong>{t("guida.sicurezza_updates_desc_post")}</p>
 
-          <h4 style={h4Style}>🌐 Content Security Policy</h4>
-          <p>L'interfaccia è protetta da una <strong>Content Security Policy</strong> restrittiva che impedisce l'esecuzione di script non autorizzati, anche in caso di contenuti malevoli iniettati tramite file GCode o 3MF.</p>
+          <h4 style={h4Style}>{t("guida.sicurezza_csp_title")}</h4>
+          <p>{t("guida.sicurezza_csp_desc_pre")}<strong>{t("guida.sicurezza_csp_desc_bold")}</strong>{t("guida.sicurezza_csp_desc_post")}</p>
 
-          <h4 style={h4Style}>📋 Roadmap sicurezza</h4>
-          <p>Le seguenti funzionalità di sicurezza sono pianificate per le prossime release:</p>
+          <h4 style={h4Style}>{t("guida.sicurezza_roadmap_title")}</h4>
+          <p>{t("guida.sicurezza_roadmap_desc")}</p>
           <ul style={ulStyle}>
-            <li><strong>Validazione dati</strong> — controllo formato CAP, email e Partita IVA</li>
-            <li><strong>Permessi filesystem granulari</strong> — accesso limitato ai soli percorsi necessari degli slicer</li>
+            <li><strong>{t("guida.sicurezza_roadmap_1_label")}</strong> — {t("guida.sicurezza_roadmap_1_desc")}</li>
+            <li><strong>{t("guida.sicurezza_roadmap_2_label")}</strong> — {t("guida.sicurezza_roadmap_2_desc")}</li>
           </ul>
         </div>
       ),
     },
     {
-      id: "novita", title: "Novità v1.3.0", icon: "🆕",
+      id: "novita", title: t("guida.novitaSection"), icon: "🆕",
       content: (
         <div style={proseStyle}>
-          <h4 style={h4Style}>🟠 Prusa Slicer</h4>
+          {/* ── Novità v1.4.0 ── */}
+          <h4 style={h4Style}>{t("guida.novita_v140_i18n_title")}</h4>
           <ul style={ulStyle}>
-            <li>Integrazione completa con <strong>Prusa Slicer</strong>: rilevamento installazione, import profili, apertura rapida dalla sidebar</li>
-            <li>Parser nativo per profili <strong>.ini</strong> — formato diverso dai JSON di Bambu/Orca/Anycubic, gestito automaticamente</li>
-            <li>Mappatura automatica cartelle Prusa (<code style={codeStyle}>print/</code>, <code style={codeStyle}>printer/</code>, <code style={codeStyle}>filament/</code>) al formato interno</li>
-            <li>Conversione chiavi Prusa → chiavi standard (es. <code style={codeStyle}>perimeters</code> → pareti, <code style={codeStyle}>fill_density</code> → infill)</li>
-            <li>Nuova tab <strong>Prusa Slicer</strong> (arancione 🟠) nella pagina di importazione profili</li>
-            <li>Sidebar con indicatore Prusa Slicer (arancione) — cliccabile per aprire il programma</li>
-            <li>Badge "Prusa" arancione nelle tabelle Materiali, Stampanti e Profili per i dati importati</li>
-            <li>Profili letti da <code style={codeStyle}>%APPDATA%\PrusaSlicer</code> — supporto anche per versioni alpha/beta</li>
-            <li>Splash screen aggiornato: mostra lo stato di tutti e quattro gli slicer</li>
+            <li>{t("guida.novita_v140_i18n_1")}</li>
+            <li>{t("guida.novita_v140_i18n_2")}</li>
+            <li>{t("guida.novita_v140_i18n_3")}</li>
+            <li>{t("guida.novita_v140_i18n_4")}</li>
+          </ul>
+          <h4 style={h4Style}>{t("guida.novita_v140_thumb_title")}</h4>
+          <ul style={ulStyle}>
+            <li>{t("guida.novita_v140_thumb_1")}</li>
+            <li>{t("guida.novita_v140_thumb_2")}</li>
+            <li>{t("guida.novita_v140_thumb_3")}</li>
+            <li>{t("guida.novita_v140_thumb_4")}</li>
+          </ul>
+          <h4 style={h4Style}>{t("guida.novita_v140_auto_title")}</h4>
+          <ul style={ulStyle}>
+            <li>{t("guida.novita_v140_auto_1")}</li>
+            <li>{t("guida.novita_v140_auto_2")}</li>
+            <li>{t("guida.novita_v140_auto_3")}</li>
+          </ul>
+          <h4 style={h4Style}>{t("guida.novita_v140_theme_title")}</h4>
+          <ul style={ulStyle}>
+            <li>{t("guida.novita_v140_theme_1")}</li>
+            <li>{t("guida.novita_v140_theme_2")}</li>
+          </ul>
+          <h4 style={h4Style}>{t("guida.novita_v140_pdf_title")}</h4>
+          <ul style={ulStyle}>
+            <li>{t("guida.novita_v140_pdf_1")}</li>
+            <li>{t("guida.novita_v140_pdf_2")}</li>
+            <li>{t("guida.novita_v140_pdf_3")}</li>
+          </ul>
+          <h4 style={h4Style}>{t("guida.novita_v140_fix_title")}</h4>
+          <ul style={ulStyle}>
+            <li>{t("guida.novita_v140_fix_1")}</li>
+            <li>{t("guida.novita_v140_fix_2")}</li>
+            <li>{t("guida.novita_v140_fix_3")}</li>
           </ul>
 
-          <h4 style={h4Style}>🔑 PIN di avvio</h4>
+          {/* ── Novità precedenti v1.3.0 ── */}
+          <h4 style={h4Style}>{t("guida.novita_v130_title")}</h4>
+          <h4 style={h4Style}>{t("guida.novita_prusa_title")}</h4>
           <ul style={ulStyle}>
-            <li>Nuovo <strong>PIN numerico di 6 cifre</strong> opzionale per proteggere l'avvio dell'applicazione</li>
-            <li>Schermata di sblocco dedicata con caselle animate, effetto 3D e sfondo con particelle in movimento</li>
-            <li>Protezione brute-force: <strong>3 tentativi</strong> poi blocco <strong>60 secondi</strong> con progress bar</li>
-            <li>PIN salvato come hash SHA-256 nel database — non recuperabile in chiaro</li>
-            <li>Nuova tab <strong>Sicurezza</strong> nelle Impostazioni per gestire il PIN (imposta / modifica / rimuovi)</li>
-            <li>Il PIN viene rimosso automaticamente in caso di reset completo delle impostazioni</li>
+            <li>{t("guida.novita_prusa_1_pre")}<strong>{t("guida.novita_prusa_1_bold")}</strong>{t("guida.novita_prusa_1_post")}</li>
+            <li>{t("guida.novita_prusa_2_pre")}<strong>{t("guida.novita_prusa_2_bold")}</strong>{t("guida.novita_prusa_2_post")}</li>
+            <li>{t("guida.novita_prusa_3")}</li>
+            <li>{t("guida.novita_prusa_4")}</li>
+            <li>{t("guida.novita_prusa_5_pre")}<strong>{t("guida.novita_prusa_5_bold")}</strong>{t("guida.novita_prusa_5_post")}</li>
+            <li>{t("guida.novita_prusa_6")}</li>
+            <li>{t("guida.novita_prusa_7")}</li>
+            <li><span dangerouslySetInnerHTML={{ __html: t("guida.novita_prusa_8") }} /></li>
+            <li>{t("guida.novita_prusa_9")}</li>
           </ul>
 
-          <h4 style={h4Style}>💾 Ripristino backup migliorato</h4>
+          <h4 style={h4Style}>{t("guida.novita_pin_title")}</h4>
           <ul style={ulStyle}>
-            <li>Nuova <strong>modale di conferma ripristino</strong> con riepilogo degli elementi selezionati e avviso di sovrascrittura</li>
-            <li>Al termine del ripristino del database, appare una <strong>modale di riavvio obbligatorio</strong> che impedisce di continuare a usare l'app con dati inconsistenti</li>
-            <li>Pulsante dedicato per chiudere e riavviare l'applicazione direttamente dalla modale</li>
+            <li>{t("guida.novita_pin_1_pre")}<strong>{t("guida.novita_pin_1_bold")}</strong>{t("guida.novita_pin_1_post")}</li>
+            <li>{t("guida.novita_pin_2")}</li>
+            <li>{t("guida.novita_pin_3_pre")}<strong>{t("guida.novita_pin_3_bold")}</strong>{t("guida.novita_pin_3_mid")}<strong>{t("guida.novita_pin_3_bold2")}</strong>{t("guida.novita_pin_3_post")}</li>
+            <li>{t("guida.novita_pin_4")}</li>
+            <li>{t("guida.novita_pin_5_pre")}<strong>{t("guida.novita_pin_5_bold")}</strong>{t("guida.novita_pin_5_post")}</li>
+            <li>{t("guida.novita_pin_6")}</li>
           </ul>
 
-          <h4 style={h4Style}>Novità precedenti (v1.2.0)</h4>
+          <h4 style={h4Style}>{t("guida.novita_backup_title")}</h4>
           <ul style={ulStyle}>
-            <li>Database cifrato con <strong>SQLCipher AES-256</strong></li>
-            <li>API key PackLink spostata nel <strong>Windows Credential Manager</strong></li>
-            <li>Verifica <strong>SHA-256</strong> del database al ripristino backup</li>
-            <li><strong>Content Security Policy</strong> restrittiva abilitata sull'interfaccia</li>
-            <li>Sistema di <strong>aggiornamento automatico</strong> con firma crittografica e banner in-app</li>
+            <li>{t("guida.novita_backup_1_pre")}<strong>{t("guida.novita_backup_1_bold")}</strong>{t("guida.novita_backup_1_post")}</li>
+            <li>{t("guida.novita_backup_2_pre")}<strong>{t("guida.novita_backup_2_bold")}</strong>{t("guida.novita_backup_2_post")}</li>
+            <li>{t("guida.novita_backup_3")}</li>
           </ul>
 
-          <h4 style={h4Style}>Novità precedenti (v1.1.0)</h4>
+          <h4 style={h4Style}>{t("guida.novita_v120_title")}</h4>
           <ul style={ulStyle}>
-            <li>Integrazione completa con <strong>Anycubic Slicer Next</strong></li>
-            <li>Pulsante unificato <strong>"Importa dallo Slicer"</strong> con tab di commutazione</li>
-            <li>Sidebar con triplo indicatore slicer</li>
+            <li>{t("guida.novita_v120_1_pre")}<strong>{t("guida.novita_v120_1_bold")}</strong></li>
+            <li>{t("guida.novita_v120_2_pre")}<strong>{t("guida.novita_v120_2_bold")}</strong></li>
+            <li>{t("guida.novita_v120_3_pre")}<strong>{t("guida.novita_v120_3_bold")}</strong>{t("guida.novita_v120_3_post")}</li>
+            <li>{t("guida.novita_v120_4_pre")}<strong>{t("guida.novita_v120_4_bold")}</strong>{t("guida.novita_v120_4_post")}</li>
+            <li>{t("guida.novita_v120_5_pre")}<strong>{t("guida.novita_v120_5_bold")}</strong>{t("guida.novita_v120_5_post")}</li>
           </ul>
 
-          <h4 style={h4Style}>Novità precedenti (v1.0.3)</h4>
+          <h4 style={h4Style}>{t("guida.novita_v110_title")}</h4>
           <ul style={ulStyle}>
-            <li>Integrazione completa con <strong>Orca Slicer</strong></li>
-            <li>Refactoring completo interfaccia: pagine dedicate invece di modali popup</li>
-            <li>Unificazione voci menu Ritenute / Ricevute</li>
+            <li>{t("guida.novita_v110_1_pre")}<strong>{t("guida.novita_v110_1_bold")}</strong></li>
+            <li>{t("guida.novita_v110_2_pre")}<strong>{t("guida.novita_v110_2_bold")}</strong>{t("guida.novita_v110_2_post")}</li>
+            <li>{t("guida.novita_v110_3")}</li>
           </ul>
 
-          <h4 style={h4Style}>Novità precedenti (v1.0.2)</h4>
+          <h4 style={h4Style}>{t("guida.novita_v103_title")}</h4>
           <ul style={ulStyle}>
-            <li>Conferma esplicita per eliminazione preventivi, righe e clienti</li>
-            <li>Dashboard interattiva con etichette e numeri cliccabili</li>
-            <li>Tema dinamico: colore accent e dimensione font</li>
+            <li>{t("guida.novita_v103_1_pre")}<strong>{t("guida.novita_v103_1_bold")}</strong></li>
+            <li>{t("guida.novita_v103_2")}</li>
+            <li>{t("guida.novita_v103_3")}</li>
+          </ul>
+
+          <h4 style={h4Style}>{t("guida.novita_v102_title")}</h4>
+          <ul style={ulStyle}>
+            <li>{t("guida.novita_v102_1")}</li>
+            <li>{t("guida.novita_v102_2")}</li>
+            <li>{t("guida.novita_v102_3")}</li>
           </ul>
         </div>
       ),
@@ -393,12 +436,11 @@ export function GuidaPage() {
       }}>
         <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
         <span>
-          <strong>Falsi positivi antivirus:</strong> alcuni antivirus (es. Kaspersky, Windows Defender) potrebbero segnalare l'installer come sospetto.
-          Si tratta di un <strong>falso positivo</strong> dovuto all'assenza di firma digitale (Code Signing).
-          Il codice sorgente è completamente open source e verificabile su{" "}
+          <strong>{t("guida.antivirus_label")}</strong>{t("guida.antivirus_desc_1")}
+          <strong>{t("guida.antivirus_bold")}</strong>{t("guida.antivirus_desc_2")}
           <a href="https://github.com/Sparks3D/sparks3d-preventivi" target="_blank" rel="noreferrer"
-            style={{ color: "#60a5fa", textDecoration: "underline" }}>
-            GitHub
+            style={{ color: "var(--accent)", textDecoration: "underline" }}>
+            {t("guida.antivirus_github")}
           </a>.
         </span>
       </div>
@@ -409,8 +451,8 @@ export function GuidaPage() {
         width: 200, flexShrink: 0,
         position: "sticky", top: 0, alignSelf: "flex-start",
       }}>
-        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: "#3d5170", marginBottom: 12 }}>
-          Sommario
+        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, color: "var(--text-muted)", marginBottom: 12 }}>
+          {t("guida.sommario")}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {sections.map(s => (
@@ -424,7 +466,7 @@ export function GuidaPage() {
                 transition: "all 0.2s",
                 textAlign: "left",
                 background: activeSection === s.id ? "rgba(59,130,246,0.1)" : "transparent",
-                color: activeSection === s.id ? "#60a5fa" : "#6b7fa0",
+                color: activeSection === s.id ? "var(--accent)" : "var(--text-muted)",
                 fontSize: 13, fontWeight: activeSection === s.id ? 600 : 500,
               }}
             >
@@ -477,7 +519,7 @@ const olStyle: React.CSSProperties = {
 
 const codeStyle: React.CSSProperties = {
   background: "rgba(59,130,246,0.1)", padding: "2px 6px", borderRadius: 4,
-  fontFamily: "monospace", fontSize: 12, color: "#60a5fa",
+  fontFamily: "monospace", fontSize: 12, color: "var(--accent)",
 };
 
 const kbdStyle: React.CSSProperties = {

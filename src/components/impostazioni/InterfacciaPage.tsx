@@ -4,6 +4,7 @@
 
 import { useSettings } from "../../context/SettingsContext";
 import { useToast } from "../layout/ToastProvider";
+import { useTranslation } from "react-i18next";
 
 const ACCENT_COLORS = [
   { name: "Cyan",    hex: "#0ea5e9" },
@@ -18,19 +19,25 @@ const ACCENT_COLORS = [
   { name: "Teal",    hex: "#14b8a6" },
 ];
 
-const FONT_SIZES = [
-  { value: "small" as const,  label: "Piccolo (12px)" },
-  { value: "medium" as const, label: "Medio (16px)" },
-  { value: "large" as const,  label: "Grande (20px)" },
+const LANGUAGES = [
+  { code: "it", label: "Italiano", flag: "🇮🇹" },
+  { code: "en", label: "English", flag: "🇬🇧 EN" },
 ];
 
 export function InterfacciaPage() {
   const { settings, updateSettings, resetSettings } = useSettings();
   const toast = useToast();
+  const { t, i18n } = useTranslation();
+
+  const FONT_SIZES = [
+    { value: "small" as const,  label: t("interfaccia.fontSmall") },
+    { value: "medium" as const, label: t("interfaccia.fontMedium") },
+    { value: "large" as const,  label: t("interfaccia.fontLarge") },
+  ];
 
   const handleUpdate = (partial: Parameters<typeof updateSettings>[0]) => {
     updateSettings(partial);
-    toast.success("Impostazione salvata");
+    toast.success(t("common.settingSaved"));
   };
 
   return (
@@ -46,14 +53,52 @@ export function InterfacciaPage() {
           <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
           <path d="M9 12l2 2 4-4" />
         </svg>
-        <span style={{ fontSize: 12, color: "#94a3b8" }}>
-          Le modifiche vengono salvate automaticamente
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          {t("interfaccia.autoSave")}
         </span>
+      </div>
+
+      {/* ═══ LINGUA / LANGUAGE ═══ */}
+      <div style={cardStyle}>
+        <div style={titleStyle}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          Lingua / Language
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => { i18n.changeLanguage(lang.code); toast.success(t("common.settingSaved")); }}
+              style={{
+                flex: 1,
+                padding: "12px 14px",
+                borderRadius: 10,
+                border: `1.5px solid ${i18n.language.startsWith(lang.code) ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.08)"}`,
+                background: i18n.language.startsWith(lang.code) ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.02)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                textAlign: "center",
+              }}
+            >
+              <div style={{ fontSize: 24, marginBottom: 4 }}>{lang.flag}</div>
+              <div style={{
+                fontSize: 13, fontWeight: 600,
+                color: i18n.language.startsWith(lang.code) ? "#e2e8f0" : "#94a3b8",
+              }}>
+                {lang.label}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ═══ DIMENSIONE FONT ═══ */}
       <div style={cardStyle}>
-        <div style={titleStyle}>Dimensione font</div>
+        <div style={titleStyle}>{t("interfaccia.fontSize")}</div>
         <div style={{ display: "flex", gap: 8 }}>
           {FONT_SIZES.map((fs) => (
             <button
@@ -73,12 +118,12 @@ export function InterfacciaPage() {
               <div style={{
                 fontSize: fs.value === "small" ? 12 : fs.value === "large" ? 20 : 16,
                 fontWeight: 600,
-                color: settings.fontSize === fs.value ? "#e2e8f0" : "#94a3b8",
+                color: settings.fontSize === fs.value ? "var(--text-primary)" : "var(--text-muted)",
                 marginBottom: 4,
               }}>
                 Aa
               </div>
-              <div style={{ fontSize: 11, color: "#64748b" }}>
+              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
                 {fs.label}
               </div>
             </button>
@@ -91,21 +136,21 @@ export function InterfacciaPage() {
           background: "rgba(255,255,255,0.02)",
           border: "1px solid rgba(255,255,255,0.05)",
         }}>
-          <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>
-            Anteprima
+          <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>
+            {t("interfaccia.preview")}
           </div>
           <div style={{
             fontSize: settings.fontSize === "small" ? 12 : settings.fontSize === "large" ? 20 : 16,
-            color: "#b8c5db", lineHeight: 1.5,
+            color: "var(--text-secondary)", lineHeight: 1.5,
           }}>
-            Questa è un'anteprima del testo con la dimensione selezionata. I numeri appaiono così: € 1.234,56
+            {t("interfaccia.previewText")}
           </div>
         </div>
       </div>
 
       {/* ═══ COLORE ACCENT ═══ */}
       <div style={cardStyle}>
-        <div style={titleStyle}>Colore accent</div>
+        <div style={titleStyle}>{t("interfaccia.accentColor")}</div>
         <div style={{
           display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10,
         }}>
@@ -156,7 +201,7 @@ export function InterfacciaPage() {
             color: "white", fontSize: 13, fontWeight: 600, cursor: "pointer",
             boxShadow: `0 2px 12px ${settings.accentColor}50`,
           }}>
-            Anteprima Button
+            {t("interfaccia.previewButton")}
           </button>
           <div style={{
             padding: "4px 12px", borderRadius: 100,
@@ -164,15 +209,15 @@ export function InterfacciaPage() {
             border: `1px solid ${settings.accentColor}40`,
             fontSize: 12, fontWeight: 600, color: settings.accentColor,
           }}>
-            Badge
+            {t("interfaccia.badge")}
           </div>
           <div style={{
             width: 120, padding: "6px 10px", borderRadius: 8,
             border: `1.5px solid ${settings.accentColor}`,
-            background: "rgba(0,0,0,0.2)", fontSize: 13, color: "#e2e8f0",
+            background: "rgba(0,0,0,0.2)", fontSize: 13, color: "var(--text-primary)",
             boxShadow: `0 0 0 3px ${settings.accentColor}30`,
           }}>
-            Input
+            {t("interfaccia.input")}
           </div>
         </div>
       </div>
@@ -182,17 +227,17 @@ export function InterfacciaPage() {
         <button
           onClick={() => {
             resetSettings();
-            toast.info("Impostazioni ripristinate");
+            toast.info(t("common.settingSaved"));
           }}
           style={{
             padding: "8px 18px", borderRadius: 10,
             background: "rgba(255,255,255,0.04)",
             border: "1px solid rgba(255,255,255,0.1)",
-            color: "#94a3b8", fontSize: 13, fontWeight: 500,
+            color: "var(--text-muted)", fontSize: 13, fontWeight: 500,
             cursor: "pointer", transition: "all 0.2s",
           }}
         >
-          Ripristina predefiniti
+          {t("interfaccia.resetDefaults")}
         </button>
       </div>
     </div>
@@ -207,6 +252,6 @@ const cardStyle: React.CSSProperties = {
 };
 
 const titleStyle: React.CSSProperties = {
-  fontSize: 15, fontWeight: 700, color: "#e2e8f0", marginBottom: 16,
+  fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16,
   display: "flex", alignItems: "center", gap: 8,
 };

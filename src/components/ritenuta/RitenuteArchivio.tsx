@@ -3,6 +3,7 @@
 // =====================================================
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Ritenuta {
@@ -33,6 +34,7 @@ const dataFmt = (iso: string) => {
 };
 
 export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => void }) {
+  const { t } = useTranslation();
   const [ritenute, setRitenute] = useState<Ritenuta[]>([]);
   const [filtro, setFiltro] = useState("");
   const [annoFiltro, setAnnoFiltro] = useState<string>("tutti");
@@ -80,7 +82,7 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
     try {
       await invoke("open_pdf_file", { path });
     } catch {
-      mostraMessaggio("err", "File PDF non trovato. Potrebbe essere stato spostato o eliminato.");
+      mostraMessaggio("err", t("ritenuteArchivio.errFilePdf"));
     }
   };
 
@@ -88,7 +90,7 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
     try {
       await invoke("open_file_in_explorer", { path });
     } catch {
-      mostraMessaggio("err", "Impossibile aprire la cartella.");
+      mostraMessaggio("err", t("ritenuteArchivio.errCartella"));
     }
   };
 
@@ -98,7 +100,7 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
       // Apri la cartella direttamente
       await invoke("open_file_in_explorer", { path: folders.ritenute + "\\." });
     } catch {
-      mostraMessaggio("err", "Impossibile aprire la cartella Ritenute.");
+      mostraMessaggio("err", t("ritenuteArchivio.errApriCartella"));
     }
   };
 
@@ -107,9 +109,9 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
       await invoke("delete_ritenuta", { id });
       setRitenute((prev) => prev.filter((r) => r.id !== id));
       setEliminaId(null);
-      mostraMessaggio("ok", "Ritenuta eliminata con successo.");
+      mostraMessaggio("ok", t("ritenuteArchivio.deleteSuccess"));
     } catch (err) {
-      mostraMessaggio("err", `Errore eliminazione: ${err}`);
+      mostraMessaggio("err", `${t("ritenuteArchivio.deleteError")} ${err}`);
     }
   };
 
@@ -334,7 +336,7 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
       <div style={S.header}>
         <div style={S.title}>
           <span>📋</span>
-          Ritenute / Ricevute
+          {t("ritenuteArchivio.title")}
           <span style={S.badge}>{filtrate.length} document{filtrate.length !== 1 ? "i" : "o"}</span>
         </div>
         <div style={S.controls}>
@@ -344,12 +346,12 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
               className="s3d-btn s3d-btn-primary"
               style={{ fontSize: 13, fontWeight: 600 }}
             >
-              + Nuova Ritenuta / Ricevuta
+              {t("ritenuteArchivio.nuova")}
             </button>
           )}
           <input
             type="text"
-            placeholder="🔍 Cerca per cliente, numero, descrizione..."
+            placeholder={t("ritenuteArchivio.searchPlaceholder")}
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
             style={S.input}
@@ -361,7 +363,7 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
             onChange={(e) => setAnnoFiltro(e.target.value)}
             style={S.select}
           >
-            <option value="tutti">Tutti gli anni</option>
+            <option value="tutti">{t("ritenuteArchivio.tuttiAnni")}</option>
             {anni.map((a) => (
               <option key={a} value={a}>{a}</option>
             ))}
@@ -378,7 +380,7 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
               e.currentTarget.style.color = "#94a3b8";
             }}
           >
-            📂 Apri cartella
+            {t("ritenuteArchivio.apriCartella")}
           </button>
         </div>
       </div>
@@ -387,19 +389,19 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
       {filtrate.length > 0 && (
         <div style={S.kpiRow}>
           <div style={S.kpiCard}>
-            <div style={S.kpiLabel}>Totale lordo</div>
+            <div style={S.kpiLabel}>{t("ritenuteArchivio.totaleLordo")}</div>
             <div style={S.kpiValue}>{eurFmt(totaleLordo)}</div>
           </div>
           <div style={S.kpiCard}>
-            <div style={S.kpiLabel}>Ritenute versate</div>
+            <div style={S.kpiLabel}>{t("ritenuteArchivio.ritenuteVersate")}</div>
             <div style={{ ...S.kpiValue, color: "#f97316" }}>{eurFmt(totaleRitenute)}</div>
           </div>
           <div style={S.kpiCard}>
-            <div style={S.kpiLabel}>Netto incassato</div>
+            <div style={S.kpiLabel}>{t("ritenuteArchivio.nettoIncassato")}</div>
             <div style={{ ...S.kpiValue, color: "#22c55e" }}>{eurFmt(totaleNetto)}</div>
           </div>
           <div style={S.kpiCard}>
-            <div style={S.kpiLabel}>Documenti</div>
+            <div style={S.kpiLabel}>{t("ritenuteArchivio.documenti")}</div>
             <div style={{ ...S.kpiValue, color: "#38bdf8" }}>{filtrate.length}</div>
           </div>
         </div>
@@ -409,20 +411,20 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
       {loading ? (
         <div style={S.empty}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-          <div style={{ fontSize: 15, color: "#64748b" }}>Caricamento archivio...</div>
+          <div style={{ fontSize: 15, color: "#64748b" }}>{t("ritenuteArchivio.loading")}</div>
         </div>
       ) : filtrate.length === 0 ? (
         <div style={S.empty}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
           <div style={{ fontSize: 18, color: "#64748b", marginBottom: 8 }}>
             {ritenute.length === 0
-              ? "Nessuna ritenuta in archivio"
-              : "Nessun risultato per i filtri applicati"}
+              ? t("ritenuteArchivio.noRitenute")
+              : t("ritenuteArchivio.noRisultati")}
           </div>
           <div style={{ fontSize: 14, color: "#475569" }}>
             {ritenute.length === 0
-              ? "Le ritenute generate dai preventivi appariranno qui automaticamente."
-              : "Prova a modificare i criteri di ricerca."}
+              ? t("ritenuteArchivio.helpNoRitenute")
+              : t("ritenuteArchivio.helpNoRisultati")}
           </div>
         </div>
       ) : (
@@ -435,14 +437,14 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
           <table style={S.table}>
             <thead>
               <tr>
-                <th style={S.th}>Numero</th>
-                <th style={S.th}>Data</th>
-                <th style={S.th}>Cliente</th>
-                <th style={S.th}>Preventivo</th>
-                <th style={{ ...S.th, textAlign: "right" }}>Lordo</th>
-                <th style={{ ...S.th, textAlign: "right" }}>Ritenuta</th>
-                <th style={{ ...S.th, textAlign: "right" }}>Netto</th>
-                <th style={{ ...S.th, textAlign: "center" }}>Azioni</th>
+                <th style={S.th}>{t("ritenuteArchivio.thNumero")}</th>
+                <th style={S.th}>{t("ritenuteArchivio.thData")}</th>
+                <th style={S.th}>{t("ritenuteArchivio.thCliente")}</th>
+                <th style={S.th}>{t("ritenuteArchivio.thPreventivo")}</th>
+                <th style={{ ...S.th, textAlign: "right" }}>{t("ritenuteArchivio.thLordo")}</th>
+                <th style={{ ...S.th, textAlign: "right" }}>{t("ritenuteArchivio.thRitenuta")}</th>
+                <th style={{ ...S.th, textAlign: "right" }}>{t("ritenuteArchivio.thNetto")}</th>
+                <th style={{ ...S.th, textAlign: "center" }}>{t("ritenuteArchivio.thAzioni")}</th>
               </tr>
             </thead>
             <tbody>
@@ -531,17 +533,17 @@ export function RitenuteArchivio({ onNuovaRitenuta }: { onNuovaRitenuta?: () => 
         <div style={S.modal} onClick={() => setEliminaId(null)}>
           <div style={S.modalBox} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 18, fontWeight: 700, color: "#e2e8f0", marginBottom: 12 }}>
-              ⚠️ Conferma eliminazione
+              {t("ritenuteArchivio.deleteTitle")}
             </div>
             <div style={{ fontSize: 14, color: "#94a3b8", marginBottom: 8 }}>
-              Vuoi eliminare questa ritenuta dall'archivio?
+              {t("ritenuteArchivio.deleteMessage")}
             </div>
             <div style={{ fontSize: 13, color: "#64748b", marginBottom: 24 }}>
-              Anche il file PDF associato verrà eliminato dalla cartella Documenti/Sparks3D/Ritenute/.
+              {t("ritenuteArchivio.deleteFileNote")}
             </div>
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
               <button style={S.btnCancel} onClick={() => setEliminaId(null)}>
-                Annulla
+                {t("common.cancel")}
               </button>
               <button style={S.btnDanger} onClick={() => eliminaRitenuta(eliminaId)}>
                 🗑️ Elimina

@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 
 interface Cliente {
   id: number; nome: string; cognome: string; denominazione_azienda: string;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function ClientiPage({ onOpenCliente, onNuovoCliente }: Props) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Cliente[]>([]);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -66,11 +68,11 @@ export function ClientiPage({ onOpenCliente, onNuovoCliente }: Props) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5, margin: 0 }}>Clienti</h1>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>Anagrafica clienti per i preventivi</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5, margin: 0 }}>{t("clienti.title")}</h1>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>{t("clienti.subtitle")}</p>
         </div>
         <button className="s3d-btn s3d-btn-primary" onClick={onNuovoCliente} style={{ padding: "10px 20px", fontSize: 14 }}>
-          + Nuovo cliente
+          {t("clienti.nuovo")}
         </button>
       </div>
 
@@ -82,11 +84,11 @@ export function ClientiPage({ onOpenCliente, onNuovoCliente }: Props) {
           style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--accent)" }} />
         {selectedIds.size > 0 && (
           <button className="s3d-btn s3d-btn-danger" onClick={handleDeleteSelected} style={{ padding: "6px 14px", fontSize: 12 }}>
-            Elimina selezionati ({selectedIds.size})
+            {t("common.deleteSelected")} ({selectedIds.size})
           </button>
         )}
         <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cerca per nome, azienda, email, città…"
+          placeholder={t("clienti.searchPlaceholder")}
           className="s3d-input" style={{ flex: 1 }} />
       </div>
 
@@ -94,15 +96,15 @@ export function ClientiPage({ onOpenCliente, onNuovoCliente }: Props) {
       <div className="s3d-card" style={{ overflow: "hidden" }}>
         {filtered.length === 0 ? (
           <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>
-            {items.length === 0 ? 'Nessun cliente inserito. Clicca "Nuovo cliente" per iniziare.' : "Nessun risultato per la ricerca."}
+            {items.length === 0 ? t("clienti.noClienti") : t("common.noResults")}
           </div>
         ) : (
           <table className="s3d-table">
             <thead><tr>
               <th style={{ width: 40 }}></th>
-              <th>Nome / Azienda</th><th>Email</th><th>Telefono</th>
-              <th>Città</th><th>P.IVA</th>
-              <th style={{ textAlign: "right" }}>Azioni</th>
+              <th>{t("clienti.thNomeAzienda")}</th><th>{t("clienti.thEmail")}</th><th>{t("clienti.thTelefono")}</th>
+              <th>{t("clienti.thCitta")}</th><th>{t("clienti.thPiva")}</th>
+              <th style={{ textAlign: "right" }}>{t("common.actions")}</th>
             </tr></thead>
             <tbody>
               {filtered.map((c) => (
@@ -125,8 +127,8 @@ export function ClientiPage({ onOpenCliente, onNuovoCliente }: Props) {
                   <td>{[c.citta, c.provincia].filter(Boolean).join(" ") || "—"}</td>
                   <td>{c.partita_iva ? <span style={{ fontFamily: "monospace", fontSize: 12 }}>{c.partita_iva}</span> : "—"}</td>
                   <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => onOpenCliente(c.id)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>Modifica</button>
-                    <button onClick={() => handleDelete(c.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Elimina</button>
+                    <button onClick={() => onOpenCliente(c.id)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", marginRight: 12 }}>{t("common.edit")}</button>
+                    <button onClick={() => handleDelete(c.id)} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{t("common.delete")}</button>
                   </td>
                 </tr>
               ))}
@@ -138,7 +140,7 @@ export function ClientiPage({ onOpenCliente, onNuovoCliente }: Props) {
       {/* Conteggio */}
       {items.length > 0 && (
         <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)" }}>
-          {filtered.length} di {items.length} clienti
+          {t("clienti.countLabel", { count: filtered.length, total: items.length })}
         </div>
       )}
 
@@ -151,16 +153,15 @@ export function ClientiPage({ onOpenCliente, onNuovoCliente }: Props) {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
               </div>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#e8edf5" }}>
-                {deleteTarget.mode === "single" ? "Elimina cliente" : `Elimina ${deleteTarget.ids.size} clienti`}
+                {deleteTarget.mode === "single" ? t("clienti.deleteTitle") : t("clienti.deleteMultiTitle", { count: deleteTarget.ids.size })}
               </h3>
             </div>
             <p style={{ color: "#8899b4", fontSize: 14, lineHeight: 1.5, margin: "0 0 24px" }}>
-              {deleteTarget.mode === "single" ? "Sei sicuro di voler eliminare questo cliente?" : `Sei sicuro di voler eliminare ${deleteTarget.ids.size} clienti selezionati?`}
-              <br />Questa azione non può essere annullata.
+              {deleteTarget.mode === "single" ? t("clienti.deleteConfirm") : t("clienti.deleteMultiConfirm", { count: deleteTarget.ids.size })}
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button onClick={() => setDeleteTarget(null)} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, border: "1px solid rgba(136,153,180,0.2)", background: "transparent", color: "#8899b4", cursor: "pointer" }}>Annulla</button>
-              <button onClick={confirmDelete} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, border: "none", background: "#dc2626", color: "#fff", cursor: "pointer" }}>Elimina</button>
+              <button onClick={() => setDeleteTarget(null)} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, border: "1px solid rgba(136,153,180,0.2)", background: "transparent", color: "#8899b4", cursor: "pointer" }}>{t("common.cancel")}</button>
+              <button onClick={confirmDelete} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, border: "none", background: "#dc2626", color: "#fff", cursor: "pointer" }}>{t("common.delete")}</button>
             </div>
           </div>
         </div>

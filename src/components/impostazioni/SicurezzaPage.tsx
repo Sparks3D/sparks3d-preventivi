@@ -3,9 +3,11 @@
 // =============================================================
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 
 export function SicurezzaPage() {
+  const { t } = useTranslation();
   const [pinAttivo, setPinAttivo] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -48,9 +50,9 @@ export function SicurezzaPage() {
   };
 
   const validatePin = (pin: string): string | null => {
-    if (pin.length !== 6) return "Il PIN deve essere di 6 cifre.";
-    if (!/^\d{6}$/.test(pin)) return "Il PIN deve contenere solo numeri.";
-    if (/^(\d)\1{5}$/.test(pin)) return "Il PIN non può essere composto da cifre uguali (es. 000000).";
+    if (pin.length !== 6) return t("sicurezza.err6cifre");
+    if (!/^\d{6}$/.test(pin)) return t("sicurezza.errSoloNumeri");
+    if (/^(\d)\1{5}$/.test(pin)) return t("sicurezza.errCifreUguali");
     return null;
   };
 
@@ -58,14 +60,14 @@ export function SicurezzaPage() {
   const handleSetPin = async () => {
     const err = validatePin(newPin);
     if (err) { setError(err); return; }
-    if (newPin !== confirmPin) { setError("I due PIN non corrispondono."); return; }
+    if (newPin !== confirmPin) { setError(t("sicurezza.errNonCorrispondono")); return; }
 
     setSaving(true);
     setError("");
     try {
       await invoke("set_pin", { pin: newPin });
       setPinAttivo(true);
-      setSuccess("PIN impostato con successo! Da ora in poi verrà richiesto all'avvio dell'app.");
+      setSuccess(t("sicurezza.successImpostato"));
       setTimeout(() => resetForm(), 3000);
     } catch (e: any) {
       setError(String(e));
@@ -75,25 +77,25 @@ export function SicurezzaPage() {
 
   // ── Modifica PIN ──
   const handleChangePin = async () => {
-    if (!currentPin) { setError("Inserisci il PIN attuale."); return; }
+    if (!currentPin) { setError(t("sicurezza.errInserisciAttuale")); return; }
 
     try {
       const valid = await invoke<boolean>("verify_pin", { pin: currentPin });
-      if (!valid) { setError("Il PIN attuale non è corretto."); return; }
+      if (!valid) { setError(t("sicurezza.errAttualeNonCorretto")); return; }
     } catch {
-      setError("Errore verifica PIN attuale."); return;
+      setError(t("sicurezza.errVerificaAttuale")); return;
     }
 
     const err = validatePin(newPin);
     if (err) { setError(err); return; }
-    if (newPin === currentPin) { setError("Il nuovo PIN deve essere diverso da quello attuale."); return; }
-    if (newPin !== confirmPin) { setError("I due PIN non corrispondono."); return; }
+    if (newPin === currentPin) { setError(t("sicurezza.errNuovoDiverso")); return; }
+    if (newPin !== confirmPin) { setError(t("sicurezza.errNonCorrispondono")); return; }
 
     setSaving(true);
     setError("");
     try {
       await invoke("set_pin", { pin: newPin });
-      setSuccess("PIN modificato con successo!");
+      setSuccess(t("sicurezza.successModificato"));
       setTimeout(() => resetForm(), 3000);
     } catch (e: any) {
       setError(String(e));
@@ -103,13 +105,13 @@ export function SicurezzaPage() {
 
   // ── Rimuovi PIN ──
   const handleRemovePin = async () => {
-    if (!currentPin) { setError("Inserisci il PIN attuale per confermare."); return; }
+    if (!currentPin) { setError(t("sicurezza.errInserisciAttuale")); return; }
 
     try {
       const valid = await invoke<boolean>("verify_pin", { pin: currentPin });
-      if (!valid) { setError("PIN non corretto."); return; }
+      if (!valid) { setError(t("sicurezza.errPinNonCorretto")); return; }
     } catch {
-      setError("Errore verifica PIN."); return;
+      setError(t("sicurezza.errVerificaPin")); return;
     }
 
     setSaving(true);
@@ -117,7 +119,7 @@ export function SicurezzaPage() {
     try {
       await invoke("delete_pin");
       setPinAttivo(false);
-      setSuccess("PIN rimosso. L'app si aprirà senza richiesta PIN.");
+      setSuccess(t("sicurezza.successRimosso"));
       setTimeout(() => resetForm(), 3000);
     } catch (e: any) {
       setError(String(e));
@@ -139,7 +141,7 @@ export function SicurezzaPage() {
   if (loading) {
     return (
       <div style={{ padding: "48px 0", textAlign: "center", color: "var(--text-muted)" }}>
-        Caricamento...
+        {t("common.loading")}
       </div>
     );
   }
@@ -147,10 +149,10 @@ export function SicurezzaPage() {
   return (
     <div>
       <h3 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>
-        Sicurezza
+        {t("sicurezza.title")}
       </h3>
       <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 24 }}>
-        Proteggi l'accesso all'app con un PIN numerico di 6 cifre.
+        {t("sicurezza.subtitle")}
       </p>
 
       {/* ═══ STATO PIN ═══ */}
@@ -167,12 +169,12 @@ export function SicurezzaPage() {
             </div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
-                PIN di avvio
+                {t("sicurezza.pinLabel")}
               </div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
                 {pinAttivo
-                  ? "Attivo — il PIN viene richiesto all'avvio dell'applicazione"
-                  : "Disattivato — l'app si apre senza protezione"
+                  ? t("sicurezza.attivo")
+                  : t("sicurezza.disattivato")
                 }
               </div>
             </div>
@@ -183,7 +185,7 @@ export function SicurezzaPage() {
             background: pinAttivo ? "var(--green-soft)" : "rgba(248,113,113,0.1)",
             color: pinAttivo ? "var(--green)" : "#f87171",
           }}>
-            {pinAttivo ? "ATTIVO" : "DISATTIVATO"}
+            {pinAttivo ? t("sicurezza.badgeAttivo") : t("sicurezza.badgeDisattivato")}
           </div>
         </div>
       </div>
@@ -196,7 +198,7 @@ export function SicurezzaPage() {
               className="s3d-btn s3d-btn-primary"
               onClick={() => { resetForm(); setShowSetPin(true); }}
             >
-              🔐 Imposta PIN
+              {t("sicurezza.impostaPin")}
             </button>
           ) : (
             <>
@@ -204,13 +206,13 @@ export function SicurezzaPage() {
                 className="s3d-btn s3d-btn-primary"
                 onClick={() => { resetForm(); setShowChangePin(true); }}
               >
-                ✏️ Modifica PIN
+                {t("sicurezza.modificaPin")}
               </button>
               <button
                 className="s3d-btn s3d-btn-danger"
                 onClick={() => { resetForm(); setShowRemovePin(true); }}
               >
-                🗑️ Rimuovi PIN
+                {t("sicurezza.rimuoviPin")}
               </button>
             </>
           )}
@@ -221,31 +223,31 @@ export function SicurezzaPage() {
       {showSetPin && (
         <div className="s3d-card" style={{ padding: 24, marginBottom: 20 }}>
           <h4 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 20 }}>
-            Imposta un nuovo PIN
+            {t("sicurezza.formImpostaTitle")}
           </h4>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 320 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>
-                Nuovo PIN (6 cifre)
+                {t("sicurezza.nuovoPin")}
               </label>
               <input type="password" inputMode="numeric" maxLength={6} value={newPin} onChange={handlePinChange(setNewPin)} placeholder="••••••" autoFocus className="s3d-input" style={pinInputStyle} />
             </div>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>
-                Conferma PIN
+                {t("sicurezza.confermaPin")}
               </label>
               <input type="password" inputMode="numeric" maxLength={6} value={confirmPin} onChange={handlePinChange(setConfirmPin)} placeholder="••••••" className="s3d-input" style={pinInputStyle} />
             </div>
 
-            {error && <div style={{ fontSize: 13, color: "#f87171", fontWeight: 500 }}>{error}</div>}
+            {error && <div style={{ fontSize: 13, color: "var(--red)", fontWeight: 500 }}>{error}</div>}
             {success && <div style={{ fontSize: 13, color: "var(--green)", fontWeight: 500 }}>{success}</div>}
 
             <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
               <button className="s3d-btn s3d-btn-primary" onClick={handleSetPin} disabled={saving || newPin.length !== 6 || confirmPin.length !== 6}>
-                {saving ? "Salvataggio..." : "Salva PIN"}
+                {saving ? t("common.saving") : t("sicurezza.salvaPin")}
               </button>
               <button className="s3d-btn" onClick={resetForm} style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}>
-                Annulla
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -256,37 +258,37 @@ export function SicurezzaPage() {
       {showChangePin && (
         <div className="s3d-card" style={{ padding: 24, marginBottom: 20 }}>
           <h4 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 20 }}>
-            Modifica PIN
+            {t("sicurezza.formModificaTitle")}
           </h4>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 320 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>
-                PIN attuale
+                {t("sicurezza.pinAttuale")}
               </label>
               <input type="password" inputMode="numeric" maxLength={6} value={currentPin} onChange={handlePinChange(setCurrentPin)} placeholder="••••••" autoFocus className="s3d-input" style={pinInputStyle} />
             </div>
             <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>
-                Nuovo PIN (6 cifre)
+                {t("sicurezza.nuovoPinLabel")}
               </label>
               <input type="password" inputMode="numeric" maxLength={6} value={newPin} onChange={handlePinChange(setNewPin)} placeholder="••••••" className="s3d-input" style={pinInputStyle} />
             </div>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>
-                Conferma nuovo PIN
+                {t("sicurezza.confermaNuovoPin")}
               </label>
               <input type="password" inputMode="numeric" maxLength={6} value={confirmPin} onChange={handlePinChange(setConfirmPin)} placeholder="••••••" className="s3d-input" style={pinInputStyle} />
             </div>
 
-            {error && <div style={{ fontSize: 13, color: "#f87171", fontWeight: 500 }}>{error}</div>}
+            {error && <div style={{ fontSize: 13, color: "var(--red)", fontWeight: 500 }}>{error}</div>}
             {success && <div style={{ fontSize: 13, color: "var(--green)", fontWeight: 500 }}>{success}</div>}
 
             <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
               <button className="s3d-btn s3d-btn-primary" onClick={handleChangePin} disabled={saving || currentPin.length !== 6 || newPin.length !== 6 || confirmPin.length !== 6}>
-                {saving ? "Salvataggio..." : "Salva nuovo PIN"}
+                {saving ? t("common.saving") : t("sicurezza.salvaNuovoPin")}
               </button>
               <button className="s3d-btn" onClick={resetForm} style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}>
-                Annulla
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -296,29 +298,29 @@ export function SicurezzaPage() {
       {/* ═══ FORM: RIMUOVI PIN ═══ */}
       {showRemovePin && (
         <div className="s3d-card" style={{ padding: 24, marginBottom: 20 }}>
-          <h4 style={{ fontSize: 16, fontWeight: 700, color: "#f87171", marginBottom: 8 }}>
-            Rimuovi PIN
+          <h4 style={{ fontSize: 16, fontWeight: 700, color: "var(--red)", marginBottom: 8 }}>
+            {t("sicurezza.formRimuoviTitle")}
           </h4>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
-            Inserisci il PIN attuale per confermare la rimozione. L'app si aprirà senza protezione.
+            {t("sicurezza.rimuoviDesc")}
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 320 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>
-                PIN attuale
+                {t("sicurezza.pinAttuale")}
               </label>
               <input type="password" inputMode="numeric" maxLength={6} value={currentPin} onChange={handlePinChange(setCurrentPin)} placeholder="••••••" autoFocus className="s3d-input" style={pinInputStyle} />
             </div>
 
-            {error && <div style={{ fontSize: 13, color: "#f87171", fontWeight: 500 }}>{error}</div>}
+            {error && <div style={{ fontSize: 13, color: "var(--red)", fontWeight: 500 }}>{error}</div>}
             {success && <div style={{ fontSize: 13, color: "var(--green)", fontWeight: 500 }}>{success}</div>}
 
             <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
               <button className="s3d-btn s3d-btn-danger" onClick={handleRemovePin} disabled={saving || currentPin.length !== 6}>
-                {saving ? "Rimozione..." : "Conferma rimozione"}
+                {saving ? t("common.saving") : t("sicurezza.confermaRimozione")}
               </button>
               <button className="s3d-btn" onClick={resetForm} style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}>
-                Annulla
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -330,13 +332,10 @@ export function SicurezzaPage() {
         padding: "14px 18px", borderRadius: 10,
         background: "rgba(59,130,246,0.06)",
         border: "1px solid rgba(59,130,246,0.12)",
-        fontSize: 12, color: "#556a89", lineHeight: 1.6,
+        fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6,
       }}>
-        <strong style={{ color: "#8899b4" }}>ℹ️ Come funziona:</strong><br />
-        Il PIN viene richiesto ogni volta che avvii Sparks3D Preventivi.
-        È salvato come hash crittografico (SHA-256) nel database — anche leggendo il file
-        non è possibile risalire al PIN originale.
-        Dopo 3 tentativi errati l'accesso viene bloccato per 60 secondi.
+        <strong style={{ color: "var(--text-secondary)" }}>{t("sicurezza.infoTitle")}</strong><br />
+        {t("sicurezza.info1")} {t("sicurezza.info2")} {t("sicurezza.info3")}
       </div>
     </div>
   );
