@@ -1,6 +1,6 @@
 {
   "productName": "Sparks3D Preventivi",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "identifier": "com.sparks3d.preventivi",
   "build": {
     "beforeBuildCommand": "npm run build",

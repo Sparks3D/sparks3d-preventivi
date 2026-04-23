@@ -72,6 +72,7 @@ interface ServizioInPreventivo {
 // ── Helpers ──
 
 function fe(v: number): string { return "€ " + v.toFixed(2).replace(".", ","); }
+function r2(v: number): number { return Math.round(v * 100) / 100; }
 function fd(d: string): string {
   const p = d.split("-");
   return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
@@ -557,20 +558,41 @@ export async function generatePreventivosPdf(
     ry += 5;
   };
 
-  totRow(i18n.t("pdf.subtotaleRighe"), fe(pv.totale_cliente));
-  if (pv.avvio_macchina > 0) totRow(i18n.t("pdf.avvioMacchina"), fe(pv.avvio_macchina));
-  if (pv.totale_servizi > 0) totRow(i18n.t("pdf.totaleServizi") + ":", fe(pv.totale_servizi));
-  if (pv.totale_spedizione > 0) totRow(i18n.t("pdf.spedizioneLabel"), fe(pv.totale_spedizione));
+  // Tutti i valori sono arrotondati a 2 decimali prima di essere sommati,
+  // così la somma visibile combacia esattamente con il totale stampato.
+  const subtotaleNetto = r2(pv.totale_cliente);
+  const avvio = r2(pv.avvio_macchina);
+  const servizi = r2(pv.totale_servizi);
+  const spedizione = r2(pv.totale_spedizione);
+
+  // Sconto: calcolato per riga (sconto_riga ?? sconto_globale), poi sommato e arrotondato
+  const subtotaleLordo = r2(pv.righe.reduce((sum, r) => {
+    const sc = r.sconto_riga ?? pv.sconto_globale;
+    return sum + (sc < 100 ? r.totale_cliente / (1 - sc / 100) : r.totale_cliente);
+  }, 0));
+  const importoSconto = r2(subtotaleLordo - subtotaleNetto);
+  const hasSconto = importoSconto > 0;
+
+  if (hasSconto) {
+    totRow(i18n.t("pdf.subtotaleLordo"), fe(subtotaleLordo));
+    totRow(`${i18n.t("pdf.scontoApplicato")} (${pv.sconto_globale}%)`, `- ${fe(importoSconto)}`);
+  }
+  totRow(i18n.t("pdf.subtotaleRighe"), fe(subtotaleNetto));
+  if (avvio > 0) totRow(i18n.t("pdf.avvioMacchina"), fe(avvio));
+  if (servizi > 0) totRow(i18n.t("pdf.totaleServizi") + ":", fe(servizi));
+  if (spedizione > 0) totRow(i18n.t("pdf.spedizioneLabel"), fe(spedizione));
+
+  const baseTotale = r2(subtotaleNetto + avvio + servizi + spedizione);
 
   let commissionePagamento = 0;
   if (metodoPagamento && metodoPagamento.addebita_al_cliente) {
-    commissionePagamento = pv.totale_finale * (metodoPagamento.commissione_percentuale / 100) + metodoPagamento.commissione_fissa;
+    commissionePagamento = r2(baseTotale * (metodoPagamento.commissione_percentuale / 100) + metodoPagamento.commissione_fissa);
     if (commissionePagamento > 0) {
       totRow(i18n.t("pdf.commissionePagamento"), fe(commissionePagamento));
     }
   }
 
-  const totaleConCommissione = pv.totale_finale + commissionePagamento;
+  const totaleConCommissione = r2(baseTotale + commissionePagamento);
 
   ry += 2;
   // TOTALE FINALE (evidenziato)
