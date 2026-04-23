@@ -1,11 +1,11 @@
 {
-  "version": "1.5.3",
-  "notes": "v1.5.3 — Prezzo riga modello = listino lordo (coerente con Subtotale lordo nei totali)",
-  "pub_date": "2026-04-23T21:41:01Z",
+  "version": "1.5.4",
+  "notes": "v1.5.4 — Aggiornato changelog in-app con riepilogo migliorie PDF v1.5.1–1.5.4",
+  "pub_date": "2026-04-23T22:01:04Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bDN6NTRyZWJnWXQ3Rm8vWE82Q3UyVVc1VEJOQXVCakNpd2p0eVo2SHNlVGYvY0x2WlJPWDdOLzR3bWkwc0NZR0hlSDExNlB5S3l2b0lmU0tKRUJ3cWcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTgwNDUzCWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjUuM194NjQtc2V0dXAuZXhlCm5qc00vUFc2ZDhlR2ZJbS9RVTZ4TXJTTHVsbzBIaVo4TkM3RzRjSTJXd2lhQzlMMVZ0WlFrNEpjRk5ZeW5RWFBwWVVtUDlaVmc5M09jL3JmTmkrd0N3PT0K",
-      "url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/download/v1.5.3/Sparks3D.Preventivi_1.5.3_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bDVJWm0zU3d0UmprdmRNdlEwbjgrWkNQT24zdGx1eWVlM3FpN0tRbjFTd1NMUjUrcDNEclJsa0pJMU5SSTJLbGY1eUVCTWo0ek9SSTdPelVHQXU5S1E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTgxNjUzCWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjUuNF94NjQtc2V0dXAuZXhlCjR5VE5YUjQ0QXZqS2xOMFNFM3Q1RXRXTmp1Rm9LK3E5d09hU3FVdnBsNkFtT0p0VlN5a1B3TEEzMXZmNlQvanRWdUdYazExSXlMTUtwWENtQWxsRENBPT0K",
+      "url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/download/v1.5.4/Sparks3D.Preventivi_1.5.4_x64-setup.exe"
     }
   }
 }
