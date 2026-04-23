@@ -311,6 +311,15 @@ export async function generatePreventivosPdf(
     }
   }
 
+  // Prezzo lordo per riga (markup applicato, sconto NON applicato): è il
+  // "listino" per la riga. Calcolato una sola volta e arrotondato a 2 decimali
+  // per garantire che il Prezzo nella riga combaci esattamente con il
+  // Subtotale lordo nei totali.
+  const rowLordi: number[] = pv.righe.map(r => {
+    const mk = r.markup_riga ?? pv.markup_globale;
+    return r2(r.totale_costo * (1 + mk / 100));
+  });
+
   if (pv.righe.length > 0) {
     const tableHead = [[i18n.t("pdf.thHash"), i18n.t("pdf.thModello"), i18n.t("pdf.thQta"), i18n.t("pdf.thTempo"), i18n.t("pdf.thPeso"), i18n.t("pdf.thPrezzo")]];
 
@@ -333,7 +342,7 @@ export async function generatePreventivosPdf(
         { content: `${r.quantita}`, styles: { halign: "center" } },
         { content: ft(r.tempo_stampa_sec), styles: { halign: "center" } },
         { content: `${r.peso_totale_grammi.toFixed(1)}g`, styles: { halign: "right" } },
-        { content: fe(r.totale_cliente), styles: { halign: "right", fontStyle: "bold" } },
+        { content: fe(rowLordi[idx]), styles: { halign: "right", fontStyle: "bold" } },
       ]);
       tableRowIdx++;
 
@@ -565,11 +574,9 @@ export async function generatePreventivosPdf(
   const servizi = r2(pv.totale_servizi);
   const spedizione = r2(pv.totale_spedizione);
 
-  // Sconto: calcolato per riga (sconto_riga ?? sconto_globale), poi sommato e arrotondato
-  const subtotaleLordo = r2(pv.righe.reduce((sum, r) => {
-    const sc = r.sconto_riga ?? pv.sconto_globale;
-    return sum + (sc < 100 ? r.totale_cliente / (1 - sc / 100) : r.totale_cliente);
-  }, 0));
+  // Subtotale lordo = somma dei prezzi listino delle righe (già arrotondati a 2dp),
+  // così combacia esattamente con la somma visibile della colonna Prezzo
+  const subtotaleLordo = r2(rowLordi.reduce((sum, l) => sum + l, 0));
   const importoSconto = r2(subtotaleLordo - subtotaleNetto);
   const hasSconto = importoSconto > 0;
 
