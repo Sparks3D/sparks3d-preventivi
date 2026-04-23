@@ -1,10 +1,10 @@
 {
   "version": "1.4.1",
   "notes": "v1.4.1 — Fix sconti preventivo: auto-ricalcolo in tempo reale, sconto visibile in PDF e riepilogo. Fix PIN placeholder.",
-  "pub_date": "2026-04-23T18:35:00Z",
+  "pub_date": "2026-04-23T19:01:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bHpDUlR6OTA3dEZpYWhQS3dENE1xUmZucGhsaERXam5rTUVBQ2E3WFg1RWxrNWR4alFLQXB6SGtJY2dkT0x1YmJ5bDcxRndyN050M09GbWZNSnRSdFE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTYyMTIyCWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjQuMV94NjQtc2V0dXAuZXhlCm1uZFQ5QUVDSlpVQ2w0UWlMb2N0QXdOQXFkZHIrSjIydmdINHNZUG5UbVJxVU80dEI3dWtmNmcxWEJLWHRIY1hDOGZPcmZnZDBCUnVkREM2VS9zdEFnPT0K",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bHg3YWMzT3RzSE16bnNLczJxeHFrMHJLYXJVazBUMFl1cC9sSExsTFVQTTZxc1FMZFNBdmlHNFVFcjBLVVVVU0Qrd0xXcjBlVFU1d2VXZUdPV2kvTVFnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTYzNjczCWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjQuMV94NjQtc2V0dXAuZXhlCjBOT3ZtckFGc0FWa0FxUUljLzFyTmxQOWZLc0pob25yakE2VDQwQlZ5bGN5ZVhxSkdxYjQ1OEtpaENITUMyVkEyOUkxbDFTVjVzaU8zNGl4S3FFekNRPT0K",
       "url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/download/v1.4.1/Sparks3D.Preventivi_1.4.1_x64-setup.exe"
     }
   }
