@@ -1,11 +1,11 @@
 {
-  "version": "1.5.0",
-  "notes": "v1.5.0 — Foto prodotto stampato, fix sconti e piatti multipli 3MF",
-  "pub_date": "2026-04-23T20:45:00Z",
+  "version": "1.5.1",
+  "notes": "v1.5.1 — Nascosta colonna Costo dal PDF e fix subtotale lordo coerente con prezzo riga",
+  "pub_date": "2026-04-23T20:24:29Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bDVtTWFMV2JVRGJQNXlQdVlaT1dBbEpsaDlyNTBEUkJTM2JhZ3NybFNTRmo0aUVVblUrOVNKWE1KZjBHUmwzUVJVL09Fc3YvTjBmb0duamg0TkdSZFFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTY5ODk0CWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjUuMF94NjQtc2V0dXAuZXhlCmZIMmhKZkluRVJ3OTVSdTlUZVp3Mm5qelFGVW1hZXpzMTZOZmxkWGg2UGNZekwxYi9IZTJNM3lzTCs1OTAwdUFiYmk4UnJoVy84OEhGR21GVGZZSUR3PT0K",
-      "url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/download/v1.5.0/Sparks3D.Preventivi_1.5.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bHptVjVwblBDRlRmb1hLd1F0bERHMlNZRVc4eU9nTHFwQmVUeEdoZzdmRmRJNmlSWk5tdzI1cmREWThudFZjaGE0bTZSa3VQaVdxVFZuMFY3YlNvVHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTc1ODU1CWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjUuMV94NjQtc2V0dXAuZXhlCmwrT1NCakZmZXlod1FRb203OCsrdjU4UjhsYm1iWklhTU9VWHNjNGl5SzI0cmc2OUhoUG8zQWRMRUE5dVZoWnVPWDJiZmZqa24wVmZYRldJbnlEekN3PT0K",
+      "url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/download/v1.5.1/Sparks3D.Preventivi_1.5.1_x64-setup.exe"
     }
   }
 }
