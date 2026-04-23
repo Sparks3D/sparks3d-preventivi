@@ -315,6 +315,16 @@ export function GuidaPage() {
       id: "novita", title: t("guida.novitaSection"), icon: "🆕",
       content: (
         <div style={proseStyle}>
+          {/* ── Novità v1.5.4 (cumulativa dei fix v1.5.1–1.5.4) ── */}
+          <h4 style={h4Style}>{t("guida.novita_v154_title")}</h4>
+          <ul style={ulStyle}>
+            <li>{t("guida.novita_v154_1")}</li>
+            <li>{t("guida.novita_v154_2")}</li>
+            <li>{t("guida.novita_v154_3")}</li>
+            <li>{t("guida.novita_v154_4")}</li>
+            <li>{t("guida.novita_v154_5")}</li>
+          </ul>
+
           {/* ── Novità v1.5.0 ── */}
           <h4 style={h4Style}>{t("guida.novita_v150_title")}</h4>
           <ul style={ulStyle}>

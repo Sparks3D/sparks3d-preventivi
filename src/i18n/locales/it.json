@@ -1085,7 +1085,7 @@
     "slicerSection": "Slicer integrati",
     "shortcutsSection": "Scorciatoie tastiera",
     "sicurezzaSection": "Sicurezza",
-    "novitaSection": "Novità v1.5.0",
+    "novitaSection": "Novità v1.5.4",
     "sommario": "Sommario",
 
     "panoramica_desc": "Sparks3D Preventivi è un software desktop per la creazione e gestione di preventivi per servizi di stampa 3D FDM. Permette di calcolare automaticamente i costi di stampa basandosi su materiali, tempo macchina, energia e margini personalizzabili.",
@@ -1177,7 +1177,7 @@
     "preventivi_pdf_title": "Export PDF",
     "preventivi_pdf_desc_pre": "Clicca ",
     "preventivi_pdf_desc_btn": "\"Esporta PDF\"",
-    "preventivi_pdf_desc_post": " per generare un documento professionale con logo azienda, dati cliente, tabella righe con breakdown costi, totali, IVA, acconto e condizioni.",
+    "preventivi_pdf_desc_post": " per generare un documento professionale con logo azienda, dati cliente, tabella righe (Prezzo a listino lordo per riga), breakdown totali (Subtotale lordo, Sconto, Subtotale, costi fissi), IVA, acconto e condizioni.",
 
     "clienti_desc": "La sezione Clienti gestisce l'anagrafica completa dei tuoi clienti.",
     "clienti_create_title": "Creare un cliente",
@@ -1373,6 +1373,13 @@
     "sicurezza_roadmap_1_desc": "controllo formato CAP, email e Partita IVA",
     "sicurezza_roadmap_2_label": "Permessi filesystem granulari",
     "sicurezza_roadmap_2_desc": "accesso limitato ai soli percorsi necessari degli slicer",
+
+    "novita_v154_title": "🧾 v1.5.1–1.5.4 — Migliorie PDF preventivo",
+    "novita_v154_1": "Nascosta dal PDF la colonna \"Costo\" (resta visibile solo in app come riferimento interno)",
+    "novita_v154_2": "Servizi extra: rimosso \"Costo\" dal PDF e \"Al cliente\" rinominato in \"Prezzo\"",
+    "novita_v154_3": "Riga modello: il \"Prezzo\" mostra ora il listino lordo (con markup, senza sconto), così combacia esattamente con il \"Subtotale lordo\" nei totali",
+    "novita_v154_4": "Totali: ripristinata la riga sconto (Subtotale lordo → Sconto X% → Subtotale) quando applicato uno sconto, seguita dai costi fissi e dal totale",
+    "novita_v154_5": "Fix arrotondamento: la somma visibile delle voci nei totali coincide ora esattamente con il totale stampato (niente più discrepanze di centesimo)",
 
     "novita_v150_title": "📸 v1.5.0 — Foto prodotto e fix calcoli",
     "novita_v150_1": "Nuova funzione: carica una foto del prodotto stampato per ogni riga del preventivo",

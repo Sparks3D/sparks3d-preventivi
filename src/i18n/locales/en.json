@@ -1085,7 +1085,7 @@
     "slicerSection": "Integrated Slicers",
     "shortcutsSection": "Keyboard shortcuts",
     "sicurezzaSection": "Security",
-    "novitaSection": "What's new v1.5.0",
+    "novitaSection": "What's new v1.5.4",
     "sommario": "Contents",
 
     "panoramica_desc": "Sparks3D Preventivi is a desktop application for creating and managing quotes for FDM 3D printing services. It automatically calculates printing costs based on materials, machine time, energy and customizable margins.",
@@ -1177,7 +1177,7 @@
     "preventivi_pdf_title": "PDF Export",
     "preventivi_pdf_desc_pre": "Click ",
     "preventivi_pdf_desc_btn": "\"Export PDF\"",
-    "preventivi_pdf_desc_post": " to generate a professional document with company logo, client data, row table with cost breakdown, totals, VAT, deposit and conditions.",
+    "preventivi_pdf_desc_post": " to generate a professional document with company logo, client data, row table (Price = gross list price per row), totals breakdown (Gross subtotal, Discount, Subtotal, fixed costs), VAT, deposit and conditions.",
 
     "clienti_desc": "The Clients section manages the complete registry of your clients.",
     "clienti_create_title": "Creating a client",
@@ -1373,6 +1373,13 @@
     "sicurezza_roadmap_1_desc": "ZIP code, email and VAT number format checking",
     "sicurezza_roadmap_2_label": "Granular filesystem permissions",
     "sicurezza_roadmap_2_desc": "access limited to only the necessary slicer paths",
+
+    "novita_v154_title": "🧾 v1.5.1–1.5.4 — Quote PDF improvements",
+    "novita_v154_1": "PDF: \"Cost\" column hidden (still visible in app as internal reference)",
+    "novita_v154_2": "Extra services: \"Cost\" removed from PDF and \"To client\" renamed to \"Price\"",
+    "novita_v154_3": "Model row: \"Price\" now shows the gross list price (with markup, no discount), so it matches the \"Gross subtotal\" in totals",
+    "novita_v154_4": "Totals: discount line restored (Gross subtotal → Discount X% → Subtotal) when applied, followed by fixed costs and total",
+    "novita_v154_5": "Rounding fix: the visible sum of items in totals now exactly matches the printed total (no more 1-cent discrepancies)",
 
     "novita_v150_title": "📸 v1.5.0 — Product photos & calculation fixes",
     "novita_v150_1": "New feature: upload a photo of the printed product for each quote line item",
