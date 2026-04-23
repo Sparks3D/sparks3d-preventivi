@@ -311,7 +311,7 @@ export async function generatePreventivosPdf(
   }
 
   if (pv.righe.length > 0) {
-    const tableHead = [[i18n.t("pdf.thHash"), i18n.t("pdf.thModello"), i18n.t("pdf.thQta"), i18n.t("pdf.thTempo"), i18n.t("pdf.thPeso"), i18n.t("pdf.thCosto"), i18n.t("pdf.thPrezzo")]];
+    const tableHead = [[i18n.t("pdf.thHash"), i18n.t("pdf.thModello"), i18n.t("pdf.thQta"), i18n.t("pdf.thTempo"), i18n.t("pdf.thPeso"), i18n.t("pdf.thPrezzo")]];
 
     // Mappa indice riga tabella → riga_id (per disegnare thumbnail)
     const rowToRigaId: Record<number, number> = {};
@@ -332,7 +332,6 @@ export async function generatePreventivosPdf(
         { content: `${r.quantita}`, styles: { halign: "center" } },
         { content: ft(r.tempo_stampa_sec), styles: { halign: "center" } },
         { content: `${r.peso_totale_grammi.toFixed(1)}g`, styles: { halign: "right" } },
-        { content: fe(r.totale_costo), styles: { halign: "right" } },
         { content: fe(r.totale_cliente), styles: { halign: "right", fontStyle: "bold" } },
       ]);
       tableRowIdx++;
@@ -343,7 +342,7 @@ export async function generatePreventivosPdf(
       if (matStr) {
         tableBody.push([
           { content: "", styles: {} },
-          { content: `${i18n.t("pdf.materiale")} ${matStr}`, colSpan: 6, styles: { fontSize: 7, textColor: COL.textMuted, cellPadding: { top: 0, bottom: 2, left: 2, right: 0 } } },
+          { content: `${i18n.t("pdf.materiale")} ${matStr}`, colSpan: 5, styles: { fontSize: 7, textColor: COL.textMuted, cellPadding: { top: 0, bottom: 2, left: 2, right: 0 } } },
         ]);
         tableRowIdx++;
       }
@@ -354,7 +353,7 @@ export async function generatePreventivosPdf(
         rowToRigaId[tableRowIdx] = -r.id; // id negativo = riga thumbnail
         tableBody.push([
           { content: "", styles: {} },
-          { content: "", colSpan: 6, styles: { minCellHeight: thumbH + 2, cellPadding: { top: 1, bottom: 1, left: 2, right: 0 } } },
+          { content: "", colSpan: 5, styles: { minCellHeight: thumbH + 2, cellPadding: { top: 1, bottom: 1, left: 2, right: 0 } } },
         ]);
         tableRowIdx++;
       }
@@ -389,8 +388,7 @@ export async function generatePreventivosPdf(
         2: { cellWidth: 14 },
         3: { cellWidth: 20 },
         4: { cellWidth: 20 },
-        5: { cellWidth: 24 },
-        6: { cellWidth: 26 },
+        5: { cellWidth: 28 },
       },
       didDrawCell: (data: any) => {
         // Disegna thumbnails nella sotto-riga dedicata (id negativo)
@@ -429,17 +427,15 @@ export async function generatePreventivosPdf(
     doc.text(i18n.t("pdf.serviziExtra"), ml, y);
     y += 5;
 
-    const serviziHead = [[i18n.t("pdf.servizio"), i18n.t("pdf.thCosto"), i18n.t("pdf.alCliente")]];
+    const serviziHead = [[i18n.t("pdf.servizio"), i18n.t("pdf.prezzo")]];
     const serviziBody: any[][] = pv.servizi.map(s => [
       { content: s.nome, styles: { fontStyle: "bold" } },
-      { content: fe(s.costo_effettivo), styles: { halign: "right" } },
       { content: s.addebito_cliente > 0 ? fe(s.addebito_cliente) : i18n.t("pdf.incluso"), styles: { halign: "right", fontStyle: "bold", textColor: s.addebito_cliente > 0 ? COL.text : COL.green } },
     ]);
 
     // Riga totale servizi
     serviziBody.push([
       { content: i18n.t("pdf.totaleServizi"), styles: { fontStyle: "bold" } },
-      { content: "", styles: {} },
       { content: fe(pv.totale_servizi), styles: { halign: "right", fontStyle: "bold" } },
     ]);
 
@@ -451,7 +447,7 @@ export async function generatePreventivosPdf(
       theme: "plain",
       styles: { fontSize: 8.5, cellPadding: 2.5, textColor: COL.text, lineColor: [220, 225, 235], lineWidth: 0.1 },
       headStyles: { fillColor: [60, 90, 140], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8, cellPadding: 3 },
-      columnStyles: { 0: { cellWidth: "auto" }, 1: { cellWidth: 30 }, 2: { cellWidth: 30 } },
+      columnStyles: { 0: { cellWidth: "auto" }, 1: { cellWidth: 30 } },
     });
 
     y = (doc as any).lastAutoTable.finalY + 6;
@@ -561,17 +557,6 @@ export async function generatePreventivosPdf(
     ry += 5;
   };
 
-  // Calcola subtotale lordo (prima dello sconto) per mostrare la riduzione
-  const hasSconto = pv.righe.some(r => (r.sconto_riga ?? pv.sconto_globale) > 0);
-  if (hasSconto) {
-    const subtotaleLordo = pv.righe.reduce((sum, r) => {
-      const sc = r.sconto_riga ?? pv.sconto_globale;
-      return sum + (sc < 100 ? r.totale_cliente / (1 - sc / 100) : r.totale_cliente);
-    }, 0);
-    const importoSconto = subtotaleLordo - pv.totale_cliente;
-    totRow(i18n.t("pdf.subtotaleLordo"), fe(subtotaleLordo));
-    totRow(`${i18n.t("pdf.scontoApplicato")} (${pv.sconto_globale}%)`, `- ${fe(importoSconto)}`);
-  }
   totRow(i18n.t("pdf.subtotaleRighe"), fe(pv.totale_cliente));
   if (pv.avvio_macchina > 0) totRow(i18n.t("pdf.avvioMacchina"), fe(pv.avvio_macchina));
   if (pv.totale_servizi > 0) totRow(i18n.t("pdf.totaleServizi") + ":", fe(pv.totale_servizi));
