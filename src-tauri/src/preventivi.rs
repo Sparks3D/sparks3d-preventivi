@@ -125,6 +125,7 @@ pub struct RigaCompleta {
     pub piatto: i64,
     pub thumbnail_path: String,
     pub thumbnails_json: String,
+    pub foto_prodotto_path: String,
     // Costi calcolati
     pub costo_materiale_totale: f64,
     pub costo_energia: f64,
@@ -282,7 +283,7 @@ pub fn get_preventivo_completo(state: State<AppState>, id: i64) -> Result<Preven
                     r.tempo_stampa_sec, r.peso_totale_grammi,
                     r.ingombro_x_mm, r.ingombro_y_mm, r.ingombro_z_mm,
                     r.markup_riga, r.sconto_riga, r.fallimento_riga, r.post_processing,
-                    r.tempo_manuale, r.peso_manuale, r.ordine, COALESCE(r.piatto, 1), COALESCE(r.thumbnail_path, ''), COALESCE(r.thumbnails_json, '[]'),
+                    r.tempo_manuale, r.peso_manuale, r.ordine, COALESCE(r.piatto, 1), COALESCE(r.thumbnail_path, ''), COALESCE(r.thumbnails_json, '[]'), COALESCE(r.foto_prodotto_path, ''),
                     r.costo_materiale_totale, r.costo_energia, r.costo_ammortamento,
                     r.costo_fallimento, r.totale_costo, r.totale_cliente, r.profit,
                     COALESCE(s.nome, '') as stampante_nome,
@@ -319,15 +320,16 @@ pub fn get_preventivo_completo(state: State<AppState>, id: i64) -> Result<Preven
                 piatto: row.get(20)?,
                 thumbnail_path: row.get(21)?,
                 thumbnails_json: row.get(22)?,
-                costo_materiale_totale: row.get(23)?,
-                costo_energia: row.get(24)?,
-                costo_ammortamento: row.get(25)?,
-                costo_fallimento: row.get(26)?,
-                totale_costo: row.get(27)?,
-                totale_cliente: row.get(28)?,
-                profit: row.get(29)?,
-                stampante_nome: row.get(30)?,
-                profilo_nome: row.get(31)?,
+                foto_prodotto_path: row.get(23)?,
+                costo_materiale_totale: row.get(24)?,
+                costo_energia: row.get(25)?,
+                costo_ammortamento: row.get(26)?,
+                costo_fallimento: row.get(27)?,
+                totale_costo: row.get(28)?,
+                totale_cliente: row.get(29)?,
+                profit: row.get(30)?,
+                stampante_nome: row.get(31)?,
+                profilo_nome: row.get(32)?,
                 materiali: Vec::new(),
             })
         }).map_err(|e| e.to_string())?;
@@ -636,6 +638,49 @@ pub fn save_riga_thumbnails(state: State<AppState>, riga_id: i64, images: Vec<St
     db.execute("UPDATE righe_preventivo SET thumbnail_path = ?1, thumbnails_json = ?2 WHERE id = ?3",
         params![main_thumb, json, riga_id]).map_err(|e| e.to_string())?;
     Ok(paths)
+}
+
+/// Salva foto prodotto per una riga — ridimensiona a max 800x800 px
+#[tauri::command]
+pub fn save_foto_prodotto(state: State<AppState>, riga_id: i64, source_path: String) -> Result<String, String> {
+    use image::GenericImageView;
+    let source = std::path::Path::new(&source_path);
+    if !source.exists() { return Err(format!("File non trovato: {}", source_path)); }
+
+    let img = image::open(source).map_err(|e| format!("Errore apertura immagine: {e}"))?;
+    let (w, h) = img.dimensions();
+    let max_dim = 800u32;
+    let resized = if w > max_dim || h > max_dim {
+        img.resize(max_dim, max_dim, image::imageops::FilterType::Lanczos3)
+    } else {
+        img
+    };
+
+    let data_dir = dirs::data_dir().ok_or("Impossibile trovare la cartella dati")?;
+    let foto_dir = data_dir.join("Sparks3DPreventivi").join("foto_prodotti");
+    std::fs::create_dir_all(&foto_dir).map_err(|e| format!("Errore creazione cartella: {e}"))?;
+    let dest = foto_dir.join(format!("{riga_id}.jpg"));
+    resized.save(&dest).map_err(|e| format!("Errore salvataggio foto: {e}"))?;
+
+    let path_str = dest.to_string_lossy().to_string();
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.execute("UPDATE righe_preventivo SET foto_prodotto_path = ?1 WHERE id = ?2",
+        params![path_str, riga_id]).map_err(|e| e.to_string())?;
+    Ok(path_str)
+}
+
+/// Rimuovi foto prodotto da una riga
+#[tauri::command]
+pub fn delete_foto_prodotto(state: State<AppState>, riga_id: i64) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let path: String = db.query_row(
+        "SELECT COALESCE(foto_prodotto_path, '') FROM righe_preventivo WHERE id = ?1",
+        params![riga_id], |row| row.get(0)
+    ).unwrap_or_default();
+    if !path.is_empty() { let _ = std::fs::remove_file(&path); }
+    db.execute("UPDATE righe_preventivo SET foto_prodotto_path = '' WHERE id = ?1",
+        params![riga_id]).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 // ── Set materiali per una riga (replace all) ──

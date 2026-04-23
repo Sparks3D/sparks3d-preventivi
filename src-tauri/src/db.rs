@@ -335,7 +335,7 @@ pub fn init_schema(conn: &Connection) -> Result<()> {
             preventivo_id INTEGER NOT NULL,
             nome_file TEXT DEFAULT '', titolo_visualizzato TEXT DEFAULT '',
             file_path TEXT DEFAULT '', thumbnail_path TEXT DEFAULT '',
-            piatto INTEGER DEFAULT 1, thumbnails_json TEXT DEFAULT '[]',
+            piatto INTEGER DEFAULT 1, thumbnails_json TEXT DEFAULT '[]', foto_prodotto_path TEXT DEFAULT '',
             stampante_id INTEGER, profilo_stampa_id INTEGER,
             quantita INTEGER DEFAULT 1, is_multicolore INTEGER DEFAULT 0,
             tempo_stampa_sec INTEGER DEFAULT 0, peso_totale_grammi REAL DEFAULT 0.0,
@@ -440,6 +440,7 @@ pub fn init_schema(conn: &Connection) -> Result<()> {
     let _ = conn.execute("ALTER TABLE metodi_pagamento ADD COLUMN addebita_al_cliente INTEGER DEFAULT 0", []);
     let _ = conn.execute("ALTER TABLE righe_preventivo ADD COLUMN piatto INTEGER DEFAULT 1", []);
     let _ = conn.execute("ALTER TABLE righe_preventivo ADD COLUMN thumbnails_json TEXT DEFAULT '[]'", []);
+    let _ = conn.execute("ALTER TABLE righe_preventivo ADD COLUMN foto_prodotto_path TEXT DEFAULT ''", []);
 
     // ── Impostazioni predefinite ──
     let defaults = vec![

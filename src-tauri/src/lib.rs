@@ -852,7 +852,7 @@ pub fn run() {
             preventivi::get_preventivi_list, preventivi::get_preventivo_completo,
             preventivi::update_preventivo, preventivi::update_stato_preventivo,
             preventivi::add_riga_preventivo, preventivi::update_riga_preventivo,
-            preventivi::delete_riga_preventivo, preventivi::save_riga_thumbnail, preventivi::save_riga_thumbnails, preventivi::set_riga_materiali,
+            preventivi::delete_riga_preventivo, preventivi::save_riga_thumbnail, preventivi::save_riga_thumbnails, preventivi::save_foto_prodotto, preventivi::delete_foto_prodotto, preventivi::set_riga_materiali,
             preventivi::ricalcola_preventivo, preventivi::duplica_preventivo,
             preventivi::add_servizio_preventivo, preventivi::remove_servizio_preventivo,
             dashboard::get_dashboard_stats,

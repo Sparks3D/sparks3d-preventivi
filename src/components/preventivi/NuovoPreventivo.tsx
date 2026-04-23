@@ -2,7 +2,7 @@
 // ================================================
 // Form preventivo completo — Dark Navy Premium Theme
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
@@ -27,7 +27,7 @@ interface RigaCompleta {
   peso_totale_grammi: number; ingombro_x_mm: number; ingombro_y_mm: number; ingombro_z_mm: number;
   markup_riga: number | null; sconto_riga: number | null; fallimento_riga: number | null;
   post_processing: number; tempo_manuale: boolean; peso_manuale: boolean; ordine: number;
-  piatto: number; thumbnail_path: string; thumbnails_json: string;
+  piatto: number; thumbnail_path: string; thumbnails_json: string; foto_prodotto_path: string;
   costo_materiale_totale: number; costo_energia: number; costo_ammortamento: number;
   costo_fallimento: number; totale_costo: number; totale_cliente: number; profit: number;
   materiali: MaterialeSlotOutput[];
@@ -149,21 +149,21 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
     } catch (e) { console.error(e); setSaving(false); }
   }, [prev, clienteId, markupGlobale, scontoGlobale, avvioMacchina, note]);
 
-  // Auto-save e ricalcolo quando cambiano markup, sconto o avvio macchina
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const saveHeaderRef = useRef(saveHeader);
-  saveHeaderRef.current = saveHeader;
-  useEffect(() => {
+  // Salva header e ricalcola — chiamato onBlur degli input parametri globali
+  const salvaERicalcola = useCallback(async () => {
     if (!prev) return;
-    // Salta se i valori corrispondono a quelli già salvati nel preventivo
-    if (markupGlobale === prev.markup_globale &&
-        scontoGlobale === prev.sconto_globale &&
-        avvioMacchina === prev.avvio_macchina) return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { saveHeaderRef.current(); }, 600);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [markupGlobale, scontoGlobale, avvioMacchina]);
+    try {
+      await invoke("update_preventivo", { id: prev.id, data: {
+        cliente_id: clienteId, markup_globale: markupGlobale, sconto_globale: scontoGlobale,
+        avvio_macchina: avvioMacchina, metodo_pagamento_id: prev.metodo_pagamento_id,
+        corriere_id: prev.corriere_id, acconto_tipo: prev.acconto_tipo,
+        acconto_valore: prev.acconto_valore, ritenuta_acconto: prev.ritenuta_acconto, note,
+        corriere_nome: null, corriere_servizio: null,
+        costo_spedizione: prev.totale_spedizione > 0 ? prev.totale_spedizione : null,
+      }});
+      setPrev(await invoke<PreventivoCompleto>("ricalcola_preventivo", { id: prev.id }));
+    } catch (e) { console.error(e); }
+  }, [prev, clienteId, markupGlobale, scontoGlobale, avvioMacchina, note]);
 
   const cambiaStato = async (nuovoStato: string) => {
     if (!prev) return;
@@ -210,7 +210,7 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
       quantita: 1, is_multicolore: false, tempo_ore: 0, tempo_min: 0,
       peso_totale_grammi: 0, post_processing: 0, markup_riga: null, sconto_riga: null, fallimento_riga: null,
       materiali_slots: [{ materiale_id: materiali[0]?.id ?? 0, slot_ams: 1, colore_hex: "", peso_grammi: 0, percentuale_pezzo: 100 }],
-      thumbnail_base64: null, all_thumbnails: [], piatto: 1, dim_x: 0, dim_y: 0, dim_z: 0,
+      thumbnail_base64: null, all_thumbnails: [], piatto: 1, dim_x: 0, dim_y: 0, dim_z: 0, foto_prodotto_preview: null,
     });
   };
 
@@ -239,7 +239,12 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
         : [{ materiale_id: materiali[0]?.id ?? 0, slot_ams: 1, colore_hex: "", peso_grammi: 0, percentuale_pezzo: 100 }],
       thumbnail_base64: thumbBase64, all_thumbnails: allThumbs, piatto: r.piatto || 1,
       dim_x: r.ingombro_x_mm, dim_y: r.ingombro_y_mm, dim_z: r.ingombro_z_mm,
+      foto_prodotto_preview: null,
     });
+    // Carica anteprima foto prodotto se presente
+    if (r.foto_prodotto_path) {
+      try { const fp = await invoke<string>("load_logo_preview", { logoPath: r.foto_prodotto_path }); setRigaEdit(prev => prev ? { ...prev, foto_prodotto_preview: fp } : null); } catch {}
+    }
   };
 
   const saveRiga = async () => {
@@ -423,15 +428,15 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
               <div>
                 <label style={labelStyle}>{t("preventivi.markup")}</label>
-                <input type="number" step="0.1" value={markupGlobale} onChange={e => setMarkupGlobale(Number(e.target.value))} disabled={!isEditable} className="s3d-input" style={{ textAlign: "right" }} />
+                <input type="number" step="0.1" value={markupGlobale} onChange={e => setMarkupGlobale(Number(e.target.value))} onBlur={salvaERicalcola} disabled={!isEditable} className="s3d-input" style={{ textAlign: "right" }} />
               </div>
               <div>
                 <label style={labelStyle}>{t("preventivi.sconto")}</label>
-                <input type="number" step="0.1" value={scontoGlobale} onChange={e => setScontoGlobale(Number(e.target.value))} disabled={!isEditable} className="s3d-input" style={{ textAlign: "right" }} />
+                <input type="number" step="0.1" value={scontoGlobale} onChange={e => setScontoGlobale(Number(e.target.value))} onBlur={salvaERicalcola} disabled={!isEditable} className="s3d-input" style={{ textAlign: "right" }} />
               </div>
               <div>
                 <label style={labelStyle}>{t("preventivi.avvioMacchinaLabel")}</label>
-                <input type="number" step="0.5" value={avvioMacchina} onChange={e => setAvvioMacchina(Number(e.target.value))} disabled={!isEditable} className="s3d-input" style={{ textAlign: "right" }} />
+                <input type="number" step="0.5" value={avvioMacchina} onChange={e => setAvvioMacchina(Number(e.target.value))} onBlur={salvaERicalcola} disabled={!isEditable} className="s3d-input" style={{ textAlign: "right" }} />
               </div>
             </div>
           </div>
@@ -789,6 +794,7 @@ function RigaCard({ riga, index, isEditable, onEdit, onDelete }: {
             {riga.is_multicolore && <span style={{ fontSize: 10, background: "rgba(167,139,250,0.12)", color: "var(--purple)", padding: "2px 8px", borderRadius: 100, fontWeight: 600 }}>{t("preventivi.multiMateriale")}</span>}
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>×{riga.quantita}</span>
             {riga.piatto > 1 && <span style={{ fontSize: 10, background: "rgba(59,130,246,0.1)", color: "var(--accent)", padding: "2px 8px", borderRadius: 100, fontWeight: 600 }}>{t("preventivi.piatto")} {riga.piatto}</span>}
+            {riga.foto_prodotto_path && <span style={{ fontSize: 10, background: "rgba(52,211,153,0.12)", color: "var(--green)", padding: "2px 8px", borderRadius: 100, fontWeight: 600 }}>{t("preventivi.fotoPresente")}</span>}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0 16px", fontSize: 12, color: "var(--text-muted)" }}>
             {riga.stampante_nome && <span>🖨 {riga.stampante_nome}</span>}
@@ -884,7 +890,7 @@ function RiepilogoCard({ prev }: { prev: PreventivoCompleto }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
         {[
           ...(hasSconto ? [{ l: t("preventivi.subtotaleLordo"), v: subtotaleLordo }] : []),
-          ...(hasSconto ? [{ l: `${t("preventivi.sconto")}: -${prev.sconto_globale}%`, v: -importoSconto, isSconto: true }] : []),
+          ...(hasSconto && importoSconto > 0 ? [{ l: `${t("preventivi.sconto")} (${prev.sconto_globale}%)`, v: importoSconto, isSconto: true }] : []),
           { l: t("preventivi.subtotaleRighe"), v: prev.totale_cliente },
           ...(prev.avvio_macchina > 0 ? [{ l: t("preventivi.avvioMacchina"), v: prev.avvio_macchina }] : []),
           ...(prev.totale_servizi > 0 ? [{ l: t("preventivi.serviziExtraLabel"), v: prev.totale_servizi }] : []),
@@ -892,7 +898,7 @@ function RiepilogoCard({ prev }: { prev: PreventivoCompleto }) {
         ].map((r: any, i: number) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ color: r.isSconto ? "var(--green)" : "var(--text-muted)" }}>{r.l}</span>
-            <span style={{ fontFamily: "monospace", color: r.isSconto ? "var(--green)" : "var(--text-secondary)" }}>{formatEuro(r.v)}</span>
+            <span style={{ fontFamily: "monospace", color: r.isSconto ? "var(--green)" : "var(--text-secondary)" }}>{r.isSconto ? `- ${formatEuro(r.v)}` : formatEuro(r.v)}</span>
           </div>
         ))}
       </div>
@@ -938,6 +944,7 @@ interface RigaEditState {
   all_thumbnails: string[];
   piatto: number;
   dim_x: number; dim_y: number; dim_z: number;
+  foto_prodotto_preview: string | null;
 }
 
 function RigaModal({ edit, setEdit, materiali, stampanti, profili, onSave, onCancel, saving, onLookupsUpdated }: {
@@ -1110,6 +1117,51 @@ function RigaModal({ edit, setEdit, materiali, stampanti, profili, onSave, onCan
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Foto prodotto stampato */}
+          <div style={{ borderTop: "1px solid rgba(56,119,214,0.1)", paddingTop: 16, marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div className="s3d-section-title" style={{ marginBottom: 0 }}>{t("preventivi.fotoProdotto")}</div>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const result = await (await import("@tauri-apps/plugin-dialog")).open({
+                      multiple: false,
+                      filters: [{ name: t("preventivi.immagini"), extensions: ["png", "jpg", "jpeg", "webp"] }],
+                    });
+                    const selected = typeof result === "string" ? result : Array.isArray(result) ? result[0] : null;
+                    if (!selected || !edit.rigaId) return;
+                    const savedPath = await invoke<string>("save_foto_prodotto", { rigaId: edit.rigaId, sourcePath: selected });
+                    const preview = await invoke<string>("load_logo_preview", { logoPath: savedPath });
+                    upd({ foto_prodotto_preview: preview } as any);
+                  } catch (e) { console.error(e); }
+                }}
+                disabled={!edit.rigaId}
+                style={{ fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, border: "none", background: "rgba(52,211,153,0.12)", color: "var(--green)", cursor: edit.rigaId ? "pointer" : "not-allowed" }}
+              >
+                {t("preventivi.caricaFoto")}
+              </button>
+              {edit.foto_prodotto_preview && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!edit.rigaId) return;
+                    try { await invoke("delete_foto_prodotto", { rigaId: edit.rigaId }); upd({ foto_prodotto_preview: null } as any); } catch {}
+                  }}
+                  style={{ fontSize: 12, padding: "4px 12px", borderRadius: 8, border: "none", background: "rgba(248,113,113,0.12)", color: "var(--red)", cursor: "pointer" }}
+                >
+                  {t("preventivi.rimuoviFoto")}
+                </button>
+              )}
+              {!edit.rigaId && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{t("preventivi.salvaPrimaDiFoto")}</span>}
+            </div>
+            {edit.foto_prodotto_preview && (
+              <div style={{ marginTop: 10 }}>
+                <img src={edit.foto_prodotto_preview} alt="" style={{ maxWidth: 200, maxHeight: 200, objectFit: "contain", borderRadius: 10, border: "1px solid var(--border-subtle)", background: "var(--bg-input)" }} />
+              </div>
+            )}
           </div>
 
           {/* Bottoni */}

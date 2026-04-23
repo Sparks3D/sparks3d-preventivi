@@ -45,7 +45,7 @@ interface RigaCompleta {
   costo_ammortamento: number; costo_fallimento: number;
   totale_costo: number; totale_cliente: number; profit: number;
   markup_riga: number | null; sconto_riga: number | null;
-  post_processing: number; thumbnail_path: string; thumbnails_json: string;
+  post_processing: number; thumbnail_path: string; thumbnails_json: string; foto_prodotto_path: string;
   materiali: { materiale_nome: string; peso_grammi: number; colore_hex: string }[];
 }
 
@@ -291,6 +291,7 @@ export async function generatePreventivosPdf(
 
   // Pre-carica thumbnails per il PDF (solo se abilitati)
   const thumbMap: Record<number, string[]> = {};
+  const fotoMap: Record<number, string> = {};
   if (options?.showThumbnails !== false) {
     for (const r of pv.righe) {
       const paths: string[] = r.thumbnails_json ? JSON.parse(r.thumbnails_json || "[]") : [];
@@ -301,6 +302,10 @@ export async function generatePreventivosPdf(
         }
       } else if (r.thumbnail_path) {
         try { thumbMap[r.id] = [await invoke<string>("load_logo_preview", { logoPath: r.thumbnail_path })]; } catch {}
+      }
+      // Foto prodotto stampato
+      if (r.foto_prodotto_path) {
+        try { fotoMap[r.id] = await invoke<string>("load_logo_preview", { logoPath: r.foto_prodotto_path }); } catch {}
       }
     }
   }
@@ -450,6 +455,50 @@ export async function generatePreventivosPdf(
     });
 
     y = (doc as any).lastAutoTable.finalY + 6;
+  }
+
+  // ═══════════════════════════════════════
+  // FOTO PRODOTTI STAMPATI
+  // ═══════════════════════════════════════
+  const fotoEntries = pv.righe.filter(r => fotoMap[r.id]);
+  if (fotoEntries.length > 0) {
+    const fotoSize = 50; // mm
+    const fotoGap = 6;
+    const fotoCols = Math.floor((cw + fotoGap) / (fotoSize + fotoGap));
+
+    if (y > ph - fotoSize - 20) { doc.addPage(); y = mt; }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...COL.textMuted);
+    doc.text(i18n.t("pdf.fotoStampe"), ml, y);
+    y += 5;
+
+    let fx = ml;
+    let colIdx = 0;
+    for (const r of fotoEntries) {
+      const img = fotoMap[r.id];
+      if (!img) continue;
+
+      if (y + fotoSize + 8 > ph - 10) { doc.addPage(); y = mt; fx = ml; colIdx = 0; }
+
+      try {
+        const fmt = img.startsWith("data:image/jpeg") || img.startsWith("data:image/jpg") ? "JPEG" : "PNG";
+        doc.addImage(img, fmt, fx, y, fotoSize, fotoSize);
+      } catch { /* immagine non valida */ }
+      // Didascalia sotto la foto
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(...COL.textLight);
+      const caption = (r.titolo_visualizzato || r.nome_file || "").replace(/\.(gcode|3mf|gco|g|stl|obj|step|stp)$/i, "");
+      doc.text(caption.substring(0, 20), fx + fotoSize / 2, y + fotoSize + 3, { align: "center" });
+
+      fx += fotoSize + fotoGap;
+      colIdx++;
+      if (colIdx >= fotoCols) { colIdx = 0; fx = ml; y += fotoSize + 10; }
+    }
+    if (colIdx > 0) y += fotoSize + 10;
+    y += 4;
   }
 
   // ═══════════════════════════════════════

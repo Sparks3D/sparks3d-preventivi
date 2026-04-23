@@ -430,7 +430,7 @@ fn parse_3mf_file(path: &Path) -> Result<SliceData, String> {
         if !data.plates.is_empty() {
             // Usa l'immagine del primo piatto come thumbnail principale
             data.thumbnail_base64 = data.plates.first().and_then(|p| p.thumbnail_base64.clone());
-            data.piatto = data.plates.first().map(|p| p.plate_number).unwrap_or(1);
+            data.piatto = data.plates.len() as i64;
         }
 
         // Se non ci sono immagini piatto, cerca thumbnail dedicato
@@ -477,15 +477,6 @@ fn parse_3mf_file(path: &Path) -> Result<SliceData, String> {
             .or_else(|| gcode_names.first())
             .cloned().unwrap();
 
-        // Estrai numero piatto dal nome file (es. "plate_2.gcode" → 2)
-        let target_lower = target.to_lowercase();
-        if let Some(pos) = target_lower.find("plate_") {
-            let after = &target_lower[pos + 6..];
-            if let Some(num_str) = after.split(|c: char| !c.is_ascii_digit()).next() {
-                data.piatto = num_str.parse().unwrap_or(1);
-            }
-        }
-
         if let Ok(entry) = archive.by_name(&target) {
             let reader = BufReader::new(entry);
             // Parsa solo i commenti del GCode per dati mancanti
@@ -493,11 +484,21 @@ fn parse_3mf_file(path: &Path) -> Result<SliceData, String> {
             parse_gcode_lines(reader, &mut gcode_data);
 
             // Integra solo i dati che mancano
+            // Se il tempo/peso arriva dal gcode (un solo piatto), moltiplica per il numero di piatti
+            let plate_count = if data.plates.len() > 1 { data.plates.len() as i64 } else { 1 };
             if data.tempo_stampa_sec == 0 && gcode_data.tempo_stampa_sec > 0 {
-                data.tempo_stampa_sec = gcode_data.tempo_stampa_sec;
-                data.tempo_stampa_display = gcode_data.tempo_stampa_display;
+                data.tempo_stampa_sec = gcode_data.tempo_stampa_sec * plate_count;
+                let total_sec = data.tempo_stampa_sec;
+                let h = total_sec / 3600;
+                let m = (total_sec % 3600) / 60;
+                let s = total_sec % 60;
+                data.tempo_stampa_display = if h > 0 {
+                    format!("{}h {}m {}s", h, m, s)
+                } else {
+                    format!("{}m {}s", m, s)
+                };
             }
-            if data.peso_totale_grammi == 0.0 { data.peso_totale_grammi = gcode_data.peso_totale_grammi; }
+            if data.peso_totale_grammi == 0.0 { data.peso_totale_grammi = gcode_data.peso_totale_grammi * plate_count as f64; }
             if data.filamento_mm == 0.0 { data.filamento_mm = gcode_data.filamento_mm; }
             if data.filamento_tipo.is_empty() { data.filamento_tipo = gcode_data.filamento_tipo; }
             if data.filamento_densita == 0.0 { data.filamento_densita = gcode_data.filamento_densita; }
@@ -544,6 +545,10 @@ fn parse_3mf_file(path: &Path) -> Result<SliceData, String> {
 ///   <metadata key="weight" value="74.15"/>
 ///   <filament id="1" type="PETG" color="#424032" used_g="74.15" used_m="24.08"/>
 fn parse_slice_info_xml(content: &str, data: &mut SliceData) {
+    // Somma tempi e pesi di TUTTI i piatti (ogni <plate> ha il suo prediction/weight)
+    let mut total_time: i64 = 0;
+    let mut total_weight: f64 = 0.0;
+
     for line in content.lines() {
         let trimmed = line.trim();
 
@@ -551,15 +556,7 @@ fn parse_slice_info_xml(content: &str, data: &mut SliceData) {
         if trimmed.contains("key=\"prediction\"") {
             if let Some(val) = extract_xml_attr(trimmed, "value") {
                 if let Ok(secs) = val.parse::<i64>() {
-                    data.tempo_stampa_sec = secs;
-                    let h = secs / 3600;
-                    let m = (secs % 3600) / 60;
-                    let s = secs % 60;
-                    data.tempo_stampa_display = if h > 0 {
-                        format!("{}h {}m {}s", h, m, s)
-                    } else {
-                        format!("{}m {}s", m, s)
-                    };
+                    total_time += secs;
                 }
             }
         }
@@ -567,7 +564,7 @@ fn parse_slice_info_xml(content: &str, data: &mut SliceData) {
         // <metadata key="weight" value="74.15"/>
         if trimmed.contains("key=\"weight\"") {
             if let Some(val) = extract_xml_attr(trimmed, "value") {
-                data.peso_totale_grammi = val.parse().unwrap_or(0.0);
+                total_weight += val.parse::<f64>().unwrap_or(0.0);
             }
         }
 
@@ -583,12 +580,12 @@ fn parse_slice_info_xml(content: &str, data: &mut SliceData) {
                 .and_then(|v| v.parse().ok()).unwrap_or(0.0);
 
             if slot > 0 && (!tipo.is_empty() || peso > 0.0) {
-                // Cerca se lo slot esiste già (dal gcode)
+                // Somma pesi per slot tra tutti i piatti
                 if let Some(existing) = data.materiali.iter_mut().find(|m| m.slot == slot) {
                     if existing.tipo.is_empty() { existing.tipo = tipo; }
                     if existing.colore.is_empty() { existing.colore = colore; }
-                    existing.peso_grammi = peso;
-                    existing.lunghezza_mm = lunghezza_m * 1000.0;
+                    existing.peso_grammi += peso;
+                    existing.lunghezza_mm += lunghezza_m * 1000.0;
                 } else {
                     data.materiali.push(SliceFilamentInfo {
                         slot, tipo, colore,
@@ -599,6 +596,21 @@ fn parse_slice_info_xml(content: &str, data: &mut SliceData) {
                 }
             }
         }
+    }
+
+    if total_time > 0 {
+        data.tempo_stampa_sec = total_time;
+        let h = total_time / 3600;
+        let m = (total_time % 3600) / 60;
+        let s = total_time % 60;
+        data.tempo_stampa_display = if h > 0 {
+            format!("{}h {}m {}s", h, m, s)
+        } else {
+            format!("{}m {}s", m, s)
+        };
+    }
+    if total_weight > 0.0 {
+        data.peso_totale_grammi = total_weight;
     }
 }
 
