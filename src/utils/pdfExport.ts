@@ -44,6 +44,7 @@ interface RigaCompleta {
   costo_materiale_totale: number; costo_energia: number;
   costo_ammortamento: number; costo_fallimento: number;
   totale_costo: number; totale_cliente: number; profit: number;
+  markup_riga: number | null; sconto_riga: number | null;
   post_processing: number; thumbnail_path: string; thumbnails_json: string;
   materiali: { materiale_nome: string; peso_grammi: number; colore_hex: string }[];
 }
@@ -511,8 +512,18 @@ export async function generatePreventivosPdf(
     ry += 5;
   };
 
+  // Calcola subtotale lordo (prima dello sconto) per mostrare la riduzione
+  const hasSconto = pv.righe.some(r => (r.sconto_riga ?? pv.sconto_globale) > 0);
+  if (hasSconto) {
+    const subtotaleLordo = pv.righe.reduce((sum, r) => {
+      const sc = r.sconto_riga ?? pv.sconto_globale;
+      return sum + (sc < 100 ? r.totale_cliente / (1 - sc / 100) : r.totale_cliente);
+    }, 0);
+    const importoSconto = subtotaleLordo - pv.totale_cliente;
+    totRow(i18n.t("pdf.subtotaleLordo"), fe(subtotaleLordo));
+    totRow(`${i18n.t("pdf.scontoApplicato")} (${pv.sconto_globale}%)`, `- ${fe(importoSconto)}`);
+  }
   totRow(i18n.t("pdf.subtotaleRighe"), fe(pv.totale_cliente));
-  if (pv.sconto_globale > 0) totRow(`${i18n.t("pdf.scontoApplicato")} (${pv.sconto_globale}%)`, "");
   if (pv.avvio_macchina > 0) totRow(i18n.t("pdf.avvioMacchina"), fe(pv.avvio_macchina));
   if (pv.totale_servizi > 0) totRow(i18n.t("pdf.totaleServizi") + ":", fe(pv.totale_servizi));
   if (pv.totale_spedizione > 0) totRow(i18n.t("pdf.spedizioneLabel"), fe(pv.totale_spedizione));

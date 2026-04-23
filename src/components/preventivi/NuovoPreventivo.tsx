@@ -150,14 +150,15 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
   }, [prev, clienteId, markupGlobale, scontoGlobale, avvioMacchina, note]);
 
   // Auto-save e ricalcolo quando cambiano markup, sconto o avvio macchina
-  const initialLoadDone = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveHeaderRef = useRef(saveHeader);
   saveHeaderRef.current = saveHeader;
   useEffect(() => {
     if (!prev) return;
-    // Salta il primo render (caricamento iniziale)
-    if (!initialLoadDone.current) { initialLoadDone.current = true; return; }
+    // Salta se i valori corrispondono a quelli già salvati nel preventivo
+    if (markupGlobale === prev.markup_globale &&
+        scontoGlobale === prev.sconto_globale &&
+        avvioMacchina === prev.avvio_macchina) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => { saveHeaderRef.current(); }, 600);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
@@ -867,19 +868,36 @@ function RiepilogoCard({ prev }: { prev: PreventivoCompleto }) {
         ))}
       </div>
       {/* Costi */}
+      {(() => {
+        // Calcola subtotale lordo (senza sconto) per mostrare l'importo risparmiato
+        const hasSconto = prev.righe.some(r => (r.sconto_riga ?? prev.sconto_globale) > 0);
+        let subtotaleLordo = prev.totale_cliente;
+        if (hasSconto) {
+          subtotaleLordo = prev.righe.reduce((sum, r) => {
+            const sc = r.sconto_riga ?? prev.sconto_globale;
+            return sum + (sc < 100 ? r.totale_cliente / (1 - sc / 100) : r.totale_cliente);
+          }, 0);
+        }
+        const importoSconto = subtotaleLordo - prev.totale_cliente;
+
+        return (
       <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
-        {[{ l: t("preventivi.subtotaleRighe"), v: prev.totale_cliente },
-          ...(prev.sconto_globale > 0 ? [{ l: `${t("preventivi.sconto")}: ${prev.sconto_globale}%`, v: 0, isInfo: true }] : []),
+        {[
+          ...(hasSconto ? [{ l: t("preventivi.subtotaleLordo"), v: subtotaleLordo }] : []),
+          ...(hasSconto ? [{ l: `${t("preventivi.sconto")}: -${prev.sconto_globale}%`, v: -importoSconto, isSconto: true }] : []),
+          { l: t("preventivi.subtotaleRighe"), v: prev.totale_cliente },
           ...(prev.avvio_macchina > 0 ? [{ l: t("preventivi.avvioMacchina"), v: prev.avvio_macchina }] : []),
           ...(prev.totale_servizi > 0 ? [{ l: t("preventivi.serviziExtraLabel"), v: prev.totale_servizi }] : []),
           ...(prev.totale_spedizione > 0 ? [{ l: t("preventivi.spedizioneLabel"), v: prev.totale_spedizione }] : []),
         ].map((r: any, i: number) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: r.isInfo ? "var(--green)" : "var(--text-muted)" }}>{r.l}</span>
-            {!r.isInfo && <span style={{ fontFamily: "monospace", color: "var(--text-secondary)" }}>{formatEuro(r.v)}</span>}
+            <span style={{ color: r.isSconto ? "var(--green)" : "var(--text-muted)" }}>{r.l}</span>
+            <span style={{ fontFamily: "monospace", color: r.isSconto ? "var(--green)" : "var(--text-secondary)" }}>{formatEuro(r.v)}</span>
           </div>
         ))}
       </div>
+        );
+      })()}
       {/* Totale */}
       <div style={{ margin: "16px 0", padding: "14px 0", borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
