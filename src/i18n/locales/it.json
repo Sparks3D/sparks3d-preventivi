@@ -1013,6 +1013,7 @@
     "corriere": "Corriere:",
     "costoSpedizione": "Costo spedizione:",
     "subtotaleRighe": "Subtotale righe:",
+    "scontoApplicato": "Sconto applicato",
     "avvioMacchina": "Avvio macchina:",
     "spedizioneLabel": "Spedizione:",
     "commissionePagamento": "Commissione pagamento:",
@@ -1074,7 +1075,7 @@
     "slicerSection": "Slicer integrati",
     "shortcutsSection": "Scorciatoie tastiera",
     "sicurezzaSection": "Sicurezza",
-    "novitaSection": "Novità v1.4.0",
+    "novitaSection": "Novità v1.4.1",
     "sommario": "Sommario",
 
     "panoramica_desc": "Sparks3D Preventivi è un software desktop per la creazione e gestione di preventivi per servizi di stampa 3D FDM. Permette di calcolare automaticamente i costi di stampa basandosi su materiali, tempo macchina, energia e margini personalizzabili.",
@@ -1362,6 +1363,11 @@
     "sicurezza_roadmap_1_desc": "controllo formato CAP, email e Partita IVA",
     "sicurezza_roadmap_2_label": "Permessi filesystem granulari",
     "sicurezza_roadmap_2_desc": "accesso limitato ai soli percorsi necessari degli slicer",
+
+    "novita_v141_title": "🔧 Fix v1.4.1 — Sconti preventivo",
+    "novita_v141_1": "Correzione applicazione sconto: markup e sconto globale/riga vengono ora auto-salvati e ricalcolati in tempo reale al cambio valore",
+    "novita_v141_2": "Percentuale di sconto visibile nel riepilogo preventivo e nel PDF esportato",
+    "novita_v141_3": "Corretto bug per cui lo sconto non veniva applicato ai totali se non si cliccava manualmente \"Salva\"",
 
     "novita_v140_i18n_title": "🌐 Internazionalizzazione (i18n)",
     "novita_v140_i18n_1": "Interfaccia completamente tradotta in Italiano e Inglese",

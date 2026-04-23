@@ -2,7 +2,7 @@
 // ================================================
 // Form preventivo completo — Dark Navy Premium Theme
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
@@ -148,6 +148,21 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
       setTimeout(() => setSaved(false), 2000);
     } catch (e) { console.error(e); setSaving(false); }
   }, [prev, clienteId, markupGlobale, scontoGlobale, avvioMacchina, note]);
+
+  // Auto-save e ricalcolo quando cambiano markup, sconto o avvio macchina
+  const initialLoadDone = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveHeaderRef = useRef(saveHeader);
+  saveHeaderRef.current = saveHeader;
+  useEffect(() => {
+    if (!prev) return;
+    // Salta il primo render (caricamento iniziale)
+    if (!initialLoadDone.current) { initialLoadDone.current = true; return; }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => { saveHeaderRef.current(); }, 600);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markupGlobale, scontoGlobale, avvioMacchina]);
 
   const cambiaStato = async (nuovoStato: string) => {
     if (!prev) return;
@@ -854,13 +869,14 @@ function RiepilogoCard({ prev }: { prev: PreventivoCompleto }) {
       {/* Costi */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
         {[{ l: t("preventivi.subtotaleRighe"), v: prev.totale_cliente },
+          ...(prev.sconto_globale > 0 ? [{ l: `${t("preventivi.sconto")}: ${prev.sconto_globale}%`, v: 0, isInfo: true }] : []),
           ...(prev.avvio_macchina > 0 ? [{ l: t("preventivi.avvioMacchina"), v: prev.avvio_macchina }] : []),
           ...(prev.totale_servizi > 0 ? [{ l: t("preventivi.serviziExtraLabel"), v: prev.totale_servizi }] : []),
           ...(prev.totale_spedizione > 0 ? [{ l: t("preventivi.spedizioneLabel"), v: prev.totale_spedizione }] : []),
-        ].map((r, i) => (
+        ].map((r: any, i: number) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "var(--text-muted)" }}>{r.l}</span>
-            <span style={{ fontFamily: "monospace", color: "var(--text-secondary)" }}>{formatEuro(r.v)}</span>
+            <span style={{ color: r.isInfo ? "var(--green)" : "var(--text-muted)" }}>{r.l}</span>
+            {!r.isInfo && <span style={{ fontFamily: "monospace", color: "var(--text-secondary)" }}>{formatEuro(r.v)}</span>}
           </div>
         ))}
       </div>

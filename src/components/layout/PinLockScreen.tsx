@@ -105,7 +105,10 @@ export function PinLockScreen({ onUnlock }: Props) {
           setError(t("pin.tooManyAttempts", { seconds: LOCKOUT_SECONDS }));
         } else {
           const remaining = MAX_ATTEMPTS - newAttempts;
-          setError(t("pin.wrongPin", { remaining }));
+          const suffix = remaining === 1 ? "o" : "i";
+          const suffixE = remaining === 1 ? "e" : "i";
+          const suffixS = remaining === 1 ? "" : "s";
+          setError(t("pin.wrongPin", { remaining, suffix, suffixE, suffixS }));
         }
         setPin("");
       }

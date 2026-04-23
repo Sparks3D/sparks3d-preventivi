@@ -512,6 +512,7 @@ export async function generatePreventivosPdf(
   };
 
   totRow(i18n.t("pdf.subtotaleRighe"), fe(pv.totale_cliente));
+  if (pv.sconto_globale > 0) totRow(`${i18n.t("pdf.scontoApplicato")} (${pv.sconto_globale}%)`, "");
   if (pv.avvio_macchina > 0) totRow(i18n.t("pdf.avvioMacchina"), fe(pv.avvio_macchina));
   if (pv.totale_servizi > 0) totRow(i18n.t("pdf.totaleServizi") + ":", fe(pv.totale_servizi));
   if (pv.totale_spedizione > 0) totRow(i18n.t("pdf.spedizioneLabel"), fe(pv.totale_spedizione));

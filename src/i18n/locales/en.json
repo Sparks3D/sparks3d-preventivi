@@ -89,7 +89,7 @@
     "enterPin": "Enter your PIN to continue",
     "accessGranted": "Access granted",
     "locked": "Locked — retry in {{seconds}}s",
-    "wrongPin": "Wrong PIN. {{remaining}} attempt(s) remaining.",
+    "wrongPin": "Wrong PIN. {{remaining}} attempt{{suffixS}} remaining.",
     "tooManyAttempts": "Too many attempts. Wait {{seconds}} seconds.",
     "verifying": "Verifying...",
     "verifyError": "PIN verification error."
@@ -1013,6 +1013,7 @@
     "corriere": "Carrier:",
     "costoSpedizione": "Shipping cost:",
     "subtotaleRighe": "Lines subtotal:",
+    "scontoApplicato": "Discount applied",
     "avvioMacchina": "Machine startup:",
     "spedizioneLabel": "Shipping:",
     "commissionePagamento": "Payment fee:",
@@ -1074,7 +1075,7 @@
     "slicerSection": "Integrated Slicers",
     "shortcutsSection": "Keyboard shortcuts",
     "sicurezzaSection": "Security",
-    "novitaSection": "What's new v1.4.0",
+    "novitaSection": "What's new v1.4.1",
     "sommario": "Contents",
 
     "panoramica_desc": "Sparks3D Preventivi is a desktop application for creating and managing quotes for FDM 3D printing services. It automatically calculates printing costs based on materials, machine time, energy and customizable margins.",
@@ -1362,6 +1363,11 @@
     "sicurezza_roadmap_1_desc": "ZIP code, email and VAT number format checking",
     "sicurezza_roadmap_2_label": "Granular filesystem permissions",
     "sicurezza_roadmap_2_desc": "access limited to only the necessary slicer paths",
+
+    "novita_v141_title": "🔧 Fix v1.4.1 — Quote discounts",
+    "novita_v141_1": "Discount fix: global/line markup and discount are now auto-saved and recalculated in real time when values change",
+    "novita_v141_2": "Discount percentage now visible in quote summary and exported PDF",
+    "novita_v141_3": "Fixed bug where discount was not applied to totals unless \"Save\" was clicked manually",
 
     "novita_v140_i18n_title": "🌐 Internationalization (i18n)",
     "novita_v140_i18n_1": "Interface fully translated into Italian and English",
