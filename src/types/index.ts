@@ -102,6 +102,7 @@ export interface Preventivo {
   data_creazione: string;
   markup_globale: number;
   sconto_globale: number;
+  sconto_totale: number;
   avvio_macchina: number;
   metodo_pagamento_id: number | null;
   corriere_id: number | null;

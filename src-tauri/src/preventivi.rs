@@ -15,6 +15,7 @@ pub struct UpdatePreventivoInput {
     pub cliente_id: Option<i64>,
     pub markup_globale: f64,
     pub sconto_globale: f64,
+    pub sconto_totale: f64,
     pub avvio_macchina: f64,
     pub metodo_pagamento_id: Option<i64>,
     pub corriere_id: Option<i64>,
@@ -75,6 +76,7 @@ pub struct PreventivoCompleto {
     pub data_creazione: String,
     pub markup_globale: f64,
     pub sconto_globale: f64,
+    pub sconto_totale: f64,
     pub avvio_macchina: f64,
     pub metodo_pagamento_id: Option<i64>,
     pub corriere_id: Option<i64>,
@@ -234,6 +236,7 @@ pub fn get_preventivo_completo(state: State<AppState>, id: i64) -> Result<Preven
                 p.totale_costo, p.totale_cliente, p.totale_profit,
                 p.totale_materiale_g, p.totale_tempo_sec,
                 p.totale_servizi, p.totale_spedizione, p.totale_finale,
+                COALESCE(p.sconto_totale, 0) as sconto_totale,
                 COALESCE(NULLIF(c.denominazione_azienda, ''),
                     CASE WHEN COALESCE(c.nome,'') != '' OR COALESCE(c.cognome,'') != ''
                          THEN TRIM(COALESCE(c.nome,'') || ' ' || COALESCE(c.cognome,''))
@@ -267,7 +270,8 @@ pub fn get_preventivo_completo(state: State<AppState>, id: i64) -> Result<Preven
                 totale_servizi: row.get(20)?,
                 totale_spedizione: row.get(21)?,
                 totale_finale: row.get(22)?,
-                cliente_nome: row.get(23)?,
+                sconto_totale: row.get(23)?,
+                cliente_nome: row.get(24)?,
                 righe: Vec::new(),
                 servizi: Vec::new(),
             })
@@ -450,14 +454,14 @@ pub fn update_preventivo(state: State<AppState>, id: i64, data: UpdatePreventivo
             cliente_id = ?1, markup_globale = ?2, sconto_globale = ?3,
             avvio_macchina = ?4, metodo_pagamento_id = ?5, corriere_id = ?6,
             acconto_tipo = ?7, acconto_valore = ?8, ritenuta_acconto = ?9,
-            note = ?10, totale_spedizione = ?11,
+            note = ?10, totale_spedizione = ?11, sconto_totale = ?12,
             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?12",
+         WHERE id = ?13",
         params![
             data.cliente_id, data.markup_globale, data.sconto_globale,
             data.avvio_macchina, data.metodo_pagamento_id, corriere_id,
             data.acconto_tipo, data.acconto_valore, data.ritenuta_acconto,
-            data.note, spedizione, id
+            data.note, spedizione, data.sconto_totale, id
         ],
     ).map_err(|e| e.to_string())?;
 
@@ -753,10 +757,12 @@ pub fn ricalcola_preventivo(state: State<AppState>, id: i64) -> Result<Preventiv
     ).unwrap_or(0.30);
 
     // Leggi dati preventivo header
-    let (markup_globale, sconto_globale, avvio_macchina, totale_spedizione): (f64, f64, f64, f64) = db.query_row(
-        "SELECT markup_globale, sconto_globale, avvio_macchina, totale_spedizione
+    let (markup_globale, sconto_globale, avvio_macchina, totale_spedizione, sconto_totale):
+        (f64, f64, f64, f64, f64) = db.query_row(
+        "SELECT markup_globale, sconto_globale, avvio_macchina, totale_spedizione,
+                COALESCE(sconto_totale, 0)
          FROM preventivi WHERE id = ?1",
-        params![id], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+        params![id], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?))
     ).map_err(|e| e.to_string())?;
 
     // Prendi tutte le righe
@@ -882,7 +888,11 @@ pub fn ricalcola_preventivo(state: State<AppState>, id: i64) -> Result<Preventiv
     ).unwrap_or(0.0);
 
     // ── Totale finale ──
-    let totale_finale = totale_cliente_preventivo + avvio_macchina + totale_servizi + totale_spedizione;
+    // Lo sconto sul totale si applica alla base (righe + avvio + servizi),
+    // esclusi spedizione e commissione transazione (gestita lato PDF).
+    let base_scontabile = totale_cliente_preventivo + avvio_macchina + totale_servizi;
+    let importo_sconto_totale = base_scontabile * (sconto_totale / 100.0);
+    let totale_finale = base_scontabile - importo_sconto_totale + totale_spedizione;
     let totale_profit = totale_finale - totale_costo_preventivo - totale_spedizione;
 
     db.execute(
@@ -920,9 +930,9 @@ pub fn duplica_preventivo(state: State<AppState>, id: i64) -> Result<i64, String
     // Copia header
     db.execute(
         "INSERT INTO preventivi (numero, cliente_id, stato, markup_globale, sconto_globale,
-            avvio_macchina, metodo_pagamento_id, note)
+            sconto_totale, avvio_macchina, metodo_pagamento_id, note)
          SELECT ?1, cliente_id, 'bozza', markup_globale, sconto_globale,
-                avvio_macchina, metodo_pagamento_id, note
+                COALESCE(sconto_totale, 0), avvio_macchina, metodo_pagamento_id, note
          FROM preventivi WHERE id = ?2",
         params![nuovo_numero, id],
     ).map_err(|e| e.to_string())?;

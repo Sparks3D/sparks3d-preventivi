@@ -317,6 +317,7 @@ pub fn init_schema(conn: &Connection) -> Result<()> {
             stato TEXT DEFAULT 'non_confermato',
             data_creazione DATE DEFAULT (date('now')),
             markup_globale REAL DEFAULT 0.0, sconto_globale REAL DEFAULT 0.0,
+            sconto_totale REAL DEFAULT 0.0,
             avvio_macchina REAL DEFAULT 0.0,
             metodo_pagamento_id INTEGER, corriere_id INTEGER,
             acconto_tipo TEXT DEFAULT '', acconto_valore REAL DEFAULT 0.0,
@@ -441,6 +442,7 @@ pub fn init_schema(conn: &Connection) -> Result<()> {
     let _ = conn.execute("ALTER TABLE righe_preventivo ADD COLUMN piatto INTEGER DEFAULT 1", []);
     let _ = conn.execute("ALTER TABLE righe_preventivo ADD COLUMN thumbnails_json TEXT DEFAULT '[]'", []);
     let _ = conn.execute("ALTER TABLE righe_preventivo ADD COLUMN foto_prodotto_path TEXT DEFAULT ''", []);
+    let _ = conn.execute("ALTER TABLE preventivi ADD COLUMN sconto_totale REAL DEFAULT 0.0", []);
 
     // ── Impostazioni predefinite ──
     let defaults = vec![

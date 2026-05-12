@@ -35,6 +35,7 @@ interface RigaCompleta {
 interface PreventivoCompleto {
   id: number; numero: string; cliente_id: number | null; cliente_nome: string | null;
   stato: string; data_creazione: string; markup_globale: number; sconto_globale: number;
+  sconto_totale: number;
   avvio_macchina: number; metodo_pagamento_id: number | null; corriere_id: number | null;
   acconto_tipo: string; acconto_valore: number; ritenuta_acconto: boolean; note: string;
   congelato: boolean; totale_costo: number; totale_cliente: number; totale_profit: number;
@@ -104,6 +105,7 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
   const [clienteId, setClienteId] = useState<number | null>(null);
   const [markupGlobale, setMarkupGlobale] = useState(0);
   const [scontoGlobale, setScontoGlobale] = useState(0);
+  const [scontoTotale, setScontoTotale] = useState(0);
   const [avvioMacchina, setAvvioMacchina] = useState(0);
   const [note, setNote] = useState("");
   const [rigaEdit, setRigaEdit] = useState<RigaEditState | null>(null);
@@ -125,7 +127,8 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
     try {
       const data = await invoke<PreventivoCompleto>("get_preventivo_completo", { id });
       setPrev(data); setClienteId(data.cliente_id); setMarkupGlobale(data.markup_globale);
-      setScontoGlobale(data.sconto_globale); setAvvioMacchina(data.avvio_macchina); setNote(data.note);
+      setScontoGlobale(data.sconto_globale); setScontoTotale(data.sconto_totale ?? 0);
+      setAvvioMacchina(data.avvio_macchina); setNote(data.note);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   }, []);
 
@@ -136,6 +139,7 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
     try {
       await invoke("update_preventivo", { id: prev.id, data: {
         cliente_id: clienteId, markup_globale: markupGlobale, sconto_globale: scontoGlobale,
+        sconto_totale: scontoTotale,
         avvio_macchina: avvioMacchina, metodo_pagamento_id: prev.metodo_pagamento_id,
         corriere_id: prev.corriere_id, acconto_tipo: prev.acconto_tipo,
         acconto_valore: prev.acconto_valore, ritenuta_acconto: prev.ritenuta_acconto, note,
@@ -147,7 +151,7 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) { console.error(e); setSaving(false); }
-  }, [prev, clienteId, markupGlobale, scontoGlobale, avvioMacchina, note]);
+  }, [prev, clienteId, markupGlobale, scontoGlobale, scontoTotale, avvioMacchina, note]);
 
   // Salva header e ricalcola — chiamato onBlur degli input parametri globali
   const salvaERicalcola = useCallback(async () => {
@@ -155,6 +159,7 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
     try {
       await invoke("update_preventivo", { id: prev.id, data: {
         cliente_id: clienteId, markup_globale: markupGlobale, sconto_globale: scontoGlobale,
+        sconto_totale: scontoTotale,
         avvio_macchina: avvioMacchina, metodo_pagamento_id: prev.metodo_pagamento_id,
         corriere_id: prev.corriere_id, acconto_tipo: prev.acconto_tipo,
         acconto_valore: prev.acconto_valore, ritenuta_acconto: prev.ritenuta_acconto, note,
@@ -163,7 +168,7 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
       }});
       setPrev(await invoke<PreventivoCompleto>("ricalcola_preventivo", { id: prev.id }));
     } catch (e) { console.error(e); }
-  }, [prev, clienteId, markupGlobale, scontoGlobale, avvioMacchina, note]);
+  }, [prev, clienteId, markupGlobale, scontoGlobale, scontoTotale, avvioMacchina, note]);
 
   const cambiaStato = async (nuovoStato: string) => {
     if (!prev) return;
@@ -610,7 +615,13 @@ export function NuovoPreventivo({ preventivoId, onBack }: Props) {
         </div>
 
         {/* ═══ COLONNA DESTRA: Riepilogo ═══ */}
-        <div><RiepilogoCard prev={prev} /></div>
+        <div><RiepilogoCard
+          prev={prev}
+          scontoTotale={scontoTotale}
+          setScontoTotale={setScontoTotale}
+          salvaERicalcola={salvaERicalcola}
+          isEditable={isEditable}
+        /></div>
       </div>
 
       {/* ═══ MODALE RIGA ═══ */}
@@ -851,8 +862,16 @@ function RigaCard({ riga, index, isEditable, onEdit, onDelete }: {
 // ══════════════════════════
 // RIEPILOGO CARD
 // ══════════════════════════
-function RiepilogoCard({ prev }: { prev: PreventivoCompleto }) {
+function RiepilogoCard({ prev, scontoTotale, setScontoTotale, salvaERicalcola, isEditable }: {
+  prev: PreventivoCompleto;
+  scontoTotale: number;
+  setScontoTotale: (v: number) => void;
+  salvaERicalcola: () => Promise<void>;
+  isEditable: boolean;
+}) {
   const { t } = useTranslation();
+  const baseScontabile = prev.totale_cliente + prev.avvio_macchina + prev.totale_servizi;
+  const importoScontoTotale = baseScontabile * (scontoTotale / 100);
   // Il tempo slicer è per piatto (non per pezzo) — non moltiplicare per quantità
   const stats = prev.righe.reduce((a, r) => ({ pezzi: a.pezzi + r.quantita, tempo: a.tempo + r.tempo_stampa_sec }), { pezzi: 0, tempo: 0 });
   return (
@@ -894,6 +913,7 @@ function RiepilogoCard({ prev }: { prev: PreventivoCompleto }) {
           { l: t("preventivi.subtotaleRighe"), v: prev.totale_cliente },
           ...(prev.avvio_macchina > 0 ? [{ l: t("preventivi.avvioMacchina"), v: prev.avvio_macchina }] : []),
           ...(prev.totale_servizi > 0 ? [{ l: t("preventivi.serviziExtraLabel"), v: prev.totale_servizi }] : []),
+          ...(importoScontoTotale > 0 ? [{ l: `${t("preventivi.scontoTotale")} (${scontoTotale}%)`, v: importoScontoTotale, isSconto: true }] : []),
           ...(prev.totale_spedizione > 0 ? [{ l: t("preventivi.spedizioneLabel"), v: prev.totale_spedizione }] : []),
         ].map((r: any, i: number) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between" }}>
@@ -904,6 +924,26 @@ function RiepilogoCard({ prev }: { prev: PreventivoCompleto }) {
       </div>
         );
       })()}
+      {/* Sconto sul totale */}
+      <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(56,119,214,0.04)", borderRadius: 10, border: "1px solid var(--border-subtle)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <label style={{ fontSize: 12, color: "var(--text-muted)" }} title={t("preventivi.scontoTotaleHint")}>
+            {t("preventivi.scontoTotale")}
+          </label>
+          <input
+            type="number" step="0.1" min={0} max={100}
+            value={scontoTotale}
+            onChange={e => setScontoTotale(Number(e.target.value))}
+            onBlur={salvaERicalcola}
+            disabled={!isEditable}
+            className="s3d-input"
+            style={{ width: 80, textAlign: "right", padding: "4px 8px", fontSize: 13 }}
+          />
+        </div>
+        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
+          {t("preventivi.scontoTotaleHint")}
+        </div>
+      </div>
       {/* Totale */}
       <div style={{ margin: "16px 0", padding: "14px 0", borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

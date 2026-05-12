@@ -25,7 +25,7 @@ interface Azienda {
 interface PreventivoCompleto {
   id: number; numero: string; cliente_id: number | null;
   cliente_nome: string | null; stato: string; data_creazione: string;
-  markup_globale: number; sconto_globale: number; avvio_macchina: number;
+  markup_globale: number; sconto_globale: number; sconto_totale: number; avvio_macchina: number;
   metodo_pagamento_id: number | null; corriere_id: number | null;
   acconto_tipo: string; acconto_valore: number; ritenuta_acconto: boolean;
   note: string; congelato: boolean;
@@ -587,9 +587,18 @@ export async function generatePreventivosPdf(
   totRow(i18n.t("pdf.subtotaleRighe"), fe(subtotaleNetto));
   if (avvio > 0) totRow(i18n.t("pdf.avvioMacchina"), fe(avvio));
   if (servizi > 0) totRow(i18n.t("pdf.totaleServizi") + ":", fe(servizi));
+
+  // Sconto sul totale (righe + avvio + servizi, esclusi spedizione e commissione)
+  const baseScontabile = r2(subtotaleNetto + avvio + servizi);
+  const scontoTotPct = pv.sconto_totale ?? 0;
+  const importoScontoTotale = r2(baseScontabile * scontoTotPct / 100);
+  if (importoScontoTotale > 0) {
+    totRow(`${i18n.t("pdf.scontoTotale")} (${scontoTotPct}%)`, `- ${fe(importoScontoTotale)}`);
+  }
+
   if (spedizione > 0) totRow(i18n.t("pdf.spedizioneLabel"), fe(spedizione));
 
-  const baseTotale = r2(subtotaleNetto + avvio + servizi + spedizione);
+  const baseTotale = r2(baseScontabile - importoScontoTotale + spedizione);
 
   let commissionePagamento = 0;
   if (metodoPagamento && metodoPagamento.addebita_al_cliente) {
