@@ -1,11 +1,11 @@
 {
-  "version": "1.5.4",
-  "notes": "v1.5.4 — Aggiornato changelog in-app con riepilogo migliorie PDF v1.5.1–1.5.4",
-  "pub_date": "2026-04-23T22:01:04Z",
+  "version": "1.5.5",
+  "notes": "v1.5.5 — Sconto sul totale (righe + avvio + servizi), indipendente dallo sconto stampa",
+  "pub_date": "2026-05-12T17:55:20Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bDVJWm0zU3d0UmprdmRNdlEwbjgrWkNQT24zdGx1eWVlM3FpN0tRbjFTd1NMUjUrcDNEclJsa0pJMU5SSTJLbGY1eUVCTWo0ek9SSTdPelVHQXU5S1E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc2OTgxNjUzCWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjUuNF94NjQtc2V0dXAuZXhlCjR5VE5YUjQ0QXZqS2xOMFNFM3Q1RXRXTmp1Rm9LK3E5d09hU3FVdnBsNkFtT0p0VlN5a1B3TEEzMXZmNlQvanRWdUdYazExSXlMTUtwWENtQWxsRENBPT0K",
-      "url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/download/v1.5.4/Sparks3D.Preventivi_1.5.4_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVWZYYVNZdG53bDBQblp4SWowaS9Qd24wZUJTV1hleWZXVWF6VU02cGJmZVBwSFQ1bytjRlQvS2lNczI5bVZ6WXE0SHlOV0hkSGFTRUFiSkp5RFpvR1I1ZkdEOFVrdEFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc4NjA4NDg2CWZpbGU6U3BhcmtzM0QgUHJldmVudGl2aV8xLjUuNV94NjQtc2V0dXAuZXhlCnlOWmR3Wi90NUtsK3FyMnhxakZUN2V0enFJTFIyOWp1cXFkdUtRTUMraXlpbDZlNGFhTnVNQTlDdmF5S0xLbUtRV1BTMFlRR3VkR2FUR1lTbEwzTUNnPT0K",
+      "url": "https://github.com/Sparks3D/sparks3d-preventivi/releases/download/v1.5.5/Sparks3D.Preventivi_1.5.5_x64-setup.exe"
     }
   }
 }
